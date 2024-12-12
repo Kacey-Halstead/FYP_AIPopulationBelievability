@@ -28,6 +28,8 @@ public:
 	}
 
 	void RenderWFC(SDL_Renderer* renderer);
+	void WFCBody();
+	void CreateRects();
 
 private:
 	int gridX = 0;
@@ -35,6 +37,7 @@ private:
 
 	Grid* grid = nullptr;
 
+	std::vector<SDL_Rect> rects;
 	std::vector<std::string> fullTypes = { "LAND", "COAST", "SEA" };
 	std::vector<char> charTypes;
 	std::vector<SDL_Texture*> textures;
@@ -43,7 +46,6 @@ private:
 	SDL_Window* SDLWindowRef = nullptr;
 
 	void DefineRules();
-	void WFCBody();
 	void Evaluate(Grid* grid, Tile* tile, char dir);
 	void ResetNeighbours(vector<Tile*> tiles);
 	SDL_Texture* CreateTexture(const char* filePath, SDL_Renderer* renderer);
@@ -51,5 +53,6 @@ private:
 
 	void DeleteTextures();
 	void CreateTextures(SDL_Renderer* renderer);
+
 };
 

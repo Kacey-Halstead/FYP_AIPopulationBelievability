@@ -11,44 +11,56 @@
 
 #include "WFC.h"
 
-
-int InitSDL()
+struct SDLVars
 {
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
+};
+
+SDLVars* InitSDL()
+{
+	SDLVars* sdlVars{};
+
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) //initialise SDL
 	{
 		std::cout << "Unable to initialise SDL: " << SDL_GetError();
-		return 1;
+		return nullptr;
 	}
 
 	if (IMG_Init(IMG_INIT_PNG) == 0) {
 		std::cout << "Error SDL2_image Initialization";
-		return 2;
+		return nullptr;
+	}
+
+	//Create window
+	sdlVars->window = SDL_CreateWindow("WFC", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL); //name, horizontal pos, vertical pos, width, height, mode
+	if (sdlVars->window == NULL) {
+		std::cout << "Error window creation";
+		return nullptr;
+	}
+
+	//Create renderer
+	sdlVars->renderer = SDL_CreateRenderer(sdlVars->window, -1, SDL_RENDERER_ACCELERATED); //window to render to, index of rendering driver (-1 = first available), mode
+	if (sdlVars->renderer == NULL) {
+		std::cout << "Error renderer creation";
+		return nullptr;
 	}
 }
 
 int main(int argc, char* argv[])
 {
-	InitSDL();
-
-	//Create window
-	SDL_Window* window = SDL_CreateWindow("WFC", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL); //name, horizontal pos, vertical pos, width, height, mode
-	if (window == NULL) {
-		std::cout << "Error window creation";
-		return 3;
-	}
-
-	//Create renderer
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); //window to render to, index of rendering driver (-1 = first available), mode
-	if (renderer == NULL) {
-		std::cout << "Error renderer creation";
-		return 4;
-	}
-
-	WFC* WFCComponent = new WFC(10, 10, window, renderer);
+	SDLVars* sdlVars = InitSDL();
+	if (sdlVars == nullptr) return 0; //if init error
 
 	srand(time(NULL));
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
+	//WFC Init
+	WFC* WFCComponent = new WFC(10, 10, sdlVars->window, sdlVars->renderer);
+	WFCComponent->WFCBody();
+	WFCComponent->CreateRects();
+
+	//main loop
 	while (true)
 	{
 		SDL_Event e;
@@ -60,13 +72,14 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		SDL_RenderClear(renderer); //remove anything already rendered
-		//TODO Add WFC rendering func here
-		SDL_RenderPresent(renderer); //moving from back buffer to screen
+		SDL_RenderClear(sdlVars->renderer); //remove anything already rendered
+		WFCComponent->RenderWFC(sdlVars->renderer); //render WFC 
+		SDL_RenderPresent(sdlVars->renderer); //moving from back buffer to screen
 	}
 
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+	SDL_DestroyRenderer(sdlVars->renderer);
+	SDL_DestroyWindow(sdlVars->window);
+	delete WFCComponent;
 	IMG_Quit();
 	SDL_Quit();
 

@@ -13,7 +13,14 @@ WFC::WFC(int GridX, int GridY, SDL_Window* window, SDL_Renderer* renderer)
 		charTypes.emplace_back(charType);
 	}
 
+	CreateTextures(renderer);
+
 	grid = new Grid(gridX, gridY, charTypes);
+}
+
+WFC::~WFC()
+{
+	DeleteTextures();
 }
 
 void WFC::DefineRules()
@@ -132,37 +139,26 @@ void WFC::ResetNeighbours(vector<Tile*> tiles)
 
 void WFC::RenderWFC(SDL_Renderer* renderer)
 {
-	//stores all rects to render tiles to
-	vector<SDL_Rect> rects;
+	int counter = 0;
 	for (int x = 0; x < gridX; x++)
 	{
 		for (int y = 0; y < gridY; y++)
 		{
-			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / gridX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / gridY), SDL_GetWindowSurface(SDLWindowRef)->w / gridX, SDL_GetWindowSurface(SDLWindowRef)->h / gridY };
-			rects.push_back(newRec);
-		}
-
-		int counter = 0;
-		for (int x = 0; x < gridX; x++)
-		{
-			for (int y = 0; y < gridY; y++)
+			switch (grid->Tiles[x][y]->type)
 			{
-				switch (grid->Tiles[x][y]->type)
-				{
-				case 'S':
-					SDL_RenderCopy(renderer, textures[2], NULL, &rects[counter]);
-					break;
-				case 'L':
-					SDL_RenderCopy(renderer, textures[0], NULL, &rects[counter]);
-					break;
-				case 'C':
-					SDL_RenderCopy(renderer, textures[1], NULL, &rects[counter]);
-					break;
-				default:
-					break;
-				}
-				counter++;
+			case 'S':
+				SDL_RenderCopy(renderer, textures[2], NULL, &rects[counter]);
+				break;
+			case 'L':
+				SDL_RenderCopy(renderer, textures[0], NULL, &rects[counter]);
+				break;
+			case 'C':
+				SDL_RenderCopy(renderer, textures[1], NULL, &rects[counter]);
+				break;
+			default:
+				break;
 			}
+			counter++;
 		}
 	}
 }
@@ -181,8 +177,6 @@ std::vector<char> WFC::GetTypeAndRules(char input, char dir)
 	return toRemove;
 }
 
-
-
 void WFC::DeleteTextures()
 {
 	for (SDL_Texture* tex : textures)
@@ -199,6 +193,18 @@ void WFC::CreateTextures(SDL_Renderer* renderer)
 		std::string path = "Images/" + t + ".png";
 		SDL_Texture* texture = CreateTexture((path).c_str(), renderer);
 		textures.emplace_back(texture);
+	}
+}
+
+void WFC::CreateRects()
+{
+	for (int x = 0; x < gridX; x++)
+	{
+		for (int y = 0; y < gridY; y++)
+		{
+			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / gridX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / gridY), SDL_GetWindowSurface(SDLWindowRef)->w / gridX, SDL_GetWindowSurface(SDLWindowRef)->h / gridY };
+			rects.emplace_back(newRec);
+		}
 	}
 }
 
