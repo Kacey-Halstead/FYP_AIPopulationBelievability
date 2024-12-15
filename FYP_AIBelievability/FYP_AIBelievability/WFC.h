@@ -1,11 +1,14 @@
 #pragma once
 #include <vector>
 #include <array>
-#include "Grid.h"
-#include "Tile.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
+
+#include "Grid.h"
+#include "Tile.h"
+#include "TextureManager.h"
+
 
 enum directions
 {
@@ -18,7 +21,7 @@ enum directions
 class WFC
 {
 public:
-	WFC(int GridX, int GridY, SDL_Window* window, SDL_Renderer* renderer);
+	WFC(int GridX, int GridY);
 	~WFC();
 
 	static std::array<char, 3> GenerateRule(char a, char b, char c)
@@ -29,7 +32,7 @@ public:
 
 	void RenderWFC(SDL_Renderer* renderer);
 	void WFCBody();
-	void CreateRects();
+	void CreateRects(SDL_Window* SDLWindowRef);
 
 private:
 	int gridX = 0;
@@ -40,19 +43,11 @@ private:
 	std::vector<SDL_Rect> rects;
 	std::vector<std::string> fullTypes = { "LAND", "COAST", "SEA" };
 	std::vector<char> charTypes;
-	std::vector<SDL_Texture*> textures;
 	std::vector<std::array<char, 3>> Rules;
-
-	SDL_Window* SDLWindowRef = nullptr;
 
 	void DefineRules();
 	void Evaluate(Grid* grid, Tile* tile, char dir);
 	void ResetNeighbours(vector<Tile*> tiles);
-	SDL_Texture* CreateTexture(const char* filePath, SDL_Renderer* renderer);
 	std::vector<char> GetTypeAndRules(char input, char dir);
-
-	void DeleteTextures();
-	void CreateTextures(SDL_Renderer* renderer);
-
 };
 

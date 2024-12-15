@@ -149,7 +149,7 @@ struct ImGui_ImplSDL2_Data
 // FIXME: some shared resources (mouse cursor shape, gamepad) are mishandled when using multi-context.
 static ImGui_ImplSDL2_Data* ImGui_ImplSDL2_GetBackendData()
 {
-    return ImGui::GetCurrentContext() ? (ImGui_ImplSDL2_Data*)ImGui::GetIO().BackendPlatformUserData : nullptr;
+    return ImGui_Implementation::GetCurrentContext() ? (ImGui_ImplSDL2_Data*)ImGui_Implementation::GetIO().BackendPlatformUserData : nullptr;
 }
 
 // Functions
@@ -314,7 +314,7 @@ ImGuiKey ImGui_ImplSDL2_KeyEventToImGuiKey(SDL_Keycode keycode, SDL_Scancode sca
 
 static void ImGui_ImplSDL2_UpdateKeyModifiers(SDL_Keymod sdl_key_mods)
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
     io.AddKeyEvent(ImGuiMod_Ctrl, (sdl_key_mods & KMOD_CTRL) != 0);
     io.AddKeyEvent(ImGuiMod_Shift, (sdl_key_mods & KMOD_SHIFT) != 0);
     io.AddKeyEvent(ImGuiMod_Alt, (sdl_key_mods & KMOD_ALT) != 0);
@@ -324,7 +324,7 @@ static void ImGui_ImplSDL2_UpdateKeyModifiers(SDL_Keymod sdl_key_mods)
 static ImGuiViewport* ImGui_ImplSDL2_GetViewportForWindowID(Uint32 window_id)
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
-    return (window_id == bd->WindowID) ? ImGui::GetMainViewport() : nullptr;
+    return (window_id == bd->WindowID) ? ImGui_Implementation::GetMainViewport() : nullptr;
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -336,7 +336,7 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplSDL2_Init()?");
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
 
     switch (event->type)
     {
@@ -420,7 +420,7 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
                 bd->MouseLastLeaveFrame = 0;
             }
             if (window_event == SDL_WINDOWEVENT_LEAVE)
-                bd->MouseLastLeaveFrame = ImGui::GetFrameCount() + 1;
+                bd->MouseLastLeaveFrame = ImGui_Implementation::GetFrameCount() + 1;
             if (window_event == SDL_WINDOWEVENT_FOCUS_GAINED)
                 io.AddFocusEvent(true);
             else if (event->window.event == SDL_WINDOWEVENT_FOCUS_LOST)
@@ -443,7 +443,7 @@ EM_JS(void, ImGui_ImplSDL2_EmscriptenOpenURL, (char const* url), { url = url ? U
 
 static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer, void* sdl_gl_context)
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
     IMGUI_CHECKVERSION();
     IM_ASSERT(io.BackendPlatformUserData == nullptr && "Already initialized a platform backend!");
 
@@ -470,7 +470,7 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer, void
     bd->Renderer = renderer;
     bd->MouseCanUseGlobalState = mouse_can_use_global_state;
 
-    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    ImGuiPlatformIO& platform_io = ImGui_Implementation::GetPlatformIO();
     platform_io.Platform_SetClipboardTextFn = ImGui_ImplSDL2_SetClipboardText;
     platform_io.Platform_GetClipboardTextFn = ImGui_ImplSDL2_GetClipboardText;
     platform_io.Platform_ClipboardUserData = nullptr;
@@ -496,7 +496,7 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window, SDL_Renderer* renderer, void
 
     // Set platform dependent data in viewport
     // Our mouse update function expect PlatformHandle to be filled for the main viewport
-    ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+    ImGuiViewport* main_viewport = ImGui_Implementation::GetMainViewport();
     main_viewport->PlatformHandle = (void*)(intptr_t)bd->WindowID;
     main_viewport->PlatformHandleRaw = nullptr;
     SDL_SysWMinfo info;
@@ -577,7 +577,7 @@ void ImGui_ImplSDL2_Shutdown()
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
     IM_ASSERT(bd != nullptr && "No platform backend to shutdown, or already shutdown?");
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
 
     if (bd->ClipboardTextData)
         SDL_free(bd->ClipboardTextData);
@@ -594,7 +594,7 @@ void ImGui_ImplSDL2_Shutdown()
 static void ImGui_ImplSDL2_UpdateMouseData()
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
 
     // We forward mouse input when hovered or captured (via SDL_MOUSEMOTION) or when focused (below)
 #if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE
@@ -624,12 +624,12 @@ static void ImGui_ImplSDL2_UpdateMouseData()
 
 static void ImGui_ImplSDL2_UpdateMouseCursor()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
         return;
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
 
-    ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+    ImGuiMouseCursor imgui_cursor = ImGui_Implementation::GetMouseCursor();
     if (io.MouseDrawCursor || imgui_cursor == ImGuiMouseCursor_None)
     {
         // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
@@ -699,7 +699,7 @@ static void ImGui_ImplSDL2_UpdateGamepadAnalog(ImGui_ImplSDL2_Data* bd, ImGuiIO&
 static void ImGui_ImplSDL2_UpdateGamepads()
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
 
     // Update list of controller(s) to use
     if (bd->WantUpdateGamepadsList && bd->GamepadMode != ImGui_ImplSDL2_GamepadMode_Manual)
@@ -757,7 +757,7 @@ void ImGui_ImplSDL2_NewFrame()
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplSDL2_Init()?");
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
 
     // Setup display size (every frame to accommodate for window resizing)
     int w, h;
@@ -786,7 +786,7 @@ void ImGui_ImplSDL2_NewFrame()
     io.DeltaTime = bd->Time > 0 ? (float)((double)(current_time - bd->Time) / frequency) : (float)(1.0f / 60.0f);
     bd->Time = current_time;
 
-    if (bd->MouseLastLeaveFrame && bd->MouseLastLeaveFrame >= ImGui::GetFrameCount() && bd->MouseButtonsDown == 0)
+    if (bd->MouseLastLeaveFrame && bd->MouseLastLeaveFrame >= ImGui_Implementation::GetFrameCount() && bd->MouseButtonsDown == 0)
     {
         bd->MouseWindowID = 0;
         bd->MouseLastLeaveFrame = 0;

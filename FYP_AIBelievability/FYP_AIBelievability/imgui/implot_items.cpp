@@ -296,7 +296,7 @@ ImPlotItem* RegisterOrGetItem(const char* label_id, ImPlotItemFlags flags, bool*
     item->SeenThisFrame = true;
     int idx = Items.GetItemIndex(item);
     item->ID = id;
-    if (!ImHasFlag(flags, ImPlotItemFlags_NoLegend) && ImGui::FindRenderedTextEnd(label_id, nullptr) != label_id) {
+    if (!ImHasFlag(flags, ImPlotItemFlags_NoLegend) && ImGui_Implementation::FindRenderedTextEnd(label_id, nullptr) != label_id) {
         Items.Legend.Indices.push_back(idx);
         item->NameOffset = Items.Legend.Labels.size();
         Items.Legend.Labels.append(label_id, label_id + strlen(label_id) + 1);
@@ -353,7 +353,7 @@ void SetNextErrorBarStyle(const ImVec4& col, float size, float weight) {
 ImVec4 GetLastItemColor() {
     ImPlotContext& gp = *GImPlot;
     if (gp.PreviousItem)
-        return ImGui::ColorConvertU32ToFloat4(gp.PreviousItem->Color);
+        return ImGui_Implementation::ColorConvertU32ToFloat4(gp.PreviousItem->Color);
     return ImVec4();
 }
 
@@ -375,7 +375,7 @@ void BustColorCache(const char* plot_title_id) {
         BustItemCache();
     }
     else {
-        ImGuiID id = ImGui::GetCurrentWindow()->GetID(plot_title_id);
+        ImGuiID id = ImGui_Implementation::GetCurrentWindow()->GetID(plot_title_id);
         ImPlotPlot* plot = gp.Plots.GetByKey(id);
         if (plot != nullptr)
             plot->Items.Reset();
@@ -407,9 +407,9 @@ bool BeginItem(const char* label_id, ImPlotItemFlags flags, ImPlotCol recolor_fr
     // set/override item color
     if (recolor_from != -1) {
         if (!IsColorAuto(s.Colors[recolor_from]))
-            item->Color = ImGui::ColorConvertFloat4ToU32(s.Colors[recolor_from]);
+            item->Color = ImGui_Implementation::ColorConvertFloat4ToU32(s.Colors[recolor_from]);
         else if (!IsColorAuto(gp.Style.Colors[recolor_from]))
-            item->Color = ImGui::ColorConvertFloat4ToU32(gp.Style.Colors[recolor_from]);
+            item->Color = ImGui_Implementation::ColorConvertFloat4ToU32(gp.Style.Colors[recolor_from]);
         else if (just_created)
             item->Color = NextColormapColorU32();
     }
@@ -429,7 +429,7 @@ bool BeginItem(const char* label_id, ImPlotItemFlags flags, ImPlotCol recolor_fr
         return false;
     }
     else {
-        ImVec4 item_color = ImGui::ColorConvertU32ToFloat4(item->Color);
+        ImVec4 item_color = ImGui_Implementation::ColorConvertU32ToFloat4(item->Color);
         // stage next item colors
         s.Colors[ImPlotCol_Line]           = IsColorAuto(s.Colors[ImPlotCol_Line])          ? ( IsColorAuto(ImPlotCol_Line)           ? item_color                 : gp.Style.Colors[ImPlotCol_Line]          ) : s.Colors[ImPlotCol_Line];
         s.Colors[ImPlotCol_Fill]           = IsColorAuto(s.Colors[ImPlotCol_Fill])          ? ( IsColorAuto(ImPlotCol_Fill)           ? item_color                 : gp.Style.Colors[ImPlotCol_Fill]          ) : s.Colors[ImPlotCol_Fill];
@@ -1579,12 +1579,12 @@ void PlotLineEx(const char* label_id, const _Getter& getter, ImPlotLineFlags fla
         const ImPlotNextItemData& s = GetItemData();
         if (getter.Count > 1) {
             if (ImHasFlag(flags, ImPlotLineFlags_Shaded) && s.RenderFill) {
-                const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
+                const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Fill]);
                 GetterOverrideY<_Getter> getter2(getter, 0);
                 RenderPrimitives2<RendererShaded>(getter,getter2,col_fill);
             }
             if (s.RenderLine) {
-                const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+                const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
                 if (ImHasFlag(flags,ImPlotLineFlags_Segments)) {
                     RenderPrimitives1<RendererLineSegments1>(getter,col_line,s.LineWeight);
                 }
@@ -1608,8 +1608,8 @@ void PlotLineEx(const char* label_id, const _Getter& getter, ImPlotLineFlags fla
                 PopPlotClipRect();
                 PushPlotClipRect(s.MarkerSize);
             }
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
-            const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
+            const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
             RenderMarkers<_Getter>(getter, s.Marker, s.MarkerSize, s.RenderMarkerFill, col_fill, s.RenderMarkerLine, col_line, s.MarkerWeight);
         }
         EndItem();
@@ -1658,8 +1658,8 @@ void PlotScatterEx(const char* label_id, const Getter& getter, ImPlotScatterFlag
                 PopPlotClipRect();
                 PushPlotClipRect(s.MarkerSize);
             }
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
-            const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
+            const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
             RenderMarkers<Getter>(getter, marker, s.MarkerSize, s.RenderMarkerFill, col_fill, s.RenderMarkerLine, col_line, s.MarkerWeight);
         }
         EndItem();
@@ -1704,14 +1704,14 @@ void PlotStairsEx(const char* label_id, const Getter& getter, ImPlotStairsFlags 
         const ImPlotNextItemData& s = GetItemData();
         if (getter.Count > 1) {
             if (s.RenderFill && ImHasFlag(flags,ImPlotStairsFlags_Shaded)) {
-                const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
+                const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Fill]);
                 if (ImHasFlag(flags, ImPlotStairsFlags_PreStep))
                     RenderPrimitives1<RendererStairsPreShaded>(getter,col_fill);
                 else
                     RenderPrimitives1<RendererStairsPostShaded>(getter,col_fill);
             }
             if (s.RenderLine) {
-                const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+                const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
                 if (ImHasFlag(flags, ImPlotStairsFlags_PreStep))
                     RenderPrimitives1<RendererStairsPre>(getter,col_line,s.LineWeight);
                 else
@@ -1722,8 +1722,8 @@ void PlotStairsEx(const char* label_id, const Getter& getter, ImPlotStairsFlags 
         if (s.Marker != ImPlotMarker_None) {
             PopPlotClipRect();
             PushPlotClipRect(s.MarkerSize);
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
-            const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
+            const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
             RenderMarkers<Getter>(getter, s.Marker, s.MarkerSize, s.RenderMarkerFill, col_fill, s.RenderMarkerLine, col_line, s.MarkerWeight);
         }
         EndItem();
@@ -1767,7 +1767,7 @@ void PlotShadedEx(const char* label_id, const Getter1& getter1, const Getter2& g
         }
         const ImPlotNextItemData& s = GetItemData();
         if (s.RenderFill) {
-            const ImU32 col = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
+            const ImU32 col = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Fill]);
             RenderPrimitives2<RendererShaded>(getter1,getter2,col);
         }
         EndItem();
@@ -1830,8 +1830,8 @@ void PlotBarsVEx(const char* label_id, const Getter1& getter1, const Getter2 get
             return;
         }
         const ImPlotNextItemData& s = GetItemData();
-        const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
-        const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+        const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Fill]);
+        const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
         bool rend_fill = s.RenderFill;
         bool rend_line = s.RenderLine;
         if (rend_fill) {
@@ -1854,8 +1854,8 @@ void PlotBarsHEx(const char* label_id, const Getter1& getter1, const Getter2& ge
             return;
         }
         const ImPlotNextItemData& s = GetItemData();
-        const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
-        const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+        const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Fill]);
+        const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
         bool rend_fill = s.RenderFill;
         bool rend_line = s.RenderLine;
         if (rend_fill) {
@@ -2015,7 +2015,7 @@ void PlotErrorBarsVEx(const char* label_id, const _GetterPos& getter_pos, const 
         }
         const ImPlotNextItemData& s = GetItemData();
         ImDrawList& draw_list = *GetPlotDrawList();
-        const ImU32 col = ImGui::GetColorU32(s.Colors[ImPlotCol_ErrorBar]);
+        const ImU32 col = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_ErrorBar]);
         const bool rend_whisker  = s.ErrorBarSize > 0;
         const float half_whisker = s.ErrorBarSize * 0.5f;
         for (int i = 0; i < getter_pos.Count; ++i) {
@@ -2040,7 +2040,7 @@ void PlotErrorBarsHEx(const char* label_id, const _GetterPos& getter_pos, const 
         }
         const ImPlotNextItemData& s = GetItemData();
         ImDrawList& draw_list = *GetPlotDrawList();
-        const ImU32 col = ImGui::GetColorU32(s.Colors[ImPlotCol_ErrorBar]);
+        const ImU32 col = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_ErrorBar]);
         const bool rend_whisker  = s.ErrorBarSize > 0;
         const float half_whisker = s.ErrorBarSize * 0.5f;
         for (int i = 0; i < getter_pos.Count; ++i) {
@@ -2104,15 +2104,15 @@ void PlotStemsEx(const char* label_id, const _GetterM& getter_mark, const _Gette
         const ImPlotNextItemData& s = GetItemData();
         // render stems
         if (s.RenderLine) {
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
             RenderPrimitives2<RendererLineSegments2>(getter_mark, getter_base, col_line, s.LineWeight);
         }
         // render markers
         if (s.Marker != ImPlotMarker_None) {
             PopPlotClipRect();
             PushPlotClipRect(s.MarkerSize);
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
-            const ImU32 col_fill = ImGui::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerOutline]);
+            const ImU32 col_fill = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_MarkerFill]);
             RenderMarkers<_GetterM>(getter_mark, s.Marker, s.MarkerSize, s.RenderMarkerFill, col_fill, s.RenderMarkerLine, col_line, s.MarkerWeight);
         }
         EndItem();
@@ -2170,7 +2170,7 @@ void PlotInfLines(const char* label_id, const T* values, int count, ImPlotInfLin
                 return;
             }
             const ImPlotNextItemData& s = GetItemData();
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
             if (s.RenderLine)
                 RenderPrimitives2<RendererLineSegments2>(getter_min, getter_max, col_line, s.LineWeight);
             EndItem();
@@ -2185,7 +2185,7 @@ void PlotInfLines(const char* label_id, const T* values, int count, ImPlotInfLin
                 return;
             }
             const ImPlotNextItemData& s = GetItemData();
-            const ImU32 col_line = ImGui::GetColorU32(s.Colors[ImPlotCol_Line]);
+            const ImU32 col_line = ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Line]);
             if (s.RenderLine)
                 RenderPrimitives2<RendererLineSegments2>(get_min, get_max, col_line, s.LineWeight);
             EndItem();
@@ -2321,10 +2321,10 @@ void PlotPieChart(const char* const label_ids[], const T* values, int count, dou
                 a1 = a0 + 2 * IM_PI * percent;
                 if (item->Show) {
                     fmt((double)values[i], buffer, 32, fmt_data);
-                    ImVec2 size = ImGui::CalcTextSize(buffer);
+                    ImVec2 size = ImGui_Implementation::CalcTextSize(buffer);
                     double angle = a0 + (a1 - a0) * 0.5;
                     ImVec2 pos = PlotToPixels(center.x + 0.5 * radius * cos(angle), center.y + 0.5 * radius * sin(angle), IMPLOT_AUTO, IMPLOT_AUTO);
-                    ImU32 col = CalcTextColor(ImGui::ColorConvertU32ToFloat4(item->Color));
+                    ImU32 col = CalcTextColor(ImGui_Implementation::ColorConvertU32ToFloat4(item->Color));
                     draw_list.AddText(pos - size * 0.5f, col, buffer);
                 }
                 a0 = a1;
@@ -2453,7 +2453,7 @@ void RenderHeatmap(ImDrawList& draw_list, const T* values, int rows, int cols, d
                     ImVec2 px = transformer(p);
                     char buff[32];
                     ImFormatString(buff, 32, fmt, values[i]);
-                    ImVec2 size = ImGui::CalcTextSize(buff);
+                    ImVec2 size = ImGui_Implementation::CalcTextSize(buff);
                     double t = ImClamp(ImRemap01((double)values[i], scale_min, scale_max),0.0,1.0);
                     ImVec4 color = SampleColormap((float)t);
                     ImU32 col = CalcTextColor(color);
@@ -2471,7 +2471,7 @@ void RenderHeatmap(ImDrawList& draw_list, const T* values, int rows, int cols, d
                     ImVec2 px = transformer(p);
                     char buff[32];
                     ImFormatString(buff, 32, fmt, values[i]);
-                    ImVec2 size = ImGui::CalcTextSize(buff);
+                    ImVec2 size = ImGui_Implementation::CalcTextSize(buff);
                     double t = ImClamp(ImRemap01((double)values[i], scale_min, scale_max),0.0,1.0);
                     ImVec4 color = SampleColormap((float)t);
                     ImU32 col = CalcTextColor(color);
@@ -2722,7 +2722,7 @@ void PlotDigitalEx(const char* label_id, Getter getter, ImPlotDigitalFlags flags
                 if ((pMax.x > pMin.x) && (gp.CurrentPlot->PlotRect.Contains(pMin) || gp.CurrentPlot->PlotRect.Contains(pMax))) {
                     // ImVec4 colAlpha = item->Color;
                     // colAlpha.w = item->Highlight ? 1.0f : 0.9f;
-                    draw_list.AddRectFilled(pMin, pMax, ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]));
+                    draw_list.AddRectFilled(pMin, pMax, ImGui_Implementation::GetColorU32(s.Colors[ImPlotCol_Fill]));
                 }
                 itemData1 = itemData2;
             }
@@ -2755,7 +2755,7 @@ void PlotDigitalG(const char* label_id, ImPlotGetter getter_func, void* data, in
 
 void PlotImage(const char* label_id, ImTextureID user_texture_id, const ImPlotPoint& bmin, const ImPlotPoint& bmax, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, ImPlotImageFlags) {
     if (BeginItemEx(label_id, FitterRect(bmin,bmax))) {
-        ImU32 tint_col32 = ImGui::ColorConvertFloat4ToU32(tint_col);
+        ImU32 tint_col32 = ImGui_Implementation::ColorConvertFloat4ToU32(tint_col);
         GetCurrentItem()->Color = tint_col32;
         ImDrawList& draw_list = *GetPlotDrawList();
         ImVec2 p1 = PlotToPixels(bmin.x, bmax.y,IMPLOT_AUTO,IMPLOT_AUTO);
@@ -2788,7 +2788,7 @@ void PlotText(const char* text, double x, double y, const ImVec2& pixel_offset, 
         AddTextVertical(&draw_list, pos, colTxt, text);
     }
     else {
-        ImVec2 siz = ImGui::CalcTextSize(text);
+        ImVec2 siz = ImGui_Implementation::CalcTextSize(text);
         ImVec2 pos = PlotToPixels(ImPlotPoint(x,y),IMPLOT_AUTO,IMPLOT_AUTO) - siz * 0.5f + pixel_offset;
         if (FitThisFrame() && !ImHasFlag(flags, ImPlotItemFlags_NoFit)) {
             FitPoint(PixelsToPlot(pos));

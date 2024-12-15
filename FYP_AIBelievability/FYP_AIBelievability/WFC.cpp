@@ -1,26 +1,21 @@
 #include "WFC.h"
 
-WFC::WFC(int GridX, int GridY, SDL_Window* window, SDL_Renderer* renderer)
+WFC::WFC(int GridX, int GridY)
 {
 	gridX = GridX;
 	gridY = GridY;
-	SDLWindowRef = window;
 
 	for (std::string t : fullTypes)
 	{
-		std::string path = "Images/" + t + ".png";
-		char charType= t[0];
-		charTypes.emplace_back(charType);
+		charTypes.emplace_back(t[0]);
 	}
-
-	CreateTextures(renderer);
 
 	grid = new Grid(gridX, gridY, charTypes);
 }
 
 WFC::~WFC()
 {
-	DeleteTextures();
+	delete grid;
 }
 
 void WFC::DefineRules()
@@ -146,14 +141,14 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 		{
 			switch (grid->Tiles[x][y]->type)
 			{
-			case 'S':
-				SDL_RenderCopy(renderer, textures[2], NULL, &rects[counter]);
+			case 'S':		
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &rects[counter]);
 				break;
 			case 'L':
-				SDL_RenderCopy(renderer, textures[0], NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &rects[counter]);
 				break;
 			case 'C':
-				SDL_RenderCopy(renderer, textures[1], NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &rects[counter]);
 				break;
 			default:
 				break;
@@ -177,26 +172,7 @@ std::vector<char> WFC::GetTypeAndRules(char input, char dir)
 	return toRemove;
 }
 
-void WFC::DeleteTextures()
-{
-	for (SDL_Texture* tex : textures)
-	{
-		SDL_DestroyTexture(tex);
-	}
-}
-
-void WFC::CreateTextures(SDL_Renderer* renderer)
-{
-	//creates textures and inserts into vector
-	for (std::string t : fullTypes)
-	{
-		std::string path = "Images/" + t + ".png";
-		SDL_Texture* texture = CreateTexture((path).c_str(), renderer);
-		textures.emplace_back(texture);
-	}
-}
-
-void WFC::CreateRects()
+void WFC::CreateRects(SDL_Window* SDLWindowRef)
 {
 	for (int x = 0; x < gridX; x++)
 	{
@@ -206,22 +182,4 @@ void WFC::CreateRects()
 			rects.emplace_back(newRec);
 		}
 	}
-}
-
-SDL_Texture* WFC::CreateTexture(const char* filePath, SDL_Renderer* renderer)
-{
-	SDL_Surface* IMG = IMG_Load(filePath);
-	if (IMG == NULL) {
-		std::cout << "Error loading image: " << IMG_GetError();
-		return nullptr;
-	}
-
-	SDL_Texture* TEX = SDL_CreateTextureFromSurface(renderer, IMG);
-	if (TEX == NULL) {
-		std::cout << "Error creating texture";
-		return nullptr;
-	}
-
-	SDL_FreeSurface(IMG);
-	return TEX;
 }

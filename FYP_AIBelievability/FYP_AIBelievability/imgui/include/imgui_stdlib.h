@@ -11,7 +11,7 @@
 
 #include <string>
 
-namespace ImGui
+namespace ImGui_Implementation
 {
     // ImGui::InputText() with std::string
     // Because text input needs dynamic resizing, we need to setup a callback to grow the capacity

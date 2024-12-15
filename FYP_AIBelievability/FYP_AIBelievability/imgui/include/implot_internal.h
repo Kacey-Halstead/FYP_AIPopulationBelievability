@@ -567,7 +567,7 @@ struct ImPlotTicker {
         if (show_label && label != nullptr) {
             tick.TextOffset = TextBuffer.size();
             TextBuffer.append(label, label + strlen(label) + 1);
-            tick.LabelSize = ImGui::CalcTextSize(TextBuffer.Buf.Data + tick.TextOffset);
+            tick.LabelSize = ImGui_Implementation::CalcTextSize(TextBuffer.Buf.Data + tick.TextOffset);
         }
         return AddTick(tick);
     }
@@ -579,7 +579,7 @@ struct ImPlotTicker {
             tick.TextOffset = TextBuffer.size();
             formatter(tick.PlotPos, buff, sizeof(buff), data);
             TextBuffer.append(buff, buff + strlen(buff) + 1);
-            tick.LabelSize = ImGui::CalcTextSize(TextBuffer.Buf.Data + tick.TextOffset);
+            tick.LabelSize = ImGui_Implementation::CalcTextSize(TextBuffer.Buf.Data + tick.TextOffset);
         }
         return AddTick(tick);
     }
@@ -997,7 +997,7 @@ struct ImPlotItemGroup
     ImPlotItemGroup() { ID = 0; ColormapIdx = 0; }
 
     int         GetItemCount() const             { return ItemPool.GetBufSize();                                 }
-    ImGuiID     GetItemID(const char*  label_id) { return ImGui::GetID(label_id); /* GetIDWithSeed */            }
+    ImGuiID     GetItemID(const char*  label_id) { return ImGui_Implementation::GetID(label_id); /* GetIDWithSeed */            }
     ImPlotItem* GetItem(ImGuiID id)              { return ItemPool.GetByKey(id);                                 }
     ImPlotItem* GetItem(const char* label_id)    { return GetItem(GetItemID(label_id));                          }
     ImPlotItem* GetOrAddItem(ImGuiID id)         { return ItemPool.GetOrAddByKey(id);                            }
@@ -1071,7 +1071,7 @@ struct ImPlotPlot
     inline void ClearTextBuffer() { TextBuffer.Buf.shrink(0); }
 
     inline void SetTitle(const char* title) {
-        if (title && ImGui::FindRenderedTextEnd(title, nullptr) != title) {
+        if (title && ImGui_Implementation::FindRenderedTextEnd(title, nullptr) != title) {
             TitleOffset = TextBuffer.size();
             TextBuffer.append(title, title + strlen(title) + 1);
         }
@@ -1102,7 +1102,7 @@ struct ImPlotPlot
     }
 
     inline void SetAxisLabel(ImPlotAxis& axis, const char* label) {
-        if (label && ImGui::FindRenderedTextEnd(label, nullptr) != label) {
+        if (label && ImGui_Implementation::FindRenderedTextEnd(label, nullptr) != label) {
             axis.LabelOffset = TextBuffer.size();
             TextBuffer.append(label, label + strlen(label) + 1);
         }
@@ -1448,7 +1448,7 @@ IMPLOT_API ImVec4 GetAutoColor(ImPlotCol idx);
 
 // Returns the style color whether it is automatic or custom set
 static inline ImVec4 GetStyleColorVec4(ImPlotCol idx) { return IsColorAuto(idx) ? GetAutoColor(idx) : GImPlot->Style.Colors[idx]; }
-static inline ImU32  GetStyleColorU32(ImPlotCol idx)  { return ImGui::ColorConvertFloat4ToU32(GetStyleColorVec4(idx)); }
+static inline ImU32  GetStyleColorU32(ImPlotCol idx)  { return ImGui_Implementation::ColorConvertFloat4ToU32(GetStyleColorVec4(idx)); }
 
 // Draws vertical text. The position is the bottom left of the text rect.
 IMPLOT_API void AddTextVertical(ImDrawList *DrawList, ImVec2 pos, ImU32 col, const char* text_begin, const char* text_end = nullptr);
@@ -1456,12 +1456,12 @@ IMPLOT_API void AddTextVertical(ImDrawList *DrawList, ImVec2 pos, ImU32 col, con
 IMPLOT_API void AddTextCentered(ImDrawList* DrawList, ImVec2 top_center, ImU32 col, const char* text_begin, const char* text_end = nullptr);
 // Calculates the size of vertical text
 static inline ImVec2 CalcTextSizeVertical(const char *text) {
-    ImVec2 sz = ImGui::CalcTextSize(text);
+    ImVec2 sz = ImGui_Implementation::CalcTextSize(text);
     return ImVec2(sz.y, sz.x);
 }
 // Returns white or black text given background color
 static inline ImU32 CalcTextColor(const ImVec4& bg) { return (bg.x * 0.299f + bg.y * 0.587f + bg.z * 0.114f) > 0.5f ? IM_COL32_BLACK : IM_COL32_WHITE; }
-static inline ImU32 CalcTextColor(ImU32 bg)         { return CalcTextColor(ImGui::ColorConvertU32ToFloat4(bg)); }
+static inline ImU32 CalcTextColor(ImU32 bg)         { return CalcTextColor(ImGui_Implementation::ColorConvertU32ToFloat4(bg)); }
 // Lightens or darkens a color for hover
 static inline ImU32 CalcHoverColor(ImU32 col)       {  return ImMixU32(col, CalcTextColor(col), 32); }
 

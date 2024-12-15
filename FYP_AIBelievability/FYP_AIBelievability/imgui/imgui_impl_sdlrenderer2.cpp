@@ -59,13 +59,13 @@ struct ImGui_ImplSDLRenderer2_Data
 // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
 static ImGui_ImplSDLRenderer2_Data* ImGui_ImplSDLRenderer2_GetBackendData()
 {
-    return ImGui::GetCurrentContext() ? (ImGui_ImplSDLRenderer2_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
+    return ImGui_Implementation::GetCurrentContext() ? (ImGui_ImplSDLRenderer2_Data*)ImGui_Implementation::GetIO().BackendRendererUserData : nullptr;
 }
 
 // Functions
 bool ImGui_ImplSDLRenderer2_Init(SDL_Renderer* renderer)
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
     IMGUI_CHECKVERSION();
     IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
     IM_ASSERT(renderer != nullptr && "SDL_Renderer not initialized!");
@@ -85,7 +85,7 @@ void ImGui_ImplSDLRenderer2_Shutdown()
 {
     ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
     IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
 
     ImGui_ImplSDLRenderer2_DestroyDeviceObjects();
 
@@ -146,7 +146,7 @@ void ImGui_ImplSDLRenderer2_RenderDrawData(ImDrawData* draw_data, SDL_Renderer* 
     ImGui_ImplSDLRenderer2_SetupRenderState(renderer);
 
     // Setup render state structure (for callbacks and custom texture bindings)
-    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    ImGuiPlatformIO& platform_io = ImGui_Implementation::GetPlatformIO();
     ImGui_ImplSDLRenderer2_RenderState render_state;
     render_state.Renderer = renderer;
     platform_io.Renderer_RenderState = &render_state;
@@ -218,7 +218,7 @@ void ImGui_ImplSDLRenderer2_RenderDrawData(ImDrawData* draw_data, SDL_Renderer* 
 // Called by Init/NewFrame/Shutdown
 bool ImGui_ImplSDLRenderer2_CreateFontsTexture()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
     ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
 
     // Build texture atlas
@@ -246,7 +246,7 @@ bool ImGui_ImplSDLRenderer2_CreateFontsTexture()
 
 void ImGui_ImplSDLRenderer2_DestroyFontsTexture()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io = ImGui_Implementation::GetIO();
     ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
     if (bd->FontTexture)
     {
