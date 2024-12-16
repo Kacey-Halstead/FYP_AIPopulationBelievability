@@ -73,9 +73,9 @@ int main(int argc, char* argv[])
 	ImGui_Implementation::Init(initVars->renderer, initVars->window);
 
 	//WFC Init
-	WFC* WFCComponent = new WFC(10, 10);
-	WFCComponent->WFCBody();
-	WFCComponent->CreateRects(initVars->window);
+	WFC WFCComponent = {10, 10};
+	WFCComponent.WFCBody();
+	WFCComponent.CreateRects(initVars->window);
 
 	//Agent init
 	for (int i = 0; i < 10; i++)
@@ -121,13 +121,13 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		//ImGui details
+		//ImGui windows
 		ImGui_Implementation::AgentPopUp();
 
 
 		SDL_RenderClear(initVars->renderer); //remove anything already rendered
 
-		WFCComponent->RenderWFC(initVars->renderer); //render WFC 
+		WFCComponent.RenderWFC(initVars->renderer); //render WFC 
 
 		for (Agent& a : agents) //render agents
 		{
@@ -137,8 +137,6 @@ int main(int argc, char* argv[])
 		ImGui_Implementation::ImGuiDraw(initVars->renderer);
 		SDL_RenderPresent(initVars->renderer); //moving from back buffer to screen
 	}
-
-	delete WFCComponent;
 
 	// Cleanup
 	ImGui_Implementation::Destroy();
