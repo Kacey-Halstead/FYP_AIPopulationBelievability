@@ -16,6 +16,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{b9723675-813a-46a3-a02a-0a2b0585ab04}</UniqueIdentifier>
     </Filter>
+    <Filter Include="JSON">
+      <UniqueIdentifier>{17c28764-5406-4f88-90bc-ed8a34757127}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FYP_AIBelievability.cpp">
@@ -72,6 +75,9 @@
     <ClCompile Include="ImGuiImplementation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RandomGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grid.h">
@@ -92,10 +98,25 @@
     <ClInclude Include="ImGuiImplementation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nlohmann\json.hpp">
+      <Filter>JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="nlohmann\json_fwd.hpp">
+      <Filter>JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="JSON.h">
+      <Filter>JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\imgui.natstepfilter">
       <Filter>imgui</Filter>
+    </None>
+    <None Include="traits.json">
+      <Filter>JSON</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

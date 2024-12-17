@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
 		ImGui_Implementation::AgentPopUp();
 
 
+		//RENDERING
 		SDL_RenderClear(initVars->renderer); //remove anything already rendered
 
 		WFCComponent.RenderWFC(initVars->renderer); //render WFC 

@@ -18,16 +18,16 @@ public:
 
 	SDL_Point position = { 10, 10 };
 	int agentCount;
-	std::array<float, 5> OCEANVals;
 
+	std::array<float, 5> OCEANVals;
+	std::array<std::string, 6> traits;
+	std::array<Agent*, 2> parents = {nullptr, nullptr};
 
 private:
 	SDL_Point size = {50, 50};
 	SDL_Rect agentRect;
-};
 
-
-namespace TempName
-{
+	void CalculateOCEANVals();	
+	void GenerateTraits();
 	
-}
+};

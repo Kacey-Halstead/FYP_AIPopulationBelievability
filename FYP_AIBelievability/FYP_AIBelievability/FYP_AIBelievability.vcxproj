@@ -154,6 +154,7 @@
     <ClCompile Include="imgui\implot.cpp" />
     <ClCompile Include="imgui\implot_demo.cpp" />
     <ClCompile Include="imgui\implot_items.cpp" />
+    <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="WFC.cpp" />
@@ -162,12 +163,17 @@
     <ClInclude Include="Agent.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImGuiImplementation.h" />
+    <ClInclude Include="nlohmann\json.hpp" />
+    <ClInclude Include="nlohmann\json_fwd.hpp" />
+    <ClInclude Include="RandomGenerator.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Tile.h" />
+    <ClInclude Include="JSON.h" />
     <ClInclude Include="WFC.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\imgui.natstepfilter" />
+    <None Include="traits.json" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="imgui\imgui.natvis" />

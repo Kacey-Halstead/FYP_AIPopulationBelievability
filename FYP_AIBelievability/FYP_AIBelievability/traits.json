@@ -1,0 +1,46 @@
+{
+	"Openness": {
+		"Creative": 1,
+		"Curious": 1,
+		"Complex": 1,
+		"Uncreative": -1,
+		"Conventional": -1,
+		"Narrow-minded": -1
+	},
+
+	"Conscientiousness": {
+		"Reliable": 1,
+		"Careful": 1,
+		"Self-disciplined": 1,
+		"Disorganised": -1,
+		"Undependable": -1,
+		"Negligent": -1
+	},
+
+	"Extraversion": {
+		"Sociable": 1,
+		"Friendly": 1,
+		"Talkative": 1,
+		"Introverted": -1,
+		"Quiet": -1,
+		"Reserved": -1
+	},
+
+	"Agreeableness": {
+		"Sympathetic": 1,
+		"Forgiving": 1,
+		"Courteous": 1,
+		"Critical": -1,
+		"Harsh": -1,
+		"Rude": -1
+	},
+
+	"Neuroticism": {
+		"Nervous": 1,
+		"Insecure": 1,
+		"Worrying": 1,
+		"Calm": -1,
+		"Relaxed": -1,
+		"Secure": -1
+	}
+}
