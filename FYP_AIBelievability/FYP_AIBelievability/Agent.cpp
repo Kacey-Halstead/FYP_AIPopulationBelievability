@@ -66,7 +66,7 @@ void Agent::GenerateTraits()
 	}
 	
 	std::uniform_int_distribution<> distrib(1, 6);
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		OCEANVals[i] = distrib(RandomGenerator::gen);
 	}
