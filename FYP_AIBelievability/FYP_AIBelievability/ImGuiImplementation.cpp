@@ -9,6 +9,7 @@ namespace ImGui_Implementation
 {
 	int agentCount = 0;
 	std::array<float, 5> OCEANValues{};
+	std::array<std::string, 6> Traits{};
 	bool isAgentPressed = false;
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
@@ -51,11 +52,24 @@ namespace ImGui_Implementation
 		if (isAgentPressed)
 		{
 			ImGui_Implementation::Begin("Agent Information");
+
+			//OCEAN VALUES
 			if (ImPlot::BeginPlot("Agent Graph"))
-			{
+			{		
 				ImPlot::PlotBars("OCEAN Values", OCEANValues.data(), OCEANValues.size());
 				ImPlot::EndPlot();
 			}
+
+			//TRAITS
+			
+			if (ImGui_Implementation::BeginChild("Scrolling"))
+			{
+				for (int i = 0; i < Traits.size(); i++)
+				{
+					ImGui_Implementation::Text(Traits[i].c_str());
+				}
+			}
+			ImGui_Implementation::EndChild();
 
 			ImGui_Implementation::Text("agent = %d", agentCount);
 

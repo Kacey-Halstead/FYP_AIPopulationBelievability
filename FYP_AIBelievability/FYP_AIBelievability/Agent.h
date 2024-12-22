@@ -17,11 +17,11 @@ public:
 	bool IsPointInAgent(SDL_Point point);
 
 	SDL_Point position = { 10, 10 };
-	int agentCount;
 
-	std::array<float, 5> OCEANVals;
+	std::array<float, 5> OCEANVals = {0, 0, 0, 0, 0};
 	std::array<std::string, 6> traits;
 	std::array<Agent*, 2> parents = {nullptr, nullptr};
+	int agentCount;
 
 private:
 	SDL_Point size = {50, 50};

@@ -21,7 +21,6 @@ struct InitVars
 };
 
 std::vector<Agent> agents;
-int agentNum = -1;
 
 InitVars InitSDL()
 {
@@ -113,8 +112,9 @@ int main(int argc, char* argv[])
 					if (a.IsPointInAgent(mousePos))
 					{
 						ImGui_Implementation::isAgentPressed = true;
-						agentNum = a.agentCount;
+						ImGui_Implementation::agentCount = a.agentCount;
 						ImGui_Implementation::OCEANValues = a.OCEANVals;
+						ImGui_Implementation::Traits = a.traits;
 						break;
 					}
 				}

@@ -1,5 +1,6 @@
 {
 	"Openness": {
+		"TYPE": 0,
 		"Creative": 1,
 		"Curious": 1,
 		"Complex": 1,
@@ -9,6 +10,7 @@
 	},
 
 	"Conscientiousness": {
+		"TYPE": 1,
 		"Reliable": 1,
 		"Careful": 1,
 		"Self-disciplined": 1,
@@ -18,6 +20,7 @@
 	},
 
 	"Extraversion": {
+		"TYPE": 2,
 		"Sociable": 1,
 		"Friendly": 1,
 		"Talkative": 1,
@@ -27,6 +30,7 @@
 	},
 
 	"Agreeableness": {
+		"TYPE": 3,
 		"Sympathetic": 1,
 		"Forgiving": 1,
 		"Courteous": 1,
@@ -36,6 +40,7 @@
 	},
 
 	"Neuroticism": {
+		"TYPE": 4,
 		"Nervous": 1,
 		"Insecure": 1,
 		"Worrying": 1,
