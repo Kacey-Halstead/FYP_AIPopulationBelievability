@@ -56,7 +56,14 @@ namespace ImGui_Implementation
 			//OCEAN VALUES
 			if (ImPlot::BeginPlot("Agent Graph"))
 			{		
-				ImPlot::PlotBars("OCEAN Values", OCEANValues.data(), OCEANValues.size());
+				ImPlot::SetupAxes("OCEAN Factors", "OCEAN Value Intensities", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+				ImPlot::SetupAxesLimits(0, 5, 0, 5);
+
+				static const double positions[] = { 0,1,2,3,4 };
+				static const char* labels[] = {"O", "C", "E", "A", "N"};
+
+				ImPlot::SetupAxisTicks(ImAxis_X1, positions, 5, labels);
+				ImPlot::PlotBars("OCEAN Values", OCEANValues.data(), OCEANValues.size(), 0.5);
 				ImPlot::EndPlot();
 			}
 
