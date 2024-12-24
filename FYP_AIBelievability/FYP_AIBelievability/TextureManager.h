@@ -19,5 +19,5 @@ namespace TextureManager
 	void DestroyTextureManager();
 	bool LoadTextures();
 	SDL_Texture* GetTexture(TextureIndexes index);
-};
+}
 

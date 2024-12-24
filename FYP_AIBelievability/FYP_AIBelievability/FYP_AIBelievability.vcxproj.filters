@@ -78,6 +78,12 @@
     <ClCompile Include="RandomGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PersonalityComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FromJSON.cpp">
+      <Filter>JSON</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grid.h">
@@ -104,10 +110,16 @@
     <ClInclude Include="nlohmann\json_fwd.hpp">
       <Filter>JSON</Filter>
     </ClInclude>
-    <ClInclude Include="JSON.h">
+    <ClInclude Include="RandomGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PersonalityComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FromJSON.h">
       <Filter>JSON</Filter>
     </ClInclude>
-    <ClInclude Include="RandomGenerator.h">
+    <ClInclude Include="Commons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

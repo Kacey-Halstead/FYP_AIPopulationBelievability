@@ -8,8 +8,8 @@
 namespace ImGui_Implementation
 {
 	int agentCount = 0;
-	std::array<float, 5> OCEANValues{};
-	std::array<std::string, 6> Traits{};
+	std::array<int, 5> OCEANValues{};
+	std::array<Trait, 6> Traits{};
 	bool isAgentPressed = false;
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
@@ -73,7 +73,7 @@ namespace ImGui_Implementation
 			{
 				for (int i = 0; i < Traits.size(); i++)
 				{
-					ImGui_Implementation::Text(Traits[i].c_str());
+					ImGui_Implementation::Text(Traits[i].traitName.c_str());
 				}
 			}
 			ImGui_Implementation::EndChild();

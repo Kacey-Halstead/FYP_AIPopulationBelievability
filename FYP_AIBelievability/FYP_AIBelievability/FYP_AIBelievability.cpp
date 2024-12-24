@@ -12,6 +12,7 @@
 #include "ImGuiImplementation.h"
 #include "WFC.h"
 #include "Agent.h"
+#include "FromJSON.h"
 
 struct InitVars
 {
@@ -61,6 +62,8 @@ int main(int argc, char* argv[])
 {
 	srand(time(NULL));
 
+	FromJSONFile::ReadFromJSON();
+
 	InitVars returnVal = InitSDL();
 	if (returnVal.initFail == true) return 0; //if init error
 	InitVars* initVars = &returnVal;
@@ -76,14 +79,15 @@ int main(int argc, char* argv[])
 	WFCComponent.WFCBody();
 	WFCComponent.CreateRects(initVars->window);
 
+	agents.resize(10);
+
 	//Agent init
-	for (int i = 0; i < 10; i++)
+	for (int i = 1; i < 11; i++)
 	{
 		ImGui_Implementation::agentCount = i;
-		agents.emplace_back();
+		agents[i-1] = Agent();
 	}
-
-
+	
 	//main loop
 	while (true)
 	{
@@ -113,8 +117,8 @@ int main(int argc, char* argv[])
 					{
 						ImGui_Implementation::isAgentPressed = true;
 						ImGui_Implementation::agentCount = a.agentCount;
-						ImGui_Implementation::OCEANValues = a.OCEANVals;
-						ImGui_Implementation::Traits = a.traits;
+						ImGui_Implementation::OCEANValues = a.personality.OCEANValues;
+						ImGui_Implementation::Traits = a.personality.traits;
 						break;
 					}
 				}

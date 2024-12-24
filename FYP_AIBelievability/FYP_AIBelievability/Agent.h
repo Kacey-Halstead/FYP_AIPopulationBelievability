@@ -1,33 +1,26 @@
 #pragma once
 #include <SDL.h>
 #include <SDL_image.h>
-#include <random>
-#include <time.h>
 #include "TextureManager.h"
 #include "ImGuiImplementation.h"
+#include "PersonalityComponent.h"
 
 class Agent
 {
 public:
 	Agent();
+	Agent(Agent* P1, Agent* P2);
 	~Agent();
 	void Update(float deltaTime);
 	void Render(SDL_Renderer* renderer, SDL_Window* window);
-
 	bool IsPointInAgent(SDL_Point point);
 
 	SDL_Point position = { 10, 10 };
-
-	std::array<float, 5> OCEANVals = {0, 0, 0, 0, 0};
-	std::array<std::string, 6> traits;
-	std::array<Agent*, 2> parents = {nullptr, nullptr};
-	int agentCount;
+	PersonalityComponent personality;
+	int agentCount = 0;
 
 private:
 	SDL_Point size = {50, 50};
-	SDL_Rect agentRect;
-
-	void CalculateOCEANVals();	
-	void GenerateTraits();
-	
+	SDL_Rect agentRect;	
+	std::array<Agent*, 2> parents = {};
 };

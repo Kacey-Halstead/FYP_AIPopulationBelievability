@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include <string>
+#include "Commons.h"
 
 struct SDL_Renderer;
 union SDL_Event;
@@ -16,6 +16,6 @@ namespace ImGui_Implementation
 
 	extern bool isAgentPressed;
 	extern int agentCount;
-	extern std::array<float, 5> OCEANValues;
-	extern std::array<std::string, 6> Traits;
+	extern std::array<int, 5> OCEANValues;
+	extern std::array<Trait, 6> Traits;
 }
