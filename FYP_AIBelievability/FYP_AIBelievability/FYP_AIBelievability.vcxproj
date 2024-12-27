@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Agent.cpp" />
+    <ClCompile Include="AStar.cpp" />
     <ClCompile Include="FromJSON.cpp" />
     <ClCompile Include="FYP_AIBelievability.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -163,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Agent.h" />
+    <ClInclude Include="AStar.h" />
     <ClInclude Include="Commons.h" />
     <ClInclude Include="FromJSON.h" />
     <ClInclude Include="Grid.h" />
