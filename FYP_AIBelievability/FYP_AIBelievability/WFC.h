@@ -33,6 +33,8 @@ public:
 	void RenderWFC(SDL_Renderer* renderer);
 	void WFCBody();
 	void CreateRects(SDL_Window* SDLWindowRef);
+	bool IsInTile(SDL_Point p, Tile t);
+	vector<vector<Tile*>> GetTiles();
 
 private:
 	int gridX = 0;

@@ -18,6 +18,7 @@ Grid::~Grid()
 
 void Grid::GridInit()
 {
+	int index = 0;
 	//for every cell, define possible tiles
 	for (int x = 0; x < sizeX; x++)
 	{
@@ -26,11 +27,15 @@ void Grid::GridInit()
 		{
 			Tile* tile = new Tile(allTypes);
 			tile->pos = { x, y };
+			tile->index = index;
+			SetNeighbours(tile);
 			newTiles.push_back(tile);
+			index++;
 		}
 		Tiles.push_back(newTiles);
 	}
 }
+
 
 Tile* Grid::SmallestEntropy()
 {
@@ -66,4 +71,13 @@ Tile* Grid::SmallestEntropy()
 		return smallest[random];
 	}
 	return nullptr;
+}
+
+bool Grid::IsInGrid(int point, SDL_Point dir)
+{
+	//somehow return whether the point/tile/index whatever is in the grid and not out of bounds to use in AStar
+	grid[point + dir.x][point + dir.y]
+	
+
+	return SDL_PointInRect(&point, &agentRect);
 }

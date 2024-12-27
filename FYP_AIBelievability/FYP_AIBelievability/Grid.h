@@ -15,6 +15,7 @@ public:
 	~Grid();
 
 	Tile* SmallestEntropy();
+	bool IsInGrid(int point, SDL_Point dir);
 
 private:
 	void GridInit();

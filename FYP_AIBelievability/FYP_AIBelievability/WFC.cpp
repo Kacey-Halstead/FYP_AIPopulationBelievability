@@ -57,13 +57,13 @@ void WFC::Evaluate(Grid* grid, Tile* tile, char dir)
 {
 	Tile* neighbour = nullptr;
 
-	int x_index = tile->pos[0];
-	int y_index = tile->pos[1];
+	int x_index = tile->pos.x;
+	int y_index = tile->pos.y;
 
-	bool upCondition = tile->pos[1] - 1 >= 0;
-	bool downCondition = tile->pos[1] + 1 < gridY;
-	bool leftCondition = tile->pos[0] - 1 >= 0;
-	bool rightCondition = tile->pos[0] + 1 < gridX;
+	bool upCondition = tile->pos.y - 1 >= 0;
+	bool downCondition = tile->pos.y + 1 < gridY;
+	bool leftCondition = tile->pos.x - 1 >= 0;
+	bool rightCondition = tile->pos.x + 1 < gridX;
 
 	switch (dir)
 	{
@@ -114,10 +114,10 @@ void WFC::Evaluate(Grid* grid, Tile* tile, char dir)
 	{
 		vector<Tile*> toReset;
 		toReset.push_back(neighbour);
-		toReset.push_back(grid->Tiles[tile->pos[0]][tile->pos[1] - 1]); //up
-		toReset.push_back(grid->Tiles[tile->pos[0]][tile->pos[1] + 1]); //down
-		toReset.push_back(grid->Tiles[tile->pos[0] - 1][tile->pos[1]]); //left
-		toReset.push_back(grid->Tiles[tile->pos[0] + 1][tile->pos[1]]); //right
+		toReset.push_back(grid->Tiles[tile->pos.x][tile->pos.y - 1]); //up
+		toReset.push_back(grid->Tiles[tile->pos.x][tile->pos.y + 1]); //down
+		toReset.push_back(grid->Tiles[tile->pos.x - 1][tile->pos.y]); //left
+		toReset.push_back(grid->Tiles[tile->pos.x + 1][tile->pos.y]); //right
 
 		ResetNeighbours(toReset);
 	}
@@ -139,6 +139,12 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 	{
 		for (int y = 0; y < gridY; y++)
 		{
+			if (grid->Tiles[x][y]->isInPath)
+			{
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
+				continue;
+			}
+
 			switch (grid->Tiles[x][y]->type)
 			{
 			case 'S':		
@@ -182,4 +188,14 @@ void WFC::CreateRects(SDL_Window* SDLWindowRef)
 			rects.emplace_back(newRec);
 		}
 	}
+}
+
+bool WFC::IsInTile(SDL_Point p, Tile t)
+{
+	return SDL_PointInRect(&p, &rects[t.index]);
+}
+
+vector<vector<Tile*>> WFC::GetTiles()
+{
+	return grid->Tiles;
 }

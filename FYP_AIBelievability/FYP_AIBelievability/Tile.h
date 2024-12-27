@@ -1,8 +1,16 @@
 #pragma once
 #include <vector>
+#include <array>
 #include <SDL_rect.h>
 
 using namespace std;
+
+SDL_Point operator-(const SDL_Point a, const SDL_Point b);
+
+bool operator==(const SDL_Point a, const SDL_Point b);
+
+SDL_Point operator +(const SDL_Point a, const SDL_Point b);
+
 class Tile
 {
 public:
@@ -10,25 +18,22 @@ public:
 	vector<char> availableTypes;
 	vector<char> allAvTypes;
 	SDL_Point pos;
+	bool walkable = true;
+	bool isInPath = false;
+	int index = 0;
 
-	Tile();
 	Tile(vector<char> allTypes);
-	~Tile();
+	Tile();
 	void SetType(char newType);
 	void Print();
 	void Reset();
 
-
-
-private:
-
+	friend bool operator ==(const Tile a, const Tile b)
+	{
+		return a.pos == b.pos;
+	}
 };
 
-SDL_Point operator-(SDL_Point a, SDL_Point b)
-{
-	SDL_Point p;
-	p.x = a.x - b.x;
-	p.y = a.y - b.y;
-	return p;
-}
+
+
 

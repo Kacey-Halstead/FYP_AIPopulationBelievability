@@ -13,6 +13,7 @@
 #include "WFC.h"
 #include "Agent.h"
 #include "FromJSON.h"
+#include "AStar.h"
 
 struct InitVars
 {
@@ -78,6 +79,14 @@ int main(int argc, char* argv[])
 	WFC WFCComponent = {10, 10};
 	WFCComponent.WFCBody();
 	WFCComponent.CreateRects(initVars->window);
+	vector<vector<Tile*>> tiles = WFCComponent.GetTiles();
+
+	//AStar
+	AStar aStar = AStar();
+
+	//temp - for A* test
+	Tile* start = nullptr;
+	Tile* end = nullptr;
 
 	agents.resize(10);
 
@@ -111,6 +120,8 @@ int main(int argc, char* argv[])
 				int y = e.button.y;
 
 				SDL_Point mousePos = { x,y };
+
+				//CLICKING AGENTS
 				for (Agent& a : agents)
 				{
 					if (a.IsPointInAgent(mousePos))
@@ -120,6 +131,43 @@ int main(int argc, char* argv[])
 						ImGui_Implementation::OCEANValues = a.personality.OCEANValues;
 						ImGui_Implementation::Traits = a.personality.traits;
 						break;
+					}
+				}
+
+
+				//CLICKING TILES
+				for (std::vector<Tile*> v : WFCComponent.GetTiles()) //gets vectors of tiles
+				{
+					for (Tile* t : v) // tiles in vector
+					{
+						if (WFCComponent.IsInTile(mousePos, *t)) //is tile is clicked
+						{
+							if (start != nullptr && end != nullptr)
+							{
+								start = nullptr;
+								end = nullptr;
+								break;
+							} //reset
+
+
+							if (start == nullptr) 
+							{
+								start = t;
+							}
+							else if (start != nullptr && end == nullptr)
+							{
+								end = t;
+							}
+
+
+							if (start != nullptr && end != nullptr && start != end)
+							{
+								Node s = Node(*start, nullptr, 0.0f, 0.0f);
+								Node e = Node(*end, nullptr, 0.0f, 0.0f);
+								aStar.ResetTiles(tiles);
+								aStar.Findpath(s, e);
+							}
+						}
 					}
 				}
 			}
