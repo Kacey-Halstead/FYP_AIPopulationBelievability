@@ -4,20 +4,21 @@
 #include <SDL.h>
 #include <cmath>
 #include <algorithm>
+#include <memory>
 
 struct Node {
-	Tile tile;
-	struct Node *parent;
+	Tile* tile;
+	Node* parent;
 	float gcost;
 	float hcost;
 	float fcost;
 
-	Node(Tile t, Node *n, float g, float h)
+	Node(Tile* t, Node *n, float g, float h)
 	{
 		UpdateInfo(t, n, g, h);
 	}
 
-	void UpdateInfo(Tile t, Node *n, float g, float h)
+	void UpdateInfo(Tile* t, Node *n, float g, float h)
 	{
 		tile = t;
 		parent = n;
@@ -35,11 +36,10 @@ struct Node {
 class AStar
 {
 public:
-	AStar();
-	void Findpath(Node start, Node end);
-	float Heuristic_Manhatten(Node start, Node end);
-	float Heuristic_Manhatten(Tile start, Tile end);
-	void ResetTiles(vector<vector<Tile*>> toReset);
+	AStar(Grid* grid);
+	void Findpath(Tile* start, Tile* end);
+	float Heuristic_Manhatten(const Tile* start, const Tile* end) const;
+	void ResetTiles(vector<vector<Tile*>>& toReset);
 
 	std::vector<Node> path;
 	bool CanCutCorners = true;
@@ -47,16 +47,15 @@ public:
 
 
 private:
-	int maxPathCount = 10;
+	int maxPathCount = 100;
+	Grid* gridRef = nullptr;
 
 	void SetPath(Node* end);
 	void DrawPath();
-	bool DoesContainNode(std::vector<Node> list, Tile tile);
+	bool DoesContainNode(const std::vector<Node*>& list, Tile* tile);
 	float Magnitude(SDL_Point s);
-	Node* GetNodeInList(std::vector<Node> list, Tile tile);
-	Node* GetCheapestNode(std::vector<Node> openList);
+	Node* GetNodeInList(const std::vector<Node*>& list, Tile* tile);
+	Node* GetCheapestNode(std::vector<Node*>& openList);
 	Tile* GetNeighbour(int index, Tile* current);
-	
-	
 };
 

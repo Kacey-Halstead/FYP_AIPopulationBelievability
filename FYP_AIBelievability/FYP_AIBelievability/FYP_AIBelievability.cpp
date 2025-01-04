@@ -24,6 +24,7 @@ struct InitVars
 
 std::vector<Agent> agents;
 
+
 InitVars InitSDL()
 {
 	InitVars initVars{};
@@ -75,14 +76,17 @@ int main(int argc, char* argv[])
 	//ImGui init
 	ImGui_Implementation::Init(initVars->renderer, initVars->window);
 
+	//GRID Init
+	Grid* grid = new Grid(10, 10, { 'L', 'C', 'S' });
+
 	//WFC Init
-	WFC WFCComponent = {10, 10};
+	WFC WFCComponent(grid);
 	WFCComponent.WFCBody();
 	WFCComponent.CreateRects(initVars->window);
 	vector<vector<Tile*>> tiles = WFCComponent.GetTiles();
 
 	//AStar
-	AStar aStar = AStar();
+	AStar aStar = AStar(grid);
 
 	//temp - for A* test
 	Tile* start = nullptr;
@@ -140,32 +144,25 @@ int main(int argc, char* argv[])
 				{
 					for (Tile* t : v) // tiles in vector
 					{
-						if (WFCComponent.IsInTile(mousePos, *t)) //is tile is clicked
+						if (WFCComponent.IsInTile(mousePos, *t)) //if tile is clicked
 						{
-							if (start != nullptr && end != nullptr)
-							{
-								start = nullptr;
-								end = nullptr;
-								break;
-							} //reset
-
-
 							if (start == nullptr) 
 							{
 								start = t;
 							}
-							else if (start != nullptr && end == nullptr)
+							else if (end == nullptr && t != start)
 							{
 								end = t;
 							}
 
 
-							if (start != nullptr && end != nullptr && start != end)
+							if (start != nullptr && end != nullptr)
 							{
-								Node s = Node(*start, nullptr, 0.0f, 0.0f);
-								Node e = Node(*end, nullptr, 0.0f, 0.0f);
+								aStar.AllowDiagonal = false;
 								aStar.ResetTiles(tiles);
-								aStar.Findpath(s, e);
+								aStar.Findpath(start, end);
+								start = nullptr;
+								end = nullptr;
 							}
 						}
 					}

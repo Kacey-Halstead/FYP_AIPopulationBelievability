@@ -28,7 +28,6 @@ void Grid::GridInit()
 			Tile* tile = new Tile(allTypes);
 			tile->pos = { x, y };
 			tile->index = index;
-			SetNeighbours(tile);
 			newTiles.push_back(tile);
 			index++;
 		}
@@ -73,11 +72,11 @@ Tile* Grid::SmallestEntropy()
 	return nullptr;
 }
 
-bool Grid::IsInGrid(int point, SDL_Point dir)
+bool Grid::IsInGrid(SDL_Point point, SDL_Point dir)
 {
-	//somehow return whether the point/tile/index whatever is in the grid and not out of bounds to use in AStar
-	grid[point + dir.x][point + dir.y]
-	
+	SDL_Point pos = point + dir; // tile position
 
-	return SDL_PointInRect(&point, &agentRect);
+	//if pos within X and Y bounds of grid
+	return (0 <= pos.x && pos.x < sizeX 
+		&& 0 <= pos.y && pos.y < sizeY);
 }

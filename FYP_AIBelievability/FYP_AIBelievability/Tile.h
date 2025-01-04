@@ -15,8 +15,8 @@ class Tile
 {
 public:
 	char type = '0';
-	vector<char> availableTypes;
-	vector<char> allAvTypes;
+	vector<char> availableTypes; //currently available types
+	vector<char> allAvTypes; //all available types possible
 	SDL_Point pos;
 	bool walkable = true;
 	bool isInPath = false;

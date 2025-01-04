@@ -21,7 +21,7 @@ enum directions
 class WFC
 {
 public:
-	WFC(int GridX, int GridY);
+	WFC(Grid* grid);
 	~WFC();
 
 	static std::array<char, 3> GenerateRule(char a, char b, char c)
@@ -40,15 +40,13 @@ private:
 	int gridX = 0;
 	int gridY = 0;
 
-	Grid* grid = nullptr;
+	Grid* gridRef = nullptr;
 
 	std::vector<SDL_Rect> rects;
-	std::vector<std::string> fullTypes = { "LAND", "COAST", "SEA" };
-	std::vector<char> charTypes;
 	std::vector<std::array<char, 3>> Rules;
 
 	void DefineRules();
-	void Evaluate(Grid* grid, Tile* tile, char dir);
+	void Evaluate(Tile* tile, char dir);
 	void ResetNeighbours(vector<Tile*> tiles);
 	std::vector<char> GetTypeAndRules(char input, char dir);
 };

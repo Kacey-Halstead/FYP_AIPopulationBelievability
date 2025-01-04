@@ -1,21 +1,15 @@
 #include "WFC.h"
 
-WFC::WFC(int GridX, int GridY)
+WFC::WFC(Grid* grid)
 {
-	gridX = GridX;
-	gridY = GridY;
-
-	for (std::string t : fullTypes)
-	{
-		charTypes.emplace_back(t[0]);
-	}
-
-	grid = new Grid(gridX, gridY, charTypes);
+	gridX = grid->sizeX;
+	gridY = grid->sizeY;
+	gridRef = grid;
 }
 
 WFC::~WFC()
 {
-	delete grid;
+	delete gridRef;
 }
 
 void WFC::DefineRules()
@@ -35,7 +29,7 @@ void WFC::WFCBody()
 
 	while (count < (gridX * gridY))
 	{
-		Tile* selectedTile = grid->SmallestEntropy();
+		Tile* selectedTile = gridRef->SmallestEntropy();
 
 		//assign cell to type at random
 		int randomType = rand() % selectedTile->availableTypes.size();
@@ -44,16 +38,16 @@ void WFC::WFCBody()
 		selectedTile->availableTypes.clear();
 
 		//update all neighbours(up, down, left, right)
-		Evaluate(grid, selectedTile, 'U');
-		Evaluate(grid, selectedTile, 'D');
-		Evaluate(grid, selectedTile, 'L');
-		Evaluate(grid, selectedTile, 'R');
+		Evaluate(selectedTile, 'U');
+		Evaluate(selectedTile, 'D');
+		Evaluate(selectedTile, 'L');
+		Evaluate(selectedTile, 'R');
 
 		count++;
 	}
 }
 
-void WFC::Evaluate(Grid* grid, Tile* tile, char dir)
+void WFC::Evaluate(Tile* tile, char dir)
 {
 	Tile* neighbour = nullptr;
 
@@ -70,27 +64,27 @@ void WFC::Evaluate(Grid* grid, Tile* tile, char dir)
 	case 'U':
 		if (upCondition)
 		{
-			neighbour = grid->Tiles[x_index][y_index - 1]; //up
+			neighbour = gridRef->Tiles[x_index][y_index - 1]; //up
 
 		}
 		break;
 	case 'D':
 		if (downCondition)
 		{
-			neighbour = grid->Tiles[x_index][y_index + 1]; //down
+			neighbour = gridRef->Tiles[x_index][y_index + 1]; //down
 		}
 		break;
 	case 'L':
 		if (leftCondition)
 		{
 
-			neighbour = grid->Tiles[x_index - 1][y_index]; //left
+			neighbour = gridRef->Tiles[x_index - 1][y_index]; //left
 		}
 		break;
 	case 'R':
 		if (rightCondition)
 		{
-			neighbour = grid->Tiles[x_index + 1][y_index]; //right
+			neighbour = gridRef->Tiles[x_index + 1][y_index]; //right
 		}
 		break;
 	default:
@@ -114,10 +108,10 @@ void WFC::Evaluate(Grid* grid, Tile* tile, char dir)
 	{
 		vector<Tile*> toReset;
 		toReset.push_back(neighbour);
-		toReset.push_back(grid->Tiles[tile->pos.x][tile->pos.y - 1]); //up
-		toReset.push_back(grid->Tiles[tile->pos.x][tile->pos.y + 1]); //down
-		toReset.push_back(grid->Tiles[tile->pos.x - 1][tile->pos.y]); //left
-		toReset.push_back(grid->Tiles[tile->pos.x + 1][tile->pos.y]); //right
+		toReset.push_back(gridRef->Tiles[tile->pos.x][tile->pos.y - 1]); //up
+		toReset.push_back(gridRef->Tiles[tile->pos.x][tile->pos.y + 1]); //down
+		toReset.push_back(gridRef->Tiles[tile->pos.x - 1][tile->pos.y]); //left
+		toReset.push_back(gridRef->Tiles[tile->pos.x + 1][tile->pos.y]); //right
 
 		ResetNeighbours(toReset);
 	}
@@ -139,13 +133,14 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 	{
 		for (int y = 0; y < gridY; y++)
 		{
-			if (grid->Tiles[x][y]->isInPath)
+			if (gridRef->Tiles[x][y]->isInPath)
 			{
 				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
+				counter++;
 				continue;
 			}
 
-			switch (grid->Tiles[x][y]->type)
+			switch (gridRef->Tiles[x][y]->type)
 			{
 			case 'S':		
 				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &rects[counter]);
@@ -197,5 +192,5 @@ bool WFC::IsInTile(SDL_Point p, Tile t)
 
 vector<vector<Tile*>> WFC::GetTiles()
 {
-	return grid->Tiles;
+	return gridRef->Tiles;
 }

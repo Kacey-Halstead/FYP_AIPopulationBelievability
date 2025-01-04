@@ -1,18 +1,20 @@
 #include "AStar.h"
 
-AStar::AStar()
+AStar::AStar(Grid* grid)
 {
+    gridRef = grid;
 }
 
-void AStar::Findpath(Node start, Node end)
+void AStar::Findpath(Tile* start, Tile* end)
 {
 	path.clear();
 
-	std::vector<Node> OpenList; //not visited
-	std::vector<Node> ClosedList; //visited
+    // TODO: delete all pointers in open and closed list
+	std::vector<Node*> OpenList; //not visited
+	std::vector<Node*> ClosedList; //visited
 
-	OpenList.emplace_back(start.tile, nullptr, 0.0f, Heuristic_Manhatten(start, end));
-    Node* current = &OpenList[0];
+    OpenList.emplace_back(new Node(start, nullptr, 0.0f, Heuristic_Manhatten(start, end)));
+    Node* current = OpenList[0];
 
 	int maxIteration = 0;
 
@@ -27,7 +29,7 @@ void AStar::Findpath(Node start, Node end)
 		}
 
 		//if the current node is the end node, a path has been found.
-		if (current->tile == end.tile)
+		if (current->tile == end)
 		{
 			//Debug.Log("Path found, start pos = " + start.transform.position + " - end pos = " + end.transform.position);
 			SetPath(current);
@@ -45,9 +47,8 @@ void AStar::Findpath(Node start, Node end)
                 }
             }
 
-            Tile* neighbour = current->tile.neighbourTiles[i];
-
-            if (neighbour != nullptr && !DoesContainNode(ClosedList, *neighbour) && neighbour->walkable) //if not null, if not in visited list and is walkable
+            Tile* neighbour = GetNeighbour(i, current->tile);
+            if (neighbour != nullptr && !DoesContainNode(ClosedList, neighbour) && neighbour->walkable) //if not null, if not in visited list and is walkable
             {
                 if (!CanCutCorners)
                 {
@@ -65,25 +66,26 @@ void AStar::Findpath(Node start, Node end)
                             after = i + 1;
                         }
 
-                        Tile beforeNode = *current->tile.neighbourTiles[before]; //node before corner
-                        Tile afterNode = *current->tile.neighbourTiles[after]; //node after corner
-                        if (!beforeNode.walkable || !afterNode.walkable) //if either not walkable, skip. Does not cut corner
+                        Tile* beforeNode = GetNeighbour(before, current->tile); //node before corner
+                        Tile* afterNode = GetNeighbour(after, current->tile); //node after corner
+
+                        if (!beforeNode->walkable || !afterNode->walkable) //if either not walkable, skip. Does not cut corner
                         {
                             continue;
                         }
                     }
                 }
 
-                SDL_Point distbetween = neighbour->pos - current->tile.pos;
+                SDL_Point distbetween = neighbour->pos - current->tile->pos;
 
-                float h = Heuristic_Manhatten(*neighbour, end.tile);
+                float h = Heuristic_Manhatten(neighbour, end);
                 float g = current->gcost + Magnitude(distbetween);
                 
                 float f = g + h;
 
-                if (DoesContainNode(OpenList, *neighbour))
+                if (DoesContainNode(OpenList, neighbour))
                 {
-                    Node* neighbourInfo = GetNodeInList(OpenList, *neighbour);
+                    Node* neighbourInfo = GetNodeInList(OpenList, neighbour);
 
                     if (neighbourInfo->fcost > f)
                     {
@@ -92,50 +94,42 @@ void AStar::Findpath(Node start, Node end)
                 }
                 else
                 {
-                    Node nodeinfo = Node(*neighbour, current, g, h);
-                    OpenList.emplace_back(nodeinfo);
+                    Node* nodeinfo = new Node(neighbour, current, g, h);
+                    OpenList.push_back(nodeinfo);
                 }
             }
             else
             {
                 continue;
             }
+        }
 
-            ClosedList.emplace_back(*current);
-            OpenList.erase(std::find(OpenList.begin(), OpenList.end(), *current));
+        // after checked all directions get next node from open list
+        ClosedList.emplace_back(current);
+        OpenList.erase(std::find(OpenList.begin(), OpenList.end(), current));
 
-            if (OpenList.size() > 0)
-            {
-                current = GetCheapestNode(OpenList);
-            }
-            else
-            {
-                break; 
-            } 
+        if (OpenList.size() > 0)
+        {
+            current = GetCheapestNode(OpenList);
+        }
+        else
+        {
+            break;
         }
 	}
 }
 
-
-float AStar::Heuristic_Manhatten(Node start, Node end)
+float AStar::Heuristic_Manhatten(const Tile* start, const Tile* end) const
 {
-	SDL_Point distance = end.tile.pos - start.tile.pos;
-	float XDiff = abs(distance.x);
-	float YDiff = abs(distance.y);
-	return XDiff + YDiff;
-}
-
-float AStar::Heuristic_Manhatten(Tile start, Tile end)
-{
-    SDL_Point distance = end.pos - start.pos;
+    SDL_Point distance = end->pos - start->pos;
     float XDiff = abs(distance.x);
     float YDiff = abs(distance.y);
     return XDiff + YDiff;
 }
 
-void AStar::ResetTiles(vector<vector<Tile*>> toReset)
+void AStar::ResetTiles(vector<vector<Tile*>>& toReset)
 {
-    for (std::vector<Tile*> v : toReset)
+    for (std::vector<Tile*>& v : toReset)
     {
         for (Tile* t : v)
         {
@@ -150,8 +144,9 @@ void AStar::SetPath(Node* end)
 	Node* curNode = end;
 	while (curNode != nullptr)
 	{
+        Node* next = curNode->parent;
 		path.emplace_back(*curNode);
-		curNode = curNode->parent;
+		curNode = next;
 	}
 	reverse(path.begin(), path.end());
 }
@@ -160,15 +155,15 @@ void AStar::DrawPath()
 {
     for (Node n : path)
     {
-        n.tile.isInPath = true;
+        n.tile->isInPath = true;
     }
 }
 
-bool AStar::DoesContainNode(std::vector<Node> list, Tile tile)
+bool AStar::DoesContainNode(const std::vector<Node*>& list, Tile* tile)
 {
-    for (Node n : list)
+    for (const Node* n : list)
     {
-        if (n.tile.pos == tile.pos)
+        if (n->tile == tile)
         {
             return true;
         }
@@ -182,27 +177,27 @@ float AStar::Magnitude(SDL_Point s)
     return sqrt(squared);
 }
 
-Node* AStar::GetNodeInList(std::vector<Node> list, Tile tile)
+Node* AStar::GetNodeInList(const std::vector<Node*>& list, Tile* tile)
 {
-    for (Node& n : list)
+    for (Node* n : list)
     {
-        if (n.tile.pos == tile.pos)
+        if (n->tile == tile)
         {
-            return &n;
+            return n;
         }
     }
 
     return nullptr;
 }
 
-Node* AStar::GetCheapestNode(std::vector<Node> openList)
+Node* AStar::GetCheapestNode(std::vector<Node*>& openList)
 {
-    std::sort(openList.begin(), openList.end(), [](Node a, Node b)
+    std::sort(openList.begin(), openList.end(), [](const Node* a, const Node* b)
         {
-            return a.fcost > b.fcost;
+            return a->fcost < b->fcost;
         });
 
-    return &openList[0];
+    return openList[0];
 }
 
 Tile* AStar::GetNeighbour(int index, Tile* current)
@@ -211,10 +206,11 @@ Tile* AStar::GetNeighbour(int index, Tile* current)
 
     static std::array<SDL_Point, 8> offsets = { { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, { -1, 0} , {-1, 1} } };
 
-    SDL_Point pos = current->pos + offsets[index];
-
-    //Getting neighbour so dont have to store it
-    Tile* newTile = 
+    if (gridRef->IsInGrid(current->pos, offsets[index])) //is neighbour in grid
+    {
+        SDL_Point pos = current->pos + offsets[index];
+        return gridRef->Tiles[pos.x][pos.y];
+    }
 
     return nullptr;
 }
