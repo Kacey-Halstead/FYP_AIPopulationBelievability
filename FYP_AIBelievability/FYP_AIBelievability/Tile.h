@@ -15,6 +15,7 @@ class Tile
 {
 public:
 	char type = '0';
+	std::vector<std::pair<char, float>> typesAndWeights;
 	vector<char> availableTypes; //currently available types
 	vector<char> allAvTypes; //all available types possible
 	SDL_Point pos;
@@ -27,6 +28,18 @@ public:
 	void SetType(char newType);
 	void Print();
 	void Reset();
+
+	inline void UpdateTypeandWeight(char c, float weightChange)
+	{
+		auto it = std::find_if(typesAndWeights.begin(), typesAndWeights.end(), [c](const auto& p) {
+			return p.first == c;
+			});
+
+		if (it != typesAndWeights.end())
+		{
+			typesAndWeights.at(it - typesAndWeights.begin()).second += weightChange;
+		}
+	}
 
 	friend bool operator ==(const Tile a, const Tile b)
 	{

@@ -13,8 +13,6 @@ public:
 	Action();
 	~Action();
 
-	virtual bool IsActionValid();
-	virtual void ToExecute();
 
 private:
 

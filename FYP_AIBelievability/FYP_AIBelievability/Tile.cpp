@@ -4,7 +4,11 @@
 using namespace std;
 Tile::Tile(vector<char> allTypes)
 {
-	availableTypes = allTypes;
+	for (int i = 0; i < allTypes.size(); i++)
+	{
+		std::pair<char, float> tempPair = { allTypes[i], 1 };
+		typesAndWeights.push_back(tempPair);
+	}
 	allAvTypes = allTypes;
 }
 
@@ -20,13 +24,16 @@ void Tile::SetType(char newType)
 
 void Tile::Print()
 {
-
 	cout << type;
 }
 
 void Tile::Reset()
 {
-	availableTypes = allAvTypes;
+	for (int i = 0; i < allAvTypes.size(); i++)
+	{
+		std::pair<char, float> tempPair = { allAvTypes[i], 1 };
+		typesAndWeights.push_back(tempPair);
+	}
 }
 
 SDL_Point operator-(const SDL_Point a, const SDL_Point b)

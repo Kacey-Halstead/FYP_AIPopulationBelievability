@@ -9,6 +9,31 @@
 #include "Tile.h"
 #include "TextureManager.h"
 
+struct Rules
+{
+	std::vector<std::array<char, 3>> ruleVec = {
+
+		{'L', 'S', 'U'},
+		{'L', 'S', 'D'},
+		{'L', 'S', 'L'},
+		{'L', 'S', 'R'},
+
+		{'S', 'L', 'U'},
+		{'S', 'L', 'D'},
+		{'S', 'L', 'L'},
+		{'S', 'L', 'R'}
+
+		//{'C', 'S', 'R'},
+		//{'S', 'C', 'L'}, //coast and sea always next to eachother
+		//{'C', 'S', 'U'},
+		//{'S', 'C', 'D'},
+
+		//{'C', 'L', 'L'}, // coast and land always next to eachother
+		//{'L', 'C', 'R'},
+		//{'C', 'L', 'U'},
+		//{'L', 'C', 'D'}
+	};
+};
 
 enum directions
 {
@@ -43,11 +68,17 @@ private:
 	Grid* gridRef = nullptr;
 
 	std::vector<SDL_Rect> rects;
-	std::vector<std::array<char, 3>> Rules;
+	Rules rules{};
 
-	void DefineRules();
-	void Evaluate(Tile* tile, char dir);
+	std::vector<SDL_Point> offsets = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} }; //down, up, left, right
+
+	bool IsInGrid(const SDL_Point& pos, const SDL_Point& offset);
+	void Evaluate(Tile* tile, directions dir);
 	void ResetNeighbours(vector<Tile*> tiles);
-	std::vector<char> GetTypeAndRules(char input, char dir);
+	std::vector<char> GetTypeAndRules(char input, directions dir);
+	void ChangeTileWeighting(Tile* tile);
+	void FindAndErase(Tile* tile, char toFind);
+	void CheckForEmptyTiles(Tile* tile);
 };
 
+SDL_Point operator *(const SDL_Point& a, const int& b);

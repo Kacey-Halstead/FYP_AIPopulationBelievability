@@ -12,17 +12,6 @@ WFC::~WFC()
 	delete gridRef;
 }
 
-void WFC::DefineRules()
-{
-	//S to right of C
-	//C to right L
-	Rules.emplace_back(GenerateRule('C', 'S', 'R'));
-	Rules.emplace_back(GenerateRule('S', 'C', 'L'));
-
-	Rules.emplace_back(GenerateRule('C', 'L', 'L'));
-	Rules.emplace_back(GenerateRule('L', 'C', 'R'));
-}
-
 void WFC::WFCBody()
 {
 	int count = 0;
@@ -30,92 +19,101 @@ void WFC::WFCBody()
 	while (count < (gridX * gridY))
 	{
 		Tile* selectedTile = gridRef->SmallestEntropy();
+		ChangeTileWeighting(selectedTile);
 
-		//assign cell to type at random
-		int randomType = rand() % selectedTile->availableTypes.size();
-		//if between 0 and 10, rand num between. 5 equal. Land 6, Sea 4.
-		selectedTile->SetType(selectedTile->availableTypes[randomType]);
-		selectedTile->availableTypes.clear();
+		if (count == 0) //first iteration
+		{
+			selectedTile->SetType('S');
+		}
+		else
+		{
+			//assign cell to type at random
+			size_t RandomWeights = 0;
+			std::vector<char> random;
+			for (pair<char, float> p : selectedTile->typesAndWeights)
+			{
+				int counter = p.second;
+				while (counter > 0)
+				{
+					random.emplace_back(p.first);
+					counter--;
+				}
+			}
+
+			int randomType = rand() % random.size();
+		
+			selectedTile->SetType(random[randomType]);
+		}
+		selectedTile->typesAndWeights.clear();
 
 		//update all neighbours(up, down, left, right)
-		Evaluate(selectedTile, 'U');
-		Evaluate(selectedTile, 'D');
-		Evaluate(selectedTile, 'L');
-		Evaluate(selectedTile, 'R');
+		Evaluate(selectedTile, UP);
+		Evaluate(selectedTile, DOWN);
+		Evaluate(selectedTile, LEFT);
+		Evaluate(selectedTile, RIGHT);
 
 		count++;
 	}
 }
 
-void WFC::Evaluate(Tile* tile, char dir)
+bool WFC::IsInGrid(const SDL_Point& pos, const SDL_Point& offset)
 {
-	Tile* neighbour = nullptr;
+	SDL_Point newPos = { pos.x + offset.x, pos.y+offset.y };
 
-	int x_index = tile->pos.x;
-	int y_index = tile->pos.y;
+	if (newPos.x < 0 || newPos.x >= gridRef->sizeX || newPos.y < 0 || newPos.y >= gridRef->sizeY)
+	{
+		return false;
+	}
+	return true;
+}
 
-	bool upCondition = tile->pos.y - 1 >= 0;
-	bool downCondition = tile->pos.y + 1 < gridY;
-	bool leftCondition = tile->pos.x - 1 >= 0;
-	bool rightCondition = tile->pos.x + 1 < gridX;
+void WFC::Evaluate(Tile* tile, directions dir)
+{
+	SDL_Point tilePos = { tile->pos.x, tile->pos.y };
+	SDL_Point offset = { 0, 0 };
 
 	switch (dir)
 	{
-	case 'U':
-		if (upCondition)
-		{
-			neighbour = gridRef->Tiles[x_index][y_index - 1]; //up
-
-		}
+	case UP:
+		offset.y = 1; //up
 		break;
-	case 'D':
-		if (downCondition)
-		{
-			neighbour = gridRef->Tiles[x_index][y_index + 1]; //down
-		}
+	case DOWN:
+		offset.y = -1; //down
 		break;
-	case 'L':
-		if (leftCondition)
-		{
-
-			neighbour = gridRef->Tiles[x_index - 1][y_index]; //left
-		}
+	case LEFT:
+		offset.x = -1; //left
 		break;
-	case 'R':
-		if (rightCondition)
-		{
-			neighbour = gridRef->Tiles[x_index + 1][y_index]; //right
-		}
+	case RIGHT:
+		offset.x = 1; //right
 		break;
 	default:
 		break;
 	}
 
+	if (!IsInGrid(tilePos, offset)) return; //if not valid pos in grid
+	
+	Tile* neighbour = gridRef->Tiles[tilePos.x + offset.x][tilePos.y + offset.y];
+
 	if (neighbour == nullptr) return;
 
-	for (char t : GetTypeAndRules(tile->type, dir))
+	std::vector<char> typesToRemove = GetTypeAndRules(tile->type, dir);
+
+	for (char t : typesToRemove)
 	{
-		//remove option from neighbours available tiles list
-		auto it = find(neighbour->availableTypes.begin(), neighbour->availableTypes.end(), t);
-		if (it != neighbour->availableTypes.end() && neighbour->type == '0')
-		{
-			neighbour->availableTypes.erase(it);
-		}
+		FindAndErase(neighbour, t);
 	}
 
-	//if neighbour has no options left, clear that tile and its neighbours
-	if (neighbour->availableTypes.size() == 0 && neighbour->type == '0')
-	{
-		vector<Tile*> toReset;
-		toReset.push_back(neighbour);
-		toReset.push_back(gridRef->Tiles[tile->pos.x][tile->pos.y - 1]); //up
-		toReset.push_back(gridRef->Tiles[tile->pos.x][tile->pos.y + 1]); //down
-		toReset.push_back(gridRef->Tiles[tile->pos.x - 1][tile->pos.y]); //left
-		toReset.push_back(gridRef->Tiles[tile->pos.x + 1][tile->pos.y]); //right
+	//if (tile->type == 'C' && (neighbour->type == 'S' || neighbour->type == 'L'))
+	//{
+	//	SDL_Point oppositeOffset = offset * -1;
+	//	if (IsInGrid(tilePos, oppositeOffset))
+	//	{
+	//		Tile* oppositeneighbour = gridRef->Tiles[tilePos.x + oppositeOffset.x][tilePos.y + oppositeOffset.y];
+	//		FindAndErase(oppositeneighbour, 'C');
+	//	}
+	//}
 
-		ResetNeighbours(toReset);
-	}
-
+	CheckForEmptyTiles(neighbour);
 }
 
 void WFC::ResetNeighbours(vector<Tile*> tiles)
@@ -159,18 +157,72 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 	}
 }
 
-std::vector<char> WFC::GetTypeAndRules(char input, char dir)
+std::vector<char> WFC::GetTypeAndRules(char input, directions dir)
 {
-	std::vector<char> toRemove;
-	for (std::array<char, 3> r : Rules)
+	std::vector<char> toRemove; //vector of types to remove
+	std::array<char, 4> dirs = { 'U', 'D', 'L', 'R' };
+
+	for (std::array<char, 3> r : rules.ruleVec)
 	{
-		if (dir == r[2])
+		if (dirs[dir] == r[2] && r[0] == input) //if needed direction, remove type in second place in rule
 		{
 			toRemove.emplace_back(r[1]);
 		}
 	}
 
 	return toRemove;
+}
+
+void WFC::ChangeTileWeighting(Tile* tile)
+{
+	Tile* neighbour = nullptr;
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (!IsInGrid(tile->pos, offsets[i])) continue;
+
+		neighbour = gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y];
+		char type = neighbour->type;
+		if (type == '0') continue;
+
+		auto it = std::find_if(tile->typesAndWeights.begin(), tile->typesAndWeights.end(), [type](const auto& p) {
+			return p.first == type;
+			});
+
+		if (it != tile->typesAndWeights.end())
+		{
+			tile->UpdateTypeandWeight(type, 1);
+		}
+	}
+}
+
+void WFC::FindAndErase(Tile* tile, char toFind)
+{
+	auto it = std::find_if(tile->typesAndWeights.begin(), tile->typesAndWeights.end(), [toFind](const auto& p) {
+		return p.first == toFind;
+		});
+
+	if (it != tile->typesAndWeights.end() && tile->type == '0')
+	{
+		tile->typesAndWeights.erase(it);
+	}
+}
+
+void WFC::CheckForEmptyTiles(Tile* tile)
+{
+	//if neighbour has no options left, clear that tile and its neighbours
+	if (tile->typesAndWeights.size() == 0 && tile->type == '0')
+	{
+		vector<Tile*> toReset;
+		toReset.push_back(tile);
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (!IsInGrid(tile->pos, offsets[i])) continue;
+			toReset.push_back(gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y]);
+		}
+		ResetNeighbours(toReset);
+	}
 }
 
 void WFC::CreateRects(SDL_Window* SDLWindowRef)
@@ -193,4 +245,10 @@ bool WFC::IsInTile(SDL_Point p, Tile t)
 vector<vector<Tile*>> WFC::GetTiles()
 {
 	return gridRef->Tiles;
+}
+
+SDL_Point operator*(const SDL_Point& a, const int& b)
+{
+	SDL_Point p = { a.x * b, a.y * b };
+	return p;
 }

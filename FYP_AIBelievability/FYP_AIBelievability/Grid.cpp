@@ -44,16 +44,15 @@ Tile* Grid::SmallestEntropy()
 
 	for (int x = 0; x < sizeX; x++)
 	{
-
 		for (int y = 0; y < sizeY; y++)
 		{
-			if (Tiles[x][y]->availableTypes.size() < numOptions && Tiles[x][y]->type == '0')
+			if (Tiles[x][y]->typesAndWeights.size() < numOptions && Tiles[x][y]->type == '0')
 			{
 				smallest.clear();
 				smallest.push_back(Tiles[x][y]);
-				numOptions = Tiles[x][y]->availableTypes.size();
+				numOptions = Tiles[x][y]->typesAndWeights.size();
 			}
-			else if (Tiles[x][y]->availableTypes.size() == numOptions && Tiles[x][y]->type == '0')
+			else if (Tiles[x][y]->typesAndWeights.size() == numOptions && Tiles[x][y]->type == '0')
 			{
 				smallest.push_back(Tiles[x][y]);
 			}
@@ -64,11 +63,13 @@ Tile* Grid::SmallestEntropy()
 	{
 		return smallest[0];
 	}
-	else
+	else if(smallest.size() > 0)
 	{
+
 		int random = rand() % (smallest.size());
 		return smallest[random];
 	}
+
 	return nullptr;
 }
 
