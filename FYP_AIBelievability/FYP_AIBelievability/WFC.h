@@ -22,16 +22,6 @@ struct Rules
 		{'S', 'L', 'D'},
 		{'S', 'L', 'L'},
 		{'S', 'L', 'R'}
-
-		//{'C', 'S', 'R'},
-		//{'S', 'C', 'L'}, //coast and sea always next to eachother
-		//{'C', 'S', 'U'},
-		//{'S', 'C', 'D'},
-
-		//{'C', 'L', 'L'}, // coast and land always next to eachother
-		//{'L', 'C', 'R'},
-		//{'C', 'L', 'U'},
-		//{'L', 'C', 'D'}
 	};
 };
 
@@ -49,12 +39,7 @@ public:
 	WFC(Grid* grid);
 	~WFC();
 
-	static std::array<char, 3> GenerateRule(char a, char b, char c)
-	{
-		std::array<char, 3> rule = { a, b, c };
-		return rule;
-	}
-
+	void WFCReset();
 	void RenderWFC(SDL_Renderer* renderer);
 	void WFCBody();
 	void CreateRects(SDL_Window* SDLWindowRef);

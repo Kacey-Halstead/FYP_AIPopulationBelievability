@@ -28,7 +28,7 @@ void WFC::WFCBody()
 		else
 		{
 			//assign cell to type at random
-			size_t RandomWeights = 0;
+ 			size_t RandomWeights = 0;
 			std::vector<char> random;
 			for (pair<char, float> p : selectedTile->typesAndWeights)
 			{
@@ -103,16 +103,6 @@ void WFC::Evaluate(Tile* tile, directions dir)
 		FindAndErase(neighbour, t);
 	}
 
-	//if (tile->type == 'C' && (neighbour->type == 'S' || neighbour->type == 'L'))
-	//{
-	//	SDL_Point oppositeOffset = offset * -1;
-	//	if (IsInGrid(tilePos, oppositeOffset))
-	//	{
-	//		Tile* oppositeneighbour = gridRef->Tiles[tilePos.x + oppositeOffset.x][tilePos.y + oppositeOffset.y];
-	//		FindAndErase(oppositeneighbour, 'C');
-	//	}
-	//}
-
 	CheckForEmptyTiles(neighbour);
 }
 
@@ -122,6 +112,18 @@ void WFC::ResetNeighbours(vector<Tile*> tiles)
 	{
 		t->Reset();
 	}
+}
+
+void WFC::WFCReset()
+{
+	for (std::vector<Tile*> v : gridRef->Tiles)
+	{
+		for (Tile* t : v)
+		{
+			t->Reset();
+		}
+	}
+	WFCBody();
 }
 
 void WFC::RenderWFC(SDL_Renderer* renderer)

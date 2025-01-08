@@ -5,6 +5,8 @@
 #include <imgui_impl_sdlrenderer2.h>
 #include <SDL.h>
 
+
+
 namespace ImGui_Implementation
 {
 	int agentCount = 0;
@@ -34,6 +36,7 @@ namespace ImGui_Implementation
 
 	void ImGuiDraw(SDL_Renderer* renderer)
 	{
+		ImGui_Implementation::Render();
 		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui_Implementation::GetDrawData(), renderer);
 	}
 
@@ -44,11 +47,6 @@ namespace ImGui_Implementation
 
 	void AgentPopUp()
 	{
-		// Start the Dear ImGui frame
-		ImGui_ImplSDLRenderer2_NewFrame();
-		ImGui_ImplSDL2_NewFrame();
-		ImGui_Implementation::NewFrame();
-
 		if (isAgentPressed)
 		{
 			ImGui_Implementation::Begin("Agent Information");
@@ -82,6 +80,24 @@ namespace ImGui_Implementation
 
 			ImGui_Implementation::End();	
 		}
-		ImGui_Implementation::Render();
+	}
+
+	void MainUI(WFC* wfcRef)
+	{
+		ImGui_Implementation::Begin("Menu");
+		if (ImGui_Implementation::Button("Save", {50, 50}))
+		{
+			wfcRef->WFCReset();
+		}
+		ImGui_Implementation::End();
+	}
+
+	void RenderBefore()
+	{
+		// Start the Dear ImGui frame
+		ImGui_ImplSDLRenderer2_NewFrame();
+		ImGui_ImplSDL2_NewFrame();
+		ImGui_Implementation::NewFrame();
+
 	}
 }

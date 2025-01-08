@@ -85,6 +85,8 @@ int main(int argc, char* argv[])
 	WFCComponent.CreateRects(initVars->window);
 	vector<vector<Tile*>> tiles = WFCComponent.GetTiles();
 
+	//check if enough land/ enough of each tile. if not, regenerate
+
 	//AStar
 	AStar aStar = AStar(grid);
 
@@ -138,7 +140,6 @@ int main(int argc, char* argv[])
 					}
 				}
 
-
 				//CLICKING TILES
 				for (std::vector<Tile*> v : WFCComponent.GetTiles()) //gets vectors of tiles
 				{
@@ -171,8 +172,9 @@ int main(int argc, char* argv[])
 		}
 
 		//ImGui windows
+		ImGui_Implementation::RenderBefore();
 		ImGui_Implementation::AgentPopUp();
-
+		ImGui_Implementation::MainUI(&WFCComponent);
 
 		//RENDERING
 		SDL_RenderClear(initVars->renderer); //remove anything already rendered

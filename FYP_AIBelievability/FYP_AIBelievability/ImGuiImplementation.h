@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include "Commons.h"
+#include "WFC.h"
 
 struct SDL_Renderer;
 union SDL_Event;
@@ -13,8 +14,10 @@ namespace ImGui_Implementation
 	void ImGuiDraw(SDL_Renderer* renderer);
 	void ProcessEvents(SDL_Event* e);
 	void AgentPopUp();
+	void MainUI(WFC* wfcRef);
+	void RenderBefore();
 
-	extern bool isAgentPressed;
+	extern bool isAgentPressed;	
 	extern int agentCount;
 	extern std::array<int, 5> OCEANValues;
 	extern std::array<Trait, 6> Traits;

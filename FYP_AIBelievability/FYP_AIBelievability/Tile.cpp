@@ -29,11 +29,14 @@ void Tile::Print()
 
 void Tile::Reset()
 {
+	typesAndWeights.clear();
 	for (int i = 0; i < allAvTypes.size(); i++)
 	{
 		std::pair<char, float> tempPair = { allAvTypes[i], 1 };
 		typesAndWeights.push_back(tempPair);
 	}
+	bool walkable = true;
+	type = '0';
 }
 
 SDL_Point operator-(const SDL_Point a, const SDL_Point b)

@@ -63,9 +63,8 @@ Tile* Grid::SmallestEntropy()
 	{
 		return smallest[0];
 	}
-	else if(smallest.size() > 0)
+	else
 	{
-
 		int random = rand() % (smallest.size());
 		return smallest[random];
 	}
