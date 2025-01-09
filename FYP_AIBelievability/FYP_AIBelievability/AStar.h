@@ -33,29 +33,22 @@ struct Node {
 	}
 };
 
-class AStar
+namespace AStar
 {
-public:
-	AStar(Grid* grid);
-	void Findpath(Tile* start, Tile* end);
-	float Heuristic_Manhatten(const Tile* start, const Tile* end) const;
+	void InitAStar(Grid* grid);
+	std::vector<Node> Findpath(Tile* start, Tile* end);
 	void ResetTiles(vector<vector<Tile*>>& toReset);
-
-	std::vector<Node> path;
-	bool CanCutCorners = true;
-	bool AllowDiagonal = true;
-
-
-private:
-	int maxPathCount = 100;
-	Grid* gridRef = nullptr;
-
 	void SetPath(Node* end);
 	void DrawPath();
+
 	bool DoesContainNode(const std::vector<Node*>& list, Tile* tile);
+
+	float Heuristic_Manhatten(const Tile* start, const Tile* end);
 	float Magnitude(SDL_Point s);
+
 	Node* GetNodeInList(const std::vector<Node*>& list, Tile* tile);
 	Node* GetCheapestNode(std::vector<Node*>& openList);
+
 	Tile* GetNeighbour(int index, Tile* current);
 };
 

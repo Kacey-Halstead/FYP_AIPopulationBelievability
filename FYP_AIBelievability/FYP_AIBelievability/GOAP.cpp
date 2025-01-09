@@ -19,14 +19,12 @@ void GOAP::FormulatePlan(Agent* agent)
 
 }
 
-void GOAP::ExecutePlan()
+void GOAP::ExecutePlan(Agent* agent)
 {
-	for (Action* a : plan)
-	{
+	MoveTo* action = new MoveTo();
+	std::vector<Action<ToMoveState>*> actions = {action};
 
-		//execute actions
-		a->Execute();
-	}
+	plan.ExecutePlan(actions);
 }
 
 void GOAP::StartGOAP(Agent* agent)

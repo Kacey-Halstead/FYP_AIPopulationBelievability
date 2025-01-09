@@ -18,6 +18,8 @@ Agent::Agent()
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
+
+	GOAPComponent.ExecutePlan();
 }
 
 Agent::Agent(Agent* P1, Agent* P2)
@@ -52,6 +54,9 @@ void Agent::Update(float deltaTime)
 	agentRect.x = position.x;
 	agentRect.y = position.y;
 
+	position.x += velocity.x * deltaTime;
+	position.x += velocity.y * deltaTime;
+
 	DecreaseNeeds(deltaTime);
 }
 
@@ -77,8 +82,16 @@ void Agent::DecreaseNeeds(float deltaTime)
 	{
 		needs.thirstVal -= 5 * deltaTime;
 	}
+}
 
+bool Agent::Move(SDL_Point destination)
+{
+	while (destination != position)
+	{
+		velocity = destination - position;
+	}
 
+	return true;
 }
 
 

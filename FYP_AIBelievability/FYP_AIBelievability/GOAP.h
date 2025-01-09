@@ -13,11 +13,11 @@ public:
 
 	void FormulateGoal(Agent* agent);
 	void FormulatePlan(Agent* agent);
-	void ExecutePlan();
+	void ExecutePlan(Agent* agent);
 	void StartGOAP(Agent* agent);
 
 private:
-	std::vector<Action*> plan;
+	Planner<ToMoveState> plan;
 	std::pair<std::string, int> goal;
 };
 

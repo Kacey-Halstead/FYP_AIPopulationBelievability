@@ -7,6 +7,13 @@
 #include "GOAP.h"
 #include "Commons.h"
 
+struct state
+{
+	Tile* to;
+	Tile* from;
+	Agent* agent;
+	std::vector<Node> path;
+};
 
 class Agent
 {
@@ -18,6 +25,7 @@ public:
 	void Render(SDL_Renderer* renderer, SDL_Window* window);
 	bool IsPointInAgent(SDL_Point point);
 	void DecreaseNeeds(float deltaTime);
+	bool Move(SDL_Point destination);
 
 	SDL_Point position = {};
 
@@ -25,6 +33,7 @@ public:
 	PersonalityComponent personalityComponent;
 	int agentCount = 0;
 	Needs needs = {};
+	SDL_Point velocity = {};
 
 private:
 	SDL_Point size = {50, 50};

@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 	WFCComponent.CreateRects(initVars->window);
 
 	//AStar
-	AStar aStar = AStar(grid);
+	AStar::InitAStar(grid);
 
 	//temp - for A* test
 	Tile* start = nullptr;
@@ -172,9 +172,8 @@ int main(int argc, char* argv[])
 
 							if (start != nullptr && end != nullptr)
 							{
-								aStar.AllowDiagonal = false;
-								aStar.ResetTiles(grid->Tiles);
-								aStar.Findpath(start, end);
+								AStar::ResetTiles(grid->Tiles);								
+								AStar::Findpath(start, end);
 								start = nullptr;
 								end = nullptr;
 							}
@@ -211,12 +210,12 @@ int main(int argc, char* argv[])
 
 				if (counter > 0.1 && ImGui_Implementation::agentCount == a.agentCount)
 				{
-					if (ImGui_Implementation::time.size() >= 50)
+					if (ImGui_Implementation::time.size() >= 400)
 					{
 						ImGui_Implementation::time.erase(ImGui_Implementation::time.begin());
 					}
 
-					if (ImGui_Implementation::hungerValues.size() >= 100)
+					if (ImGui_Implementation::hungerValues.size() >= 400)
 					{
 						ImGui_Implementation::hungerValues.erase(ImGui_Implementation::hungerValues.begin());
 						ImGui_Implementation::thirstValues.erase(ImGui_Implementation::thirstValues.begin());

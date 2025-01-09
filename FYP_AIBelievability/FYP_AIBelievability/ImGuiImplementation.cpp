@@ -17,9 +17,9 @@ namespace ImGui_Implementation
 	float currentTime = 0;
 	bool pause = false;
 
-	std::vector<float> hungerValues{};
-	std::vector<float> thirstValues{};
-	std::vector<float> time = {};
+	std::vector<float> hungerValues = std::vector<float>(400, 100);
+	std::vector<float> thirstValues = std::vector<float>(400, 100);
+	std::vector<float> time = std::vector<float>(400, 0);
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
 	{
@@ -27,18 +27,6 @@ namespace ImGui_Implementation
 		ImGui_Implementation::CreateContext();
 		ImPlot::CreateContext();
 		ImGui_Implementation::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-
-		for (int i = 0; i < 100; i++)
-		{
-			hungerValues.push_back(100);
-			thirstValues.push_back(100);
-		}
-
-		for (int i = 0; i < 50; i++)
-		{
-			time.push_back(0);
-		}
-
 
 		// Setup Platform/Renderer backends
 		ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
@@ -73,14 +61,13 @@ namespace ImGui_Implementation
 			//AGENT NEEDS
 			if (ImPlot::BeginPlot("Agent Needs"))
 			{
-				ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Linear);
-				ImPlot::SetupAxisLimits(ImAxis_X1, time[0] - 10, time[0] + 10, ImPlotCond_Always);
+				ImPlot::SetupAxisLimits(ImAxis_X1, time[0], time[0] + 50, ImPlotCond_Always);
 				ImPlot::SetupAxes("Time", "Need Values");
-				ImPlot::SetupAxisLimits(ImAxis_Y1, -1, 101);
+				ImPlot::SetupAxisLimits(ImAxis_Y1, -5, 105, ImPlotCond_Always);
 
 
-				ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 50);
-				ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 50);
+				ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 400);
+				ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 400);
 
 				ImPlot::EndPlot();
 			}
