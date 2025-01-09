@@ -5,6 +5,8 @@
 #include "ImGuiImplementation.h"
 #include "PersonalityComponent.h"
 #include "GOAP.h"
+#include "Commons.h"
+
 
 class Agent
 {
@@ -15,12 +17,14 @@ public:
 	void Update(float deltaTime);
 	void Render(SDL_Renderer* renderer, SDL_Window* window);
 	bool IsPointInAgent(SDL_Point point);
+	void DecreaseNeeds(float deltaTime);
 
 	SDL_Point position = {};
 
 	GOAP GOAPComponent;
 	PersonalityComponent personalityComponent;
 	int agentCount = 0;
+	Needs needs = {};
 
 private:
 	SDL_Point size = {50, 50};

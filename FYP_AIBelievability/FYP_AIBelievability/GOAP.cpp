@@ -8,12 +8,13 @@ GOAP::~GOAP()
 {
 }
 
-void GOAP::FormulateGoal()
+void GOAP::FormulateGoal(Agent* agent)
 {
+	//evaluate agent needs
 
 }
 
-void GOAP::FormulatePlan()
+void GOAP::FormulatePlan(Agent* agent)
 {
 
 }
@@ -28,13 +29,13 @@ void GOAP::ExecutePlan()
 	}
 }
 
-void GOAP::StartGOAP()
+void GOAP::StartGOAP(Agent* agent)
 {
-	FormulateGoal();
+	FormulateGoal(agent);
 
 	while (true) //goal not fulfilled 
 	{
-		FormulatePlan();
+		FormulatePlan(agent);
 
 		ExecutePlan();
 	}

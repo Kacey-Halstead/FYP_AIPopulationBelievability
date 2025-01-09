@@ -3,16 +3,18 @@
 #include <string>
 #include "Action.h"
 
+class Agent;
+
 class GOAP
 {
 public:
 	GOAP();
 	~GOAP();
 
-	void FormulateGoal();
-	void FormulatePlan();
+	void FormulateGoal(Agent* agent);
+	void FormulatePlan(Agent* agent);
 	void ExecutePlan();
-	void StartGOAP();
+	void StartGOAP(Agent* agent);
 
 private:
 	std::vector<Action*> plan;

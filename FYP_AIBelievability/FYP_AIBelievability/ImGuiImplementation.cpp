@@ -13,6 +13,13 @@ namespace ImGui_Implementation
 	std::array<int, 5> OCEANValues{};
 	std::array<Trait, 6> Traits{};
 	bool isAgentPressed = false;
+	Needs needStruct{};
+	float currentTime = 0;
+	bool pause = false;
+
+	std::vector<float> hungerValues{};
+	std::vector<float> thirstValues{};
+	std::vector<float> time = {};
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
 	{
@@ -20,6 +27,18 @@ namespace ImGui_Implementation
 		ImGui_Implementation::CreateContext();
 		ImPlot::CreateContext();
 		ImGui_Implementation::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+
+		for (int i = 0; i < 100; i++)
+		{
+			hungerValues.push_back(100);
+			thirstValues.push_back(100);
+		}
+
+		for (int i = 0; i < 50; i++)
+		{
+			time.push_back(0);
+		}
+
 
 		// Setup Platform/Renderer backends
 		ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
@@ -51,8 +70,23 @@ namespace ImGui_Implementation
 		{
 			ImGui_Implementation::Begin("Agent Information");
 
+			//AGENT NEEDS
+			if (ImPlot::BeginPlot("Agent Needs"))
+			{
+				ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Linear);
+				ImPlot::SetupAxisLimits(ImAxis_X1, time[0] - 10, time[0] + 10, ImPlotCond_Always);
+				ImPlot::SetupAxes("Time", "Need Values");
+				ImPlot::SetupAxisLimits(ImAxis_Y1, -1, 101);
+
+
+				ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 50);
+				ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 50);
+
+				ImPlot::EndPlot();
+			}
+
 			//OCEAN VALUES
-			if (ImPlot::BeginPlot("Agent Graph"))
+			if (ImPlot::BeginPlot("Agent Personality Values"))
 			{		
 				ImPlot::SetupAxes("OCEAN Factors", "OCEAN Value Intensities", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
 				ImPlot::SetupAxesLimits(0, 5, 0, 5);
@@ -66,7 +100,6 @@ namespace ImGui_Implementation
 			}
 
 			//TRAITS
-			
 			if (ImGui_Implementation::BeginChild("Scrolling"))
 			{
 				for (int i = 0; i < Traits.size(); i++)
@@ -89,6 +122,12 @@ namespace ImGui_Implementation
 		{
 			wfcRef->WFCReset();
 		}
+
+		if (ImGui_Implementation::Button("Pause", { 120, 30 }))
+		{
+			pause = !pause;
+		}
+
 		ImGui_Implementation::End();
 	}
 

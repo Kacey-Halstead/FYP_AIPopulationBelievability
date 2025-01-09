@@ -7,7 +7,9 @@
 #include<algorithm>
 #include <windows.h>
 #include <SDL.h>
+#include <chrono>
 #include <SDL_image.h>
+#include <ctime>
 
 #include "ImGuiImplementation.h"
 #include "WFC.h"
@@ -15,6 +17,8 @@
 #include "FromJSON.h"
 #include "AStar.h"
 #include "Commons.h"
+
+using namespace std::chrono;
 
 struct InitVars
 {
@@ -99,6 +103,9 @@ int main(int argc, char* argv[])
 		agents[i-1] = Agent();
 	}
 	
+	float accumulatedTime = 0;
+	float counter = 0;
+
 	//main loop
 	while (true)
 	{
@@ -110,6 +117,14 @@ int main(int argc, char* argv[])
 			if (e.type == SDL_QUIT)
 			{
 				break;
+			}
+			if (e.type == SDL_MOUSEWHEEL)
+			{
+				for (Agent& a : agents)
+				{
+					a.needs.hungerVal += 10;
+					a.needs.thirstVal += 10;
+				}
 			}
 			if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL_GetWindowID(initVars->window))
 			{
@@ -132,6 +147,8 @@ int main(int argc, char* argv[])
 						ImGui_Implementation::agentCount = a.agentCount;
 						ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
 						ImGui_Implementation::Traits = a.personalityComponent.traits;
+						ImGui_Implementation::needStruct = a.needs;
+
 						break;
 					}
 				}
@@ -176,6 +193,45 @@ int main(int argc, char* argv[])
 		SDL_RenderClear(initVars->renderer); //remove anything already rendered
 
 		WFCComponent.RenderWFC(initVars->renderer); //render WFC 
+
+		if (!ImGui_Implementation::pause)
+		{
+			//DeltaTime
+			static auto last = steady_clock::now();
+			auto old = last;
+			last = steady_clock::now();
+			const duration<float> frameTime = last - old;
+			float deltaTime = frameTime.count();
+			accumulatedTime += deltaTime;
+			counter += deltaTime;
+
+			for (Agent& a : agents) //update agents
+			{
+				a.Update(deltaTime);
+
+				if (counter > 0.1 && ImGui_Implementation::agentCount == a.agentCount)
+				{
+					if (ImGui_Implementation::time.size() >= 50)
+					{
+						ImGui_Implementation::time.erase(ImGui_Implementation::time.begin());
+					}
+
+					if (ImGui_Implementation::hungerValues.size() >= 100)
+					{
+						ImGui_Implementation::hungerValues.erase(ImGui_Implementation::hungerValues.begin());
+						ImGui_Implementation::thirstValues.erase(ImGui_Implementation::thirstValues.begin());
+					}
+
+
+					ImGui_Implementation::time.push_back(accumulatedTime);
+					ImGui_Implementation::hungerValues.push_back(a.needs.hungerVal);
+					ImGui_Implementation::thirstValues.push_back(a.needs.thirstVal);
+
+
+					counter = 0;
+				}
+			}
+		}
 
 		for (Agent& a : agents) //render agents
 		{

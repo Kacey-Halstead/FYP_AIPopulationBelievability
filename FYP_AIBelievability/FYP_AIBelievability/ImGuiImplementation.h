@@ -22,4 +22,12 @@ namespace ImGui_Implementation
 	extern int agentCount;
 	extern std::array<int, 5> OCEANValues;
 	extern std::array<Trait, 6> Traits;
+	extern Needs needStruct;
+	extern float currentTime;
+
+	extern std::vector<float> hungerValues;
+	extern std::vector<float> thirstValues;
+	extern std::vector<float> time;
+
+	extern bool pause;
 }

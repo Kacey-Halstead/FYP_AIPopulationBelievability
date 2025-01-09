@@ -17,6 +17,7 @@ Agent::Agent()
 	//sets extern variables
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
+	ImGui_Implementation::needStruct = needs;
 }
 
 Agent::Agent(Agent* P1, Agent* P2)
@@ -38,6 +39,7 @@ Agent::Agent(Agent* P1, Agent* P2)
 	//sets extern variables
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
+	ImGui_Implementation::needStruct = needs;
 }
 
 Agent::~Agent()
@@ -49,6 +51,8 @@ void Agent::Update(float deltaTime)
 {
 	agentRect.x = position.x;
 	agentRect.y = position.y;
+
+	DecreaseNeeds(deltaTime);
 }
 
 void Agent::Render(SDL_Renderer* renderer, SDL_Window* window)
@@ -60,6 +64,21 @@ void Agent::Render(SDL_Renderer* renderer, SDL_Window* window)
 bool Agent::IsPointInAgent(SDL_Point point)
 {
 	return SDL_PointInRect(&point, &agentRect);
+}
+
+void Agent::DecreaseNeeds(float deltaTime)
+{
+	if (needs.hungerVal > 0)
+	{
+		needs.hungerVal -= 1 * deltaTime;
+	}
+
+	if (needs.thirstVal > 0)
+	{
+		needs.thirstVal -= 5 * deltaTime;
+	}
+
+
 }
 
 

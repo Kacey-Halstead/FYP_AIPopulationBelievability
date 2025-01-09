@@ -15,6 +15,12 @@ private:
 
 class MoveTo : Action
 {
+	struct preconditions
+	{
+
+	};
+
+
 public:
 	MoveTo();
 	void Execute() override;
