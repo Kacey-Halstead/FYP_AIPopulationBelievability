@@ -85,7 +85,7 @@ namespace ImGui_Implementation
 	void MainUI(WFC* wfcRef)
 	{
 		ImGui_Implementation::Begin("Menu");
-		if (ImGui_Implementation::Button("Save", {50, 50}))
+		if (ImGui_Implementation::Button("Regenerate WFC", {120, 30}))
 		{
 			wfcRef->WFCReset();
 		}
@@ -98,6 +98,5 @@ namespace ImGui_Implementation
 		ImGui_ImplSDLRenderer2_NewFrame();
 		ImGui_ImplSDL2_NewFrame();
 		ImGui_Implementation::NewFrame();
-
 	}
 }

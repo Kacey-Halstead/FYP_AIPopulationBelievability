@@ -2,6 +2,7 @@
 #include <vector>
 #include <array>
 #include <SDL_rect.h>
+#include "Commons.h"
 
 using namespace std;
 
@@ -16,14 +17,14 @@ class Tile
 public:
 	char type = '0';
 	std::vector<std::pair<char, float>> typesAndWeights;
-	vector<char> availableTypes; //currently available types
-	vector<char> allAvTypes; //all available types possible
+	std::array<char, numberOfTypes> availableTypes; //currently available types
+	std::array<char, numberOfTypes> allAvTypes; //all available types possible
 	SDL_Point pos;
 	bool walkable = true;
 	bool isInPath = false;
 	int index = 0;
 
-	Tile(vector<char> allTypes);
+	Tile(std::array<char, numberOfTypes> allTypes);
 	Tile();
 	void SetType(char newType);
 	void Print();

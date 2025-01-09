@@ -1,36 +1,24 @@
 #pragma once
 #include <vector>
 
-struct preconditions
-{
-	std::vector<bool> preconditions;
-
-};
-
 class Action
 {
 public:
 	Action();
 	~Action();
-
+	virtual void Execute();
+	bool IsValid();
 
 private:
 
 };
 
-class Actions
+class MoveTo : Action
 {
-	class EatClass
-	{
-		//Eat preconditions
-		struct EatState
-		{
-			bool foundFood;
-			bool hungry;
-		};
+public:
+	MoveTo();
+	void Execute() override;
 
-	};
-
-
+private:
 
 };

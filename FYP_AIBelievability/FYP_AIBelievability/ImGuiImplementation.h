@@ -1,7 +1,8 @@
 #pragma once
 #include <array>
 #include "Commons.h"
-#include "WFC.h"
+#include "WFC.h" 
+#include "PersonalityComponent.h"
 
 struct SDL_Renderer;
 union SDL_Event;

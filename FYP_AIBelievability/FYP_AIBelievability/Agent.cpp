@@ -9,11 +9,14 @@ Agent::Agent()
 	agentRect = { position.x, position.y, size.x, size.y };
 
 	//generates random personality
-	personality = PersonalityComponent();
+	personalityComponent = PersonalityComponent();
+
+	//Sets GOAP Component
+	GOAPComponent = GOAP();
 
 	//sets extern variables
-	ImGui_Implementation::OCEANValues = personality.OCEANValues;
-	ImGui_Implementation::Traits = personality.traits;
+	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
+	ImGui_Implementation::Traits = personalityComponent.traits;
 }
 
 Agent::Agent(Agent* P1, Agent* P2)
@@ -25,13 +28,16 @@ Agent::Agent(Agent* P1, Agent* P2)
 	agentRect = { position.x, position.y, size.x, size.y };
 
 	//generates personality from parents
-	personality = PersonalityComponent(P1, P2);
+	personalityComponent = PersonalityComponent(P1, P2);
 	parents[0] = P1;
 	parents[0] = P2;
 
+	//Sets GOAP Component
+	GOAPComponent = GOAP();
+
 	//sets extern variables
-	ImGui_Implementation::OCEANValues = personality.OCEANValues;
-	ImGui_Implementation::Traits = personality.traits;
+	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
+	ImGui_Implementation::Traits = personalityComponent.traits;
 }
 
 Agent::~Agent()

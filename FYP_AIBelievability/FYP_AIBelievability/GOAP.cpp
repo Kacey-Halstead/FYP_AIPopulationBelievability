@@ -22,6 +22,20 @@ void GOAP::ExecutePlan()
 {
 	for (Action* a : plan)
 	{
-		//execute actiona
+
+		//execute actions
+		a->Execute();
+	}
+}
+
+void GOAP::StartGOAP()
+{
+	FormulateGoal();
+
+	while (true) //goal not fulfilled 
+	{
+		FormulatePlan();
+
+		ExecutePlan();
 	}
 }

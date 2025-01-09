@@ -14,6 +14,7 @@
 #include "Agent.h"
 #include "FromJSON.h"
 #include "AStar.h"
+#include "Commons.h"
 
 struct InitVars
 {
@@ -21,9 +22,6 @@ struct InitVars
 	SDL_Renderer* renderer = nullptr;
 	bool initFail = false;
 };
-
-std::vector<Agent> agents;
-
 
 InitVars InitSDL()
 {
@@ -70,22 +68,19 @@ int main(int argc, char* argv[])
 	if (returnVal.initFail == true) return 0; //if init error
 	InitVars* initVars = &returnVal;
 
-	//TextureManager init
+	//TextureManager Init
 	if (!TextureManager::TextureManagerInit(initVars->renderer, initVars->window)) return 0; //if error loading textures
 
-	//ImGui init
+	//ImGui Init
 	ImGui_Implementation::Init(initVars->renderer, initVars->window);
 
-	//GRID Init
-	Grid* grid = new Grid(10, 10, { 'L', 'C', 'S' });
+	//Grid Init
+	Grid* grid = new Grid(gridSizeX, gridSizeY, allTypes);
 
 	//WFC Init
 	WFC WFCComponent(grid);
 	WFCComponent.WFCBody();
 	WFCComponent.CreateRects(initVars->window);
-	vector<vector<Tile*>> tiles = WFCComponent.GetTiles();
-
-	//check if enough land/ enough of each tile. if not, regenerate
 
 	//AStar
 	AStar aStar = AStar(grid);
@@ -94,6 +89,7 @@ int main(int argc, char* argv[])
 	Tile* start = nullptr;
 	Tile* end = nullptr;
 
+	std::vector<Agent> agents;
 	agents.resize(10);
 
 	//Agent init
@@ -134,16 +130,16 @@ int main(int argc, char* argv[])
 					{
 						ImGui_Implementation::isAgentPressed = true;
 						ImGui_Implementation::agentCount = a.agentCount;
-						ImGui_Implementation::OCEANValues = a.personality.OCEANValues;
-						ImGui_Implementation::Traits = a.personality.traits;
+						ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
+						ImGui_Implementation::Traits = a.personalityComponent.traits;
 						break;
 					}
 				}
 
 				//CLICKING TILES
-				for (std::vector<Tile*> v : WFCComponent.GetTiles()) //gets vectors of tiles
+				for (std::vector<Tile*>& v : grid->Tiles) //gets vectors of tiles
 				{
-					for (Tile* t : v) // tiles in vector
+					for (Tile*& t : v) // tiles in vector
 					{
 						if (WFCComponent.IsInTile(mousePos, *t)) //if tile is clicked
 						{
@@ -160,7 +156,7 @@ int main(int argc, char* argv[])
 							if (start != nullptr && end != nullptr)
 							{
 								aStar.AllowDiagonal = false;
-								aStar.ResetTiles(tiles);
+								aStar.ResetTiles(grid->Tiles);
 								aStar.Findpath(start, end);
 								start = nullptr;
 								end = nullptr;
@@ -172,7 +168,7 @@ int main(int argc, char* argv[])
 		}
 
 		//ImGui windows
-		ImGui_Implementation::RenderBefore();
+		ImGui_Implementation::RenderBefore(); //setup
 		ImGui_Implementation::AgentPopUp();
 		ImGui_Implementation::MainUI(&WFCComponent);
 
@@ -186,7 +182,7 @@ int main(int argc, char* argv[])
 			a.Render(initVars->renderer, initVars->window);
 		}
 
-		ImGui_Implementation::ImGuiDraw(initVars->renderer);
+		ImGui_Implementation::ImGuiDraw(initVars->renderer); //render ImGUi
 		SDL_RenderPresent(initVars->renderer); //moving from back buffer to screen
 	}
 

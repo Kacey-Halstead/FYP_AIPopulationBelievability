@@ -9,22 +9,6 @@
 #include "Tile.h"
 #include "TextureManager.h"
 
-struct Rules
-{
-	std::vector<std::array<char, 3>> ruleVec = {
-
-		{'L', 'S', 'U'},
-		{'L', 'S', 'D'},
-		{'L', 'S', 'L'},
-		{'L', 'S', 'R'},
-
-		{'S', 'L', 'U'},
-		{'S', 'L', 'D'},
-		{'S', 'L', 'L'},
-		{'S', 'L', 'R'}
-	};
-};
-
 enum directions
 {
 	UP,
@@ -44,26 +28,41 @@ public:
 	void WFCBody();
 	void CreateRects(SDL_Window* SDLWindowRef);
 	bool IsInTile(SDL_Point p, Tile t);
-	vector<vector<Tile*>> GetTiles();
+
+	std::array<int, 3> typeCounter = {}; //L, C, S
 
 private:
-	int gridX = 0;
-	int gridY = 0;
-
 	Grid* gridRef = nullptr;
 
 	std::vector<SDL_Rect> rects;
-	Rules rules{};
-
 	std::vector<SDL_Point> offsets = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} }; //down, up, left, right
+	std::vector<char> GetTypeAndRules(char input, directions dir);
 
 	bool IsInGrid(const SDL_Point& pos, const SDL_Point& offset);
+
+	bool EveryTileHasType();
+
+
 	void Evaluate(Tile* tile, directions dir);
-	void ResetNeighbours(vector<Tile*> tiles);
-	std::vector<char> GetTypeAndRules(char input, directions dir);
+	void ResetTiles(vector<Tile*> tiles);
 	void ChangeTileWeighting(Tile* tile);
 	void FindAndErase(Tile* tile, char toFind);
 	void CheckForEmptyTiles(Tile* tile);
+	void TypeIncrement(char typeToIncrement);
+
+
+	std::vector<std::array<char, 3>> rules = {
+
+	{'L', 'S', 'U'}, //L and S can never touch
+	{'L', 'S', 'D'},
+	{'L', 'S', 'L'},
+	{'L', 'S', 'R'},
+
+	{'S', 'L', 'U'},
+	{'S', 'L', 'D'},
+	{'S', 'L', 'L'},
+	{'S', 'L', 'R'}
+	};
 };
 
 SDL_Point operator *(const SDL_Point& a, const int& b);

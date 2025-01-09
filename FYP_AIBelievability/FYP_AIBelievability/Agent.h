@@ -4,6 +4,7 @@
 #include "TextureManager.h"
 #include "ImGuiImplementation.h"
 #include "PersonalityComponent.h"
+#include "GOAP.h"
 
 class Agent
 {
@@ -15,8 +16,10 @@ public:
 	void Render(SDL_Renderer* renderer, SDL_Window* window);
 	bool IsPointInAgent(SDL_Point point);
 
-	SDL_Point position = { 10, 10 };
-	PersonalityComponent personality;
+	SDL_Point position = {};
+
+	GOAP GOAPComponent;
+	PersonalityComponent personalityComponent;
 	int agentCount = 0;
 
 private:

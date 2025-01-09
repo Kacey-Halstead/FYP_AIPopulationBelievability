@@ -2,7 +2,7 @@
 #include "iostream"
 
 using namespace std;
-Tile::Tile(vector<char> allTypes)
+Tile::Tile(std::array<char, numberOfTypes> allTypes)
 {
 	for (int i = 0; i < allTypes.size(); i++)
 	{

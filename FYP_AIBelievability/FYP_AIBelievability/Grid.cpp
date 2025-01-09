@@ -3,7 +3,7 @@
 
 using namespace std;
 
-Grid::Grid(int x, int y, vector<char> types)
+Grid::Grid(int x, int y, std::array<char, numberOfTypes> types)
 {
 	sizeX = x;
 	sizeY = y;
@@ -63,10 +63,23 @@ Tile* Grid::SmallestEntropy()
 	{
 		return smallest[0];
 	}
-	else
+	else if(smallest.size() > 1)
 	{
 		int random = rand() % (smallest.size());
 		return smallest[random];
+	}
+	else
+	{
+		for (int x = 0; x < sizeX; x++)
+		{
+			for (int y = 0; y < sizeY; y++)
+			{
+				if (Tiles[x][y]->type == '0')
+				{
+					return Tiles[x][y];
+				}
+			}
+		}
 	}
 
 	return nullptr;

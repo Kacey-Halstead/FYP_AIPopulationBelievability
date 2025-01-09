@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Tile.h"
+#include "Commons.h"
 
 using namespace std;
 class Grid
@@ -9,9 +10,9 @@ public:
 	int sizeX;
 	int sizeY;
 	vector<vector<Tile*>> Tiles;
-	vector<char> allTypes;
+	std::array<char, numberOfTypes> allTypes;
 
-	Grid(int x, int y, vector<char> types);
+	Grid(int x, int y, std::array<char, numberOfTypes> types);
 	~Grid();
 
 	Tile* SmallestEntropy();
