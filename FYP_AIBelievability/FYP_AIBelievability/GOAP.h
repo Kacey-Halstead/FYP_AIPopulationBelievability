@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "Action.h"
 
 class Agent;
+class Action;
 
 class GOAP
 {
@@ -17,7 +17,6 @@ public:
 	void StartGOAP(Agent* agent);
 
 private:
-	Planner<ToMoveState> plan;
-	std::pair<std::string, int> goal;
+	//std::vector<BaseAction*> plan;
 };
 

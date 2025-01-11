@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <memory>
 
+#include "Commons.h"
+
 struct Node {
 	Tile* tile;
 	Node* parent;
@@ -13,12 +15,12 @@ struct Node {
 	float hcost;
 	float fcost;
 
-	Node(Tile* t, Node *n, float g, float h)
+	Node(Tile* t, Node* n, float g, float h)
 	{
 		UpdateInfo(t, n, g, h);
 	}
 
-	void UpdateInfo(Tile* t, Node *n, float g, float h)
+	void UpdateInfo(Tile* t, Node* n, float g, float h)
 	{
 		tile = t;
 		parent = n;

@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	for (int i = 1; i < 11; i++)
 	{
 		ImGui_Implementation::agentCount = i;
-		agents[i-1] = Agent();
+		agents[i-1] = Agent(grid);
 	}
 	
 	float accumulatedTime = 0;

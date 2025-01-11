@@ -1,7 +1,11 @@
 #include "GOAP.h"
+#include "Agent.h"
+#include "Action.h"
+
 
 GOAP::GOAP()
 {
+
 }
 
 GOAP::~GOAP()
@@ -16,25 +20,28 @@ void GOAP::FormulateGoal(Agent* agent)
 
 void GOAP::FormulatePlan(Agent* agent)
 {
-
+	
 }
 
 void GOAP::ExecutePlan(Agent* agent)
 {
-	MoveTo* action = new MoveTo();
-	std::vector<Action<ToMoveState>*> actions = {action};
+	MoveTo* move{};
+	agent->m.to = agent->GetTileFromPos({10, 10});
+	agent->m.from = agent->GetTileFromPos(SDL_Point(agent->position.x, agent->position.y));
+	agent->m.agent = agent;
 
-	plan.ExecutePlan(actions);
+	if (move->IsValid(&agent->m))
+	{
+		move->Execute(&agent->m);		
+	}
+
 }
 
 void GOAP::StartGOAP(Agent* agent)
 {
 	FormulateGoal(agent);
 
-	while (true) //goal not fulfilled 
-	{
-		FormulatePlan(agent);
+	FormulatePlan(agent);
 
-		ExecutePlan();
-	}
+	ExecutePlan(agent);
 }

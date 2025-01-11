@@ -2,6 +2,7 @@
 #include <string>
 #include <array>
 
+
 struct Trait
 {
 	std::string traitName;

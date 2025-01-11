@@ -19,7 +19,7 @@ Tile::Tile()
 void Tile::SetType(char newType)
 {
 	type = newType;
-	if (type == 'S') walkable = false;
+	//if (type == 'S') walkable = false;
 }
 
 void Tile::Print()

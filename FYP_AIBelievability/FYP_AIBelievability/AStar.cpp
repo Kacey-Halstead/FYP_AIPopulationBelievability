@@ -168,7 +168,8 @@ namespace AStar
         }
     }
 
-    bool oesContainNode(const std::vector<Node*>& list, Tile* tile)
+
+    bool DoesContainNode(const std::vector<Node*>& list, Tile* tile)
     {
         for (const Node* n : list)
         {

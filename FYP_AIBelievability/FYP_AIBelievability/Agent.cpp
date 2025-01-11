@@ -2,11 +2,17 @@
 
 Agent::Agent()
 {
+}
+
+Agent::Agent(Grid* grid)
+{
 	agentCount = ImGui_Implementation::agentCount;
+
+	gridRef = grid;
 
 	position.x = rand() % 200 + 1;
 	position.y = rand() % 200 + 1;
-	agentRect = { position.x, position.y, size.x, size.y };
+	agentRect = { (int)position.x, (int)position.y, size.x, size.y };
 
 	//generates random personality
 	personalityComponent = PersonalityComponent();
@@ -14,21 +20,24 @@ Agent::Agent()
 	//Sets GOAP Component
 	GOAPComponent = GOAP();
 
+
 	//sets extern variables
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
 
-	GOAPComponent.ExecutePlan();
+
 }
 
 Agent::Agent(Agent* P1, Agent* P2)
 {
 	agentCount = ImGui_Implementation::agentCount;
 
+	gridRef = P1->gridRef;
+
 	position.x = rand() % 200 + 1;
 	position.y = rand() % 200 + 1;
-	agentRect = { position.x, position.y, size.x, size.y };
+	agentRect = { (int)position.x, (int)position.y, size.x, size.y };
 
 	//generates personality from parents
 	personalityComponent = PersonalityComponent(P1, P2);
@@ -51,11 +60,13 @@ Agent::~Agent()
 
 void Agent::Update(float deltaTime)
 {
+	GOAPComponent.ExecutePlan(this);
+
 	agentRect.x = position.x;
 	agentRect.y = position.y;
 
 	position.x += velocity.x * deltaTime;
-	position.x += velocity.y * deltaTime;
+	position.y += velocity.y * deltaTime;
 
 	DecreaseNeeds(deltaTime);
 }
@@ -84,15 +95,26 @@ void Agent::DecreaseNeeds(float deltaTime)
 	}
 }
 
-bool Agent::Move(SDL_Point destination)
+void Agent::Move(SDL_FPoint destination)
 {
-	while (destination != position)
-	{
-		velocity = destination - position;
-	}
-
-	return true;
+	SDL_FPoint pos = destination - position;
+	velocity = Normalize(pos);
+	velocity = { velocity.x * 5, velocity.y * 5 };
 }
 
+Tile* Agent::GetTileFromPos(SDL_Point pos)
+{
+	SDL_FPoint tilePos = { pos.x % gridSizeX, pos.y % gridSizeY };
 
+	return gridRef->Tiles[tilePos.x][tilePos.y];
+}
 
+bool operator != (const SDL_FPoint& a, const SDL_FPoint& b)
+{
+	return ((a.x != b.x) && (a.y != b.y));
+}
+
+SDL_FPoint operator - (const SDL_FPoint& a, const SDL_FPoint& b)
+{
+	return { a.x - b.x, a.y - b.y };
+}
