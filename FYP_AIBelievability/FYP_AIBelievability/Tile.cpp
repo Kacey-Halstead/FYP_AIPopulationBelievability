@@ -19,7 +19,7 @@ Tile::Tile()
 void Tile::SetType(char newType)
 {
 	type = newType;
-	//if (type == 'S') walkable = false;
+	if (type == 'S') walkable = false;
 }
 
 void Tile::Print()
@@ -35,7 +35,7 @@ void Tile::Reset()
 		std::pair<char, float> tempPair = { allAvTypes[i], 1 };
 		typesAndWeights.push_back(tempPair);
 	}
-	bool walkable = true;
+	walkable = true;
 	type = '0';
 }
 

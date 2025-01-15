@@ -17,8 +17,13 @@
 #include "FromJSON.h"
 #include "AStar.h"
 #include "Commons.h"
+#include "Action.h"
 
 using namespace std::chrono;
+
+
+
+
 
 struct InitVars
 {
@@ -100,9 +105,14 @@ int main(int argc, char* argv[])
 	for (int i = 1; i < 11; i++)
 	{
 		ImGui_Implementation::agentCount = i;
-		agents[i-1] = Agent(grid);
+		agents[i - 1] = Agent(grid);
 	}
-	
+
+	goal<MoveToState&> MoveToPlan;
+	MoveToPlan.goalActions = { MoveTo() };
+
+	Planner<MoveToState&> planner = Planner<MoveToState&>(MoveToPlan);
+
 	float accumulatedTime = 0;
 	float counter = 0;
 
@@ -140,7 +150,8 @@ int main(int argc, char* argv[])
 
 				//CLICKING AGENTS
 				for (Agent& a : agents)
-				{
+				{					
+
 					if (a.IsPointInAgent(mousePos))
 					{
 						ImGui_Implementation::isAgentPressed = true;
@@ -172,11 +183,17 @@ int main(int argc, char* argv[])
 
 							if (start != nullptr && end != nullptr)
 							{
-								AStar::ResetTiles(grid->Tiles);								
+								AStar::ResetTiles(grid->Tiles);	
 								AStar::Findpath(start, end);
 								start = nullptr;
 								end = nullptr;
 							}
+
+							//for (Agent& a : agents)
+							//{
+							//	a.moveState.from = a.position;
+							//	a.moveState.to = a.ToFPoint(t->pos);
+							//}
 						}
 					}
 				}
@@ -206,6 +223,23 @@ int main(int argc, char* argv[])
 
 			for (Agent& a : agents) //update agents
 			{
+				if (a.agentCount == 1)
+				{
+					auto plan = planner.ActionSelector(a.moveState);
+
+					switch (plan.second)
+					{
+					case InProgress:
+						plan.first->Execute(a.moveState);
+						break;
+					case Complete:
+						break;
+					case Impossible:
+						break;
+					}
+				}
+
+
 				a.Update(deltaTime);
 
 				if (counter > 0.1 && ImGui_Implementation::agentCount == a.agentCount)

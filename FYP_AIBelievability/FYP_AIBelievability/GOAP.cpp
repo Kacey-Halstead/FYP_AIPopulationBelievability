@@ -25,15 +25,6 @@ void GOAP::FormulatePlan(Agent* agent)
 
 void GOAP::ExecutePlan(Agent* agent)
 {
-	MoveTo* move{};
-	agent->m.to = agent->GetTileFromPos({10, 10});
-	agent->m.from = agent->GetTileFromPos(SDL_Point(agent->position.x, agent->position.y));
-	agent->m.agent = agent;
-
-	if (move->IsValid(&agent->m))
-	{
-		move->Execute(&agent->m);		
-	}
 
 }
 

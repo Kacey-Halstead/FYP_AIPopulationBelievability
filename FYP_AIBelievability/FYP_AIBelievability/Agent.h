@@ -6,14 +6,17 @@
 #include "PersonalityComponent.h"
 #include "GOAP.h"
 #include "AStar.h"
-#include "Commons.h"
+
+class Agent;
 
 struct MoveToState
 {
-	Tile* to;
-	Tile* from;
-	Agent* agent;
+	SDL_FPoint to;
+	SDL_FPoint from;
+	Agent* agent = nullptr;
 	std::vector<Node> path;
+
+	bool IsComplete();
 };
 
 class Agent
@@ -30,13 +33,10 @@ public:
 	void Move(SDL_FPoint destination);
 	Tile* GetTileFromPos(SDL_Point pos);
 
-	inline SDL_FPoint Normalize(SDL_FPoint a)
-	{
-		float mag = sqrt((a.x * a.x) + (a.y * a.y));
-		SDL_FPoint norm = { a.x / mag, a.y / mag };
-		return norm;
-	}
-
+	bool ComparePositions(SDL_FPoint a, SDL_FPoint b);
+	SDL_FPoint Normalize(SDL_FPoint a);
+	float Magnitude(SDL_FPoint a);
+	SDL_FPoint ToFPoint(SDL_Point a);
 
 	SDL_FPoint position = {};
 
@@ -46,8 +46,9 @@ public:
 	Needs needs = {};
 	SDL_FPoint velocity = {0, 0};
 	Grid* gridRef;
+	float speed = 5.0f;
 
-	MoveToState m;
+	MoveToState moveState;
 
 private:
 	SDL_Point size = {50, 50};
@@ -58,3 +59,4 @@ private:
 bool operator != (const SDL_FPoint& a, const SDL_FPoint& b);
 
 SDL_FPoint operator - (const SDL_FPoint& a, const SDL_FPoint& b);
+

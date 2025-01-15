@@ -52,5 +52,7 @@ namespace AStar
 	Node* GetCheapestNode(std::vector<Node*>& openList);
 
 	Tile* GetNeighbour(int index, Tile* current);
+
+	void SetGridRef(Grid* grid);
 };
 

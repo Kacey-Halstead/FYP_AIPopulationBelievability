@@ -45,6 +45,8 @@ void WFC::WFCBody()
 		Evaluate(selectedTile, RIGHT);
 	}
 
+	AStar::SetGridRef(gridRef);
+
 	//check if enough of each tile. if not, regenerate
 	if (typeCounter[0] < 3 || typeCounter[1] < 3 || typeCounter[2] < 3)
 	{
@@ -100,6 +102,7 @@ void WFC::WFCReset()
 		ResetTiles(v);
 	}
 	typeCounter = { 0, 0, 0 }; //reset
+
 	WFCBody();
 }
 

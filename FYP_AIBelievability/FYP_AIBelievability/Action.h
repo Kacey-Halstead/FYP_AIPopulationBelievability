@@ -3,123 +3,87 @@
 #include <SDL.h>
 #include "Tile.h"
 #include "AStar.h"
+#include "Commons.h"
 #include "Agent.h"
+#include <functional>
 
-class Action
+enum ActionProgress
 {
-protected:
-	virtual void Effects(const void* conditions) = 0;
-	virtual bool Execute(void* conditions) = 0;
-	virtual bool IsValid(void* conditions) = 0;
+	InProgress,
+	Complete,
+	Impossible
 };
 
-class MoveTo : Action
+template<typename... structs>
+struct Action
 {
 public:
-	void Effects(const MoveToState* conditions)
+	virtual void Execute(structs&... conditions) {};
+
+	virtual bool IsValid(structs&... conditions) { return false; };
+};
+
+template<typename... Structs>
+using IsGoalComplete = std::function<bool(Structs&...)>; 
+
+template<typename... Structs>
+struct goal
+{
+	IsGoalComplete<Structs&...> isComplete;//tests goal completion
+
+	std::vector<Action<Structs&...>> goalActions;//vector of actions with same structs
+};
+
+template<typename... Structs>
+class Planner
+{
+public:
+	Planner(goal<Structs&...> passedGoal) //list of all actions in plan
 	{
-		conditions->agent->position = SDL_FPoint(conditions->to->pos.x, conditions->to->pos.y);
+		goalToExecute = passedGoal;
 	}
 
-	bool Execute(MoveToState* conditions)
+	std::pair<Action<Structs&...>*, ActionProgress> ActionSelector(Structs&... states)
 	{
-		Node current = conditions->path.front();
-		conditions->agent->Move(SDL_FPoint(current.tile->pos.x, current.tile->pos.y));
-		if (SDL_Point(conditions->agent->position.x, conditions->agent->position.y) == conditions->to->pos)
+		if (!GoalComplete(states...))
 		{
-			conditions->path.erase(conditions->path.begin());
+			//cycle through actions and decide action
+			for (Action<Structs&...> action : goalToExecute.goalActions)
+			{
+				if (action.IsValid(states...))
+				{
+					return std::pair(&action, InProgress);
+				}
+			}
+
+			//no actions available and not complete
+			return std::pair(nullptr, Impossible);
 		}
 
-		if (conditions->agent->GetTileFromPos(SDL_Point(conditions->agent->position.x, conditions->agent->position.y)) == conditions->to || conditions->path.empty())
-		{
-			return true;
-		}
-		return false;
+		return std::pair(nullptr, Complete);
+	}
+private:
+	goal<Structs&...> goalToExecute;
+};
+
+struct MoveTo : public Action<MoveToState&>
+{
+	void Execute(MoveToState& conditions) override
+	{
+		conditions.agent->Move(conditions.to);
 	}
 
-	bool IsValid(MoveToState* conditions)
+	bool IsValid(MoveToState& conditions) override
 	{
-		conditions->path = AStar::Findpath(conditions->from, conditions->to);
-		return conditions->path.size() > 0;
+		return !conditions.agent->ComparePositions(conditions.agent->position, conditions.to);
 	}
 };
 
-
-
-
-//class BaseAction
-//{
-//public:
-//	virtual void Effects(const void* conditions) = 0;
-//	virtual void Execute(void* conditions) = 0;
-//	virtual bool IsValid(void* conditions) = 0;
-//};
-//
-//template<typename T>
-//class Action
-//{
-//public:
-//	virtual void Effects(const void* conditions) final
-//	{
-//		Effects(*reinterpret_cast<const T*>(conditions));
-//	}
-//
-//	virtual void Execute(void* conditions) final
-//	{
-//		Execute(*reinterpret_cast<T*>(conditions));
-//	}
-//
-//	virtual bool IsValid(void* conditions) final
-//	{
-//		return IsValid(*reinterpret_cast<T*>(conditions));
-//	}
-//
-//private:
-//	virtual void Effects(const T& conditions) = 0;
-//	virtual void Execute(T& conditions) = 0;
-//	virtual bool IsValid(T& conditions) = 0;
-//};
-//
-//template<typename T>
-//class Planner
-//{
-//public:
-//	void ExecutePlan(std::vector<Action<T>*>& plan)
-//	{
-//		for (Action<T>* a : plan)
-//		{
-//			if (a->IsValid())
-//			{
-//				a->Execute();
-//				a->Effects();
-//			}
-//		}
-//	}
-//};
-//
-//class MoveTo : public Action<MoveToState>
-//{
-//private:
-//	void Effects(const MoveToState& conditions) override
-//	{
-//		conditions.agent->position = conditions.to->pos;
-//	}
-//
-//	void Execute(MoveToState& conditions) override
-//	{
-//		while (!conditions.path.empty())
-//		{
-//			Node current = conditions.path.front();
-//			if (conditions.agent->Move(current.tile->pos))
-//			{
-//				conditions.path.erase(conditions.path.begin());
-//			}
-//		}
-//	}
-//
-//	bool IsValid(MoveToState& conditions) override
-//	{
-//		conditions.path = AStar::Findpath(conditions.from, conditions.to);
-//		return conditions.path.size() > 0;
-//	}
-//};
+static bool GoalComplete(MoveToState state)
+{
+	if (state.agent->ComparePositions(state.agent->position, state.to))
+	{
+		return true;
+	}
+	return false;
+}

@@ -3,7 +3,6 @@
 #include <string>
 
 class Agent;
-class Action;
 
 class GOAP
 {
@@ -15,6 +14,8 @@ public:
 	void FormulatePlan(Agent* agent);
 	void ExecutePlan(Agent* agent);
 	void StartGOAP(Agent* agent);
+
+	
 
 private:
 	//std::vector<BaseAction*> plan;

@@ -40,7 +40,6 @@ namespace AStar
             //if the current node is the end node, a path has been found.
             if (current->tile == end)
             {
-                //Debug.Log("Path found, start pos = " + start.transform.position + " - end pos = " + end.transform.position);
                 SetPath(current);
                 DrawPath();
                 return path;
@@ -223,6 +222,10 @@ namespace AStar
         }
 
         return nullptr;
+    }
+    void SetGridRef(Grid* grid)
+    {
+        gridRef = grid;
     }
 }
 

@@ -178,6 +178,7 @@
     <ClInclude Include="nlohmann\json_fwd.hpp" />
     <ClInclude Include="PersonalityComponent.h" />
     <ClInclude Include="RandomGenerator.h" />
+    <ClInclude Include="States.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="WFC.h" />

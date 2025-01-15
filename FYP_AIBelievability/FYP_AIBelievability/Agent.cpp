@@ -7,6 +7,7 @@ Agent::Agent()
 Agent::Agent(Grid* grid)
 {
 	agentCount = ImGui_Implementation::agentCount;
+	moveState.agent = this;
 
 	gridRef = grid;
 
@@ -25,8 +26,6 @@ Agent::Agent(Grid* grid)
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
-
-
 }
 
 Agent::Agent(Agent* P1, Agent* P2)
@@ -60,8 +59,6 @@ Agent::~Agent()
 
 void Agent::Update(float deltaTime)
 {
-	GOAPComponent.ExecutePlan(this);
-
 	agentRect.x = position.x;
 	agentRect.y = position.y;
 
@@ -99,7 +96,7 @@ void Agent::Move(SDL_FPoint destination)
 {
 	SDL_FPoint pos = destination - position;
 	velocity = Normalize(pos);
-	velocity = { velocity.x * 5, velocity.y * 5 };
+	velocity = { velocity.x * speed, velocity.y * speed };
 }
 
 Tile* Agent::GetTileFromPos(SDL_Point pos)
@@ -107,6 +104,31 @@ Tile* Agent::GetTileFromPos(SDL_Point pos)
 	SDL_FPoint tilePos = { pos.x % gridSizeX, pos.y % gridSizeY };
 
 	return gridRef->Tiles[tilePos.x][tilePos.y];
+}
+
+bool Agent::ComparePositions(SDL_FPoint a, SDL_FPoint b)
+{
+	SDL_FPoint diff = b - a;
+	float mag = Magnitude(diff);
+	return mag < 2.0f;
+}
+
+float Agent::Magnitude(SDL_FPoint a)
+{
+	return sqrt((a.x * a.x) + (a.y * a.y));
+}
+
+SDL_FPoint Agent::ToFPoint(SDL_Point a)
+{
+	SDL_FPoint convert = { a.x, a.y };
+	return convert;
+}
+
+SDL_FPoint Agent::Normalize(SDL_FPoint a)
+{
+	float mag = Magnitude(a);
+	SDL_FPoint norm = { a.x / mag, a.y / mag };
+	return norm;
 }
 
 bool operator != (const SDL_FPoint& a, const SDL_FPoint& b)
@@ -117,4 +139,14 @@ bool operator != (const SDL_FPoint& a, const SDL_FPoint& b)
 SDL_FPoint operator - (const SDL_FPoint& a, const SDL_FPoint& b)
 {
 	return { a.x - b.x, a.y - b.y };
+}
+
+bool MoveToState::IsComplete()
+{
+	if (agent->ComparePositions(agent->position, to))
+	{
+		return true;
+	}
+
+	return false;
 }

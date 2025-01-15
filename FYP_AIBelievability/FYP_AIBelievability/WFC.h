@@ -8,6 +8,7 @@
 #include "Grid.h"
 #include "Tile.h"
 #include "TextureManager.h"
+#include "AStar.h"
 
 enum directions
 {
