@@ -59,11 +59,12 @@ Agent::~Agent()
 
 void Agent::Update(float deltaTime)
 {
-	agentRect.x = position.x;
-	agentRect.y = position.y;
+	agentRect.x = position.x - agentRect.w/2;
+	agentRect.y = position.y - agentRect.h/2;
 
 	position.x += velocity.x * deltaTime;
 	position.y += velocity.y * deltaTime;
+	velocity = { 0.0f, 0.0f };
 
 	DecreaseNeeds(deltaTime);
 }
@@ -101,7 +102,7 @@ void Agent::Move(SDL_FPoint destination)
 
 Tile* Agent::GetTileFromPos(SDL_Point pos)
 {
-	SDL_FPoint tilePos = { pos.x % gridSizeX, pos.y % gridSizeY };
+	SDL_Point tilePos = { round(pos.x/gridRef->tileSize.x), round(pos.y / gridRef->tileSize.y) };
 
 	return gridRef->Tiles[tilePos.x][tilePos.y];
 }

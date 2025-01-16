@@ -20,6 +20,7 @@ public:
 	std::array<char, numberOfTypes> availableTypes; //currently available types
 	std::array<char, numberOfTypes> allAvTypes; //all available types possible
 	SDL_Point pos;
+	SDL_FPoint worldPos;
 	bool walkable = true;
 	bool isInPath = false;
 	int index = 0;

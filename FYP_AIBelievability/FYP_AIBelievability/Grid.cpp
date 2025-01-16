@@ -35,6 +35,20 @@ void Grid::GridInit()
 	}
 }
 
+void Grid::CreateRects(SDL_Window* SDLWindowRef)
+{
+	tileSize = { SDL_GetWindowSurface(SDLWindowRef)->w / sizeX, SDL_GetWindowSurface(SDLWindowRef)->h / sizeY };
+
+	for (int x = 0; x < sizeX; x++)
+	{
+		for (int y = 0; y < sizeY; y++)
+		{
+			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / sizeX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / sizeY), tileSize.x, tileSize.y };
+			Tiles[x][y]->worldPos = SDL_FPoint(newRec.x + tileSize.x/2, newRec.y + tileSize.y / 2);
+			rects.emplace_back(newRec);
+		}
+	}
+}
 
 Tile* Grid::SmallestEntropy()
 {

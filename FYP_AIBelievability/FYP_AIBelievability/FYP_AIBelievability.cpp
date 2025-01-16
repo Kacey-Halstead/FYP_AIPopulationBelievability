@@ -21,10 +21,6 @@
 
 using namespace std::chrono;
 
-
-
-
-
 struct InitVars
 {
 	SDL_Window* window = nullptr;
@@ -61,7 +57,6 @@ InitVars InitSDL()
 		initVars.initFail = true;
 	}
 
-	srand(time(NULL));
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	return initVars;
@@ -69,7 +64,9 @@ InitVars InitSDL()
 
 int main(int argc, char* argv[])
 {
-	srand(time(NULL));
+	//unsigned int seed = time(nullptr);
+	unsigned int seed = 'k' + 'a' + 'c' + 'e' + 'y';
+	srand(seed);
 
 	FromJSONFile::ReadFromJSON();
 
@@ -89,7 +86,8 @@ int main(int argc, char* argv[])
 	//WFC Init
 	WFC WFCComponent(grid);
 	WFCComponent.WFCBody();
-	WFCComponent.CreateRects(initVars->window);
+
+	grid->CreateRects(initVars->window);
 
 	//AStar
 	AStar::InitAStar(grid);
@@ -99,19 +97,16 @@ int main(int argc, char* argv[])
 	Tile* end = nullptr;
 
 	std::vector<Agent> agents;
-	agents.resize(10);
+	agents.reserve(10);
 
 	//Agent init
 	for (int i = 1; i < 11; i++)
 	{
 		ImGui_Implementation::agentCount = i;
-		agents[i - 1] = Agent(grid);
+		agents.emplace_back(grid);
 	}
-
-	goal<MoveToState&> MoveToPlan;
-	MoveToPlan.goalActions = { MoveTo() };
-
-	Planner<MoveToState&> planner = Planner<MoveToState&>(MoveToPlan);
+	
+	Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
 	float accumulatedTime = 0;
 	float counter = 0;
@@ -171,29 +166,38 @@ int main(int argc, char* argv[])
 					{
 						if (WFCComponent.IsInTile(mousePos, *t)) //if tile is clicked
 						{
-							if (start == nullptr) 
-							{
-								start = t;
-							}
-							else if (end == nullptr && t != start)
-							{
-								end = t;
-							}
-
-
-							if (start != nullptr && end != nullptr)
-							{
-								AStar::ResetTiles(grid->Tiles);	
-								AStar::Findpath(start, end);
-								start = nullptr;
-								end = nullptr;
-							}
-
-							//for (Agent& a : agents)
+							//if (start == nullptr) 
 							//{
-							//	a.moveState.from = a.position;
-							//	a.moveState.to = a.ToFPoint(t->pos);
+							//	start = t;
 							//}
+							//else if (end == nullptr && t != start)
+							//{
+							//	end = t;
+							//}
+
+
+							//if (start != nullptr && end != nullptr)
+							//{
+							//	AStar::ResetTiles(grid->Tiles);	
+							//	AStar::Findpath(start, end);
+							//	start = nullptr;
+							//	end = nullptr;
+							//}
+
+							for (Agent& a : agents)
+							{
+								if (a.agentCount == 1)
+								{
+									AStar::ResetTiles(grid->Tiles);
+									a.GetState().from = a.position;
+									a.GetState().to = a.ToFPoint(mousePos);
+									Tile* tile = a.GetTileFromPos(SDL_Point(a.position.x, a.position.y));
+									a.GetState().path = AStar::Findpath(tile, t);
+
+									if(a.GetState().path.size() > 1)
+										a.GetState().path.erase(a.GetState().path.begin());
+								}
+							}
 						}
 					}
 				}
@@ -225,12 +229,12 @@ int main(int argc, char* argv[])
 			{
 				if (a.agentCount == 1)
 				{
-					auto plan = planner.ActionSelector(a.moveState);
+					auto [executeFunc, completion] = plan.ActionSelector(a.GetState());
 
-					switch (plan.second)
+					switch (completion)
 					{
 					case InProgress:
-						plan.first->Execute(a.moveState);
+						(*executeFunc)(a.GetState());
 						break;
 					case Complete:
 						break;

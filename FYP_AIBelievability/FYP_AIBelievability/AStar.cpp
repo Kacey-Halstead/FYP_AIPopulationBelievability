@@ -125,6 +125,8 @@ namespace AStar
                 break;
             }
         }
+
+        return path;
     }
 
     float Heuristic_Manhatten(const Tile* start, const Tile* end)

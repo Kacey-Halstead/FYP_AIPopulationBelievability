@@ -14,45 +14,48 @@ enum ActionProgress
 	Impossible
 };
 
-template<typename... structs>
-struct Action
+//Action - 2 functions (Execute and IsValid) 
+template<typename... Structs>
+using ExecuteFunc = std::function<void(Structs&...)>;
+
+using IsValidReturnType = bool; // TODO: change from bool to weighting to compare action desirability
+
+template<typename... Structs>
+using IsValidFunc = IsValidReturnType(*)(Structs&...); //function pointer - smaller memory than using std::function
+
+//action definition 
+template<typename... Structs>
+using Action = std::pair<ExecuteFunc<Structs...>, IsValidFunc<Structs...>>;
+
+
+//Goal Completion function (IsGoalComplete)
+template<typename... Structs>
+using IsGoalComplete = std::function<bool(Structs&...)>;
+
+
+//PLANNER
+template<typename... Structs>
+class Planner 
 {
+	using Action = Action<Structs...>;
+
 public:
-	virtual void Execute(structs&... conditions) {};
-
-	virtual bool IsValid(structs&... conditions) { return false; };
-};
-
-template<typename... Structs>
-using IsGoalComplete = std::function<bool(Structs&...)>; 
-
-template<typename... Structs>
-struct goal
-{
-	IsGoalComplete<Structs&...> isComplete;//tests goal completion
-
-	std::vector<Action<Structs&...>> goalActions;//vector of actions with same structs
-};
-
-template<typename... Structs>
-class Planner
-{
-public:
-	Planner(goal<Structs&...> passedGoal) //list of all actions in plan
+	Planner(IsGoalComplete<Structs...> goal, std::vector<Action>&& allActions) //planner requires goal complete func and actions in plan
 	{
-		goalToExecute = passedGoal;
+		isGoalComplete = goal;
+		actions = allActions;
 	}
 
-	std::pair<Action<Structs&...>*, ActionProgress> ActionSelector(Structs&... states)
+	std::pair<const ExecuteFunc<Structs...>*, ActionProgress> ActionSelector(Structs&... states)
 	{
-		if (!GoalComplete(states...))
+		if (!isGoalComplete(states...))
 		{
 			//cycle through actions and decide action
-			for (Action<Structs&...> action : goalToExecute.goalActions)
+			for (const auto& [executeFunc, isValidFunc] : actions)
 			{
-				if (action.IsValid(states...))
+				if (isValidFunc(states...))
 				{
-					return std::pair(&action, InProgress);
+					return std::make_pair(&executeFunc, InProgress);
 				}
 			}
 
@@ -62,24 +65,38 @@ public:
 
 		return std::pair(nullptr, Complete);
 	}
+
 private:
-	goal<Structs&...> goalToExecute;
+	IsGoalComplete<Structs...> isGoalComplete;
+	std::vector<Action> actions;
 };
 
-struct MoveTo : public Action<MoveToState&>
+//Defined Actions
+struct MoveTo
 {
-	void Execute(MoveToState& conditions) override
+	static void Execute(MoveToState& conditions)
 	{
-		conditions.agent->Move(conditions.to);
+		if (!conditions.path.empty())
+		{
+			SDL_FPoint toGo = conditions.path[0].tile->worldPos;
+
+			conditions.agent->Move(toGo);
+
+			if (conditions.agent->ComparePositions(conditions.agent->position, toGo))
+			{
+				conditions.path.erase(conditions.path.begin());
+			}
+		}
 	}
 
-	bool IsValid(MoveToState& conditions) override
+	static bool IsValid(MoveToState& conditions)
 	{
 		return !conditions.agent->ComparePositions(conditions.agent->position, conditions.to);
 	}
 };
 
-static bool GoalComplete(MoveToState state)
+//Goal Completion Functions
+static bool GoalComplete(MoveToState& state)
 {
 	if (state.agent->ComparePositions(state.agent->position, state.to))
 	{

@@ -36,6 +36,7 @@ void WFC::WFCBody()
 		selectedTile->SetType(random[randomType]);
 		TypeIncrement(random[randomType]);
 		random.clear();
+
 		selectedTile->typesAndWeights.clear();
 
 		//update all neighbours(up, down, left, right)
@@ -52,6 +53,14 @@ void WFC::WFCBody()
 	{
 		WFCReset();
 	}
+
+	//check if too many sea tiles
+	if (typeCounter[2] > (gridSizeX*gridSizeY)/3)
+	{
+		WFCReset();
+	}
+
+	//if groups of tiles less than specific number, regenerate
 }
 
 bool WFC::IsInGrid(const SDL_Point& pos, const SDL_Point& offset)
@@ -102,6 +111,7 @@ void WFC::WFCReset()
 		ResetTiles(v);
 	}
 	typeCounter = { 0, 0, 0 }; //reset
+	neighboursOfSame = {};
 
 	WFCBody();
 }
@@ -115,7 +125,7 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 		{
 			if (gridRef->Tiles[x][y]->isInPath)
 			{
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &gridRef->rects[counter]);
 				counter++;
 				continue;
 			}
@@ -123,13 +133,13 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 			switch (gridRef->Tiles[x][y]->type)
 			{
 			case 'S':		
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &gridRef->rects[counter]);
 				break;
 			case 'L':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &gridRef->rects[counter]);
 				break;
 			case 'C':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &gridRef->rects[counter]);
 				break;
 			default:
 				break;
@@ -173,7 +183,8 @@ void WFC::ChangeTileWeighting(Tile* tile)
 
 		if (it != tile->typesAndWeights.end()) //is neighbour type = potential type of current tile?
 		{
-			tile->UpdateTypeandWeight(type, 1);
+			tile->UpdateTypeandWeight(type, 2);
+
 		}
 	}
 }
@@ -229,7 +240,7 @@ bool WFC::EveryTileHasType()
 {
 	for (int x = 0; x < gridRef->sizeX; x++)
 	{
-		for (int y = 0; y < gridRef->sizeX; y++)
+		for (int y = 0; y < gridRef->sizeY; y++)
 		{
 			if (gridRef->Tiles[x][y]->type == '0')
 			{
@@ -240,21 +251,59 @@ bool WFC::EveryTileHasType()
 	return true;
 }
 
-void WFC::CreateRects(SDL_Window* SDLWindowRef)
+void WFC::UpdateGroups()
 {
-	for (int x = 0; x < gridRef->sizeX; x++)
+	for (int i : neighboursOfSame)
 	{
-		for (int y = 0; y < gridRef->sizeY; y++)
+		if (i < 1)
 		{
-			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / gridRef->sizeX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / gridRef->sizeY), SDL_GetWindowSurface(SDLWindowRef)->w / gridRef->sizeX, SDL_GetWindowSurface(SDLWindowRef)->h / gridRef->sizeY };
-			rects.emplace_back(newRec);
+			WFCReset();
+			return;
 		}
+	}
+}
+
+void WFC::IncrementGroups(Tile* tile)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		if (!IsInGrid(tile->pos, offsets[i])) continue;
+
+		Tile* neighbour = gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y];
+
+		if (neighbour->type == tile->type)
+		{
+			neighboursOfSame[tile->index]++;
+			neighboursOfSame[neighbour->index]++;
+		}
+	}
+}
+
+bool WFC::CheckForLoners(Tile* tile, char toCheck)
+{
+	auto it = std::find(tile->availableTypes.begin(), tile->availableTypes.end(), toCheck);
+
+	if (it != tile->availableTypes.end())
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			if (!IsInGrid(tile->pos, offsets[i])) continue;
+
+			Tile* neighbour = gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y];
+
+			if (neighbour->type == toCheck) break;
+
+			tile->SetType(toCheck);
+			TypeIncrement(toCheck);
+			return true;
+		}
+		return false;
 	}
 }
 
 bool WFC::IsInTile(SDL_Point p, Tile t)
 {
-	return SDL_PointInRect(&p, &rects[t.index]);
+	return SDL_PointInRect(&p, &gridRef->rects[t.index]);
 }
 
 SDL_Point operator*(const SDL_Point& a, const int& b)

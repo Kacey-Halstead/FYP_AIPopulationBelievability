@@ -46,11 +46,11 @@ public:
 	Needs needs = {};
 	SDL_FPoint velocity = {0, 0};
 	Grid* gridRef;
-	float speed = 5.0f;
+	float speed = 100.0f;
 
-	MoveToState moveState;
-
+	MoveToState& GetState() { return moveState; }
 private:
+	MoveToState moveState;
 	SDL_Point size = {50, 50};
 	SDL_Rect agentRect;	
 	std::array<Agent*, 2> parents = {};

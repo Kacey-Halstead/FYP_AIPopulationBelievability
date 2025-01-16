@@ -27,15 +27,18 @@ public:
 	void WFCReset();
 	void RenderWFC(SDL_Renderer* renderer);
 	void WFCBody();
-	void CreateRects(SDL_Window* SDLWindowRef);
+
 	bool IsInTile(SDL_Point p, Tile t);
 
-	std::array<int, 3> typeCounter = {}; //L, C, S
+	
 
 private:
 	Grid* gridRef = nullptr;
 
-	std::vector<SDL_Rect> rects;
+	std::array<int, 3> typeCounter = {}; //L, C, S
+
+	std::array<int, gridSizeX* gridSizeY> neighboursOfSame = {};
+
 	std::vector<SDL_Point> offsets = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} }; //down, up, left, right
 	std::vector<char> GetTypeAndRules(char input, directions dir);
 
@@ -43,6 +46,10 @@ private:
 
 	bool EveryTileHasType();
 
+	void UpdateGroups();
+	void IncrementGroups(Tile* tile);
+
+	bool CheckForLoners(Tile* tile, char toCheck);
 
 	void Evaluate(Tile* tile, directions dir);
 	void ResetTiles(vector<Tile*> tiles);
