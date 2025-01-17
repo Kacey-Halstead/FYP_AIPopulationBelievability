@@ -112,11 +112,6 @@ void Agent::UpdateImGui()
 	ImGui_Implementation::thirstValues.push_back(needs.thirstVal);
 }
 
-bool operator != (const SDL_FPoint& a, const SDL_FPoint& b)
-{
-	return ((a.x != b.x) && (a.y != b.y));
-}
-
 bool MoveToState::IsComplete()
 {
 	if (ComparePositions(agent->position, to))

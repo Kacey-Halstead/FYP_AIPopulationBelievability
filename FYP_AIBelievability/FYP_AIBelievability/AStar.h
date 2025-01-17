@@ -44,7 +44,7 @@ namespace AStar
 
 	bool DoesContainNode(const std::vector<Node*>& list, Tile* tile);
 
-	float Heuristic_Manhatten(const Tile* start, const Tile* end);
+	float Heuristic_Manhatten(Tile* start, Tile* end);
 	float Magnitude(SDL_Point s);
 
 	Node* GetNodeInList(const std::vector<Node*>& list, Tile* tile);

@@ -1,11 +1,10 @@
 #include <iostream>
 #include <stdio.h>
-#include<stdlib.h>
-#include<time.h>
-#include<vector>
+#include <stdlib.h>
+#include <time.h>
+#include <vector>
 #include <array>
-#include<algorithm>
-#include <windows.h>
+#include <algorithm>
 #include <SDL.h>
 #include <chrono>
 #include <SDL_image.h>
@@ -59,8 +58,6 @@ InitVars InitSDL()
 		initVars.initFail = true;
 	}
 
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
 
 	//unsigned int seed = time(nullptr);
 	unsigned int seed = 'k' + 'a' + 'c' + 'e' + 'y';
@@ -71,7 +68,7 @@ InitVars InitSDL()
 	return initVars;
 }
 
-bool PollEvents(Grid* grid, WFC* WFCComponent, InitVars* initVars)
+bool PollEvents(Grid* grid, WFC* WFCComponent, InitVars* initVars) 
 {
 	SDL_Event e;
 	if (SDL_PollEvent(&e))
@@ -96,7 +93,6 @@ bool PollEvents(Grid* grid, WFC* WFCComponent, InitVars* initVars)
 		}
 		if (e.type == SDL_MOUSEBUTTONDOWN)
 		{
-			int padding = 50;
 			int x = e.button.x;
 			int y = e.button.y;
 
@@ -145,17 +141,14 @@ bool PollEvents(Grid* grid, WFC* WFCComponent, InitVars* initVars)
 
 						for (Agent& a : agents)
 						{
-							if (a.agentCount == 1)
-							{
-								AStar::ResetTiles(grid->Tiles);
-								a.GetState().from = a.position;
-								a.GetState().to = glm::vec2(mousePos.x, mousePos.y);
-								Tile* tile = a.GetTileFromPos(glm::vec2(a.position.x, a.position.y));
-								a.GetState().path = AStar::Findpath(tile, t);
+							AStar::ResetTiles(grid->Tiles);
+							a.GetState().from = a.position;
+							a.GetState().to = glm::vec2(mousePos.x, mousePos.y);
+							Tile* tile = a.GetTileFromPos(glm::vec2(a.position.x, a.position.y));
+							a.GetState().path = AStar::Findpath(tile, t);
 
-								if (a.GetState().path.size() > 1)
-									a.GetState().path.erase(a.GetState().path.begin());
-							}
+							if (a.GetState().path.size() > 1)
+								a.GetState().path.erase(a.GetState().path.begin());				
 						}
 					}
 				}
@@ -232,20 +225,17 @@ int main(int argc, char* argv[])
 
 			for (Agent& a : agents) //update agents
 			{
-				if (a.agentCount == 1)
-				{
-					auto [executeFunc, completion] = plan.ActionSelector(a.GetState());
+				auto [executeFunc, completion] = plan.ActionSelector(a.GetState());
 
-					switch (completion)
-					{
-					case InProgress:
-						(*executeFunc)(a.GetState());
-						break;
-					case Complete:
-						break;
-					case Impossible:
-						break;
-					}
+				switch (completion)
+				{
+				case InProgress:
+					(*executeFunc)(a.GetState());
+					break;
+				case Complete:
+					break;
+				case Impossible:
+					break;
 				}
 
 				a.Update(deltaTime);
@@ -270,6 +260,7 @@ int main(int argc, char* argv[])
 
 	// Cleanup
 	ImGui_Implementation::Destroy();
+
 	SDL_DestroyRenderer(initVars->renderer);
 	SDL_DestroyWindow(initVars->window);
 	IMG_Quit();

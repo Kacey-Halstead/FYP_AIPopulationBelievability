@@ -78,7 +78,7 @@ struct MoveTo
 	{
 		if (!conditions.path.empty())
 		{
-			glm::vec2 toGo = conditions.path[0].tile->worldPos;
+			glm::vec2 toGo = conditions.path[0].tile->GetWorldPos();
 
 			conditions.agent->Move(toGo);
 

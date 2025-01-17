@@ -34,6 +34,8 @@ void WFC::WFCBody()
 
 		int randomType = rand() % random.size();
 		selectedTile->SetType(random[randomType]);
+		if (random[randomType] == 'S')
+			selectedTile->walkable = false;
 		TypeIncrement(random[randomType]);
 		random.clear();
 
@@ -67,7 +69,7 @@ bool WFC::IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)
 {
 	SDL_Point newPos = { pos.x + offset.x, pos.y+offset.y };
 
-	if (newPos.x < 0 || newPos.x >= gridRef->sizeX || newPos.y < 0 || newPos.y >= gridRef->sizeY)
+	if (newPos.x < 0 || newPos.x >= gridRef->GetGridSize().x || newPos.y < 0 || newPos.y >= gridRef->GetGridSize().y)
 	{
 		return false;
 	}
@@ -76,7 +78,7 @@ bool WFC::IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)
 
 void WFC::Evaluate(Tile* tile, directions dir)
 {
-	glm::ivec2 tilePos = { tile->pos.x, tile->pos.y };
+	glm::ivec2 tilePos = { tile->GetGridPos().x, tile->GetGridPos().y};
 	glm::ivec2 offset = { 0, 0 };
 	offset = offsets[dir];
 
@@ -86,7 +88,7 @@ void WFC::Evaluate(Tile* tile, directions dir)
 
 	if (neighbour == nullptr) return;
 
-	std::vector<char> typesToRemove = GetTypeAndRules(tile->type, dir);
+	std::vector<char> typesToRemove = GetTypeAndRules(tile->GetType(), dir);
 
 	for (char t : typesToRemove)
 	{
@@ -118,9 +120,9 @@ void WFC::WFCReset()
 void WFC::RenderWFC(SDL_Renderer* renderer)
 {
 	int counter = 0;
-	for (int x = 0; x < gridRef->sizeX; x++)
+	for (int x = 0; x < gridRef->GetGridSize().x; x++)
 	{
-		for (int y = 0; y < gridRef->sizeY; y++)
+		for (int y = 0; y < gridRef->GetGridSize().y; y++)
 		{
 			if (gridRef->Tiles[x][y]->isInPath)
 			{
@@ -129,7 +131,7 @@ void WFC::RenderWFC(SDL_Renderer* renderer)
 				continue;
 			}
 
-			switch (gridRef->Tiles[x][y]->type)
+			switch (gridRef->Tiles[x][y]->GetType())
 			{
 			case 'S':		
 				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &gridRef->rects[counter]);
@@ -170,10 +172,10 @@ void WFC::ChangeTileWeighting(Tile* tile)
 
 	for (int i = 0; i < 4; i++)
 	{
-		if (!IsInGrid(tile->pos, offsets[i])) continue;
+		if (!IsInGrid(tile->GetGridPos(), offsets[i])) continue;
 
-		neighbour = gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y];
-		char type = neighbour->type;
+		neighbour = gridRef->Tiles[tile->GetGridPos().x + offsets[i].x][tile->GetGridPos().y + offsets[i].y];
+		char type = neighbour->GetType();
 		if (type == '0') continue;
 
 		auto it = std::find_if(tile->typesAndWeights.begin(), tile->typesAndWeights.end(), [type](const auto& p) {
@@ -194,7 +196,7 @@ void WFC::FindAndErase(Tile* tile, char toFind)
 		return p.first == toFind;
 		});
 
-	if (it != tile->typesAndWeights.end() && tile->type == '0')
+	if (it != tile->typesAndWeights.end() && tile->GetType() == '0')
 	{
 		tile->typesAndWeights.erase(it);
 	}
@@ -203,15 +205,15 @@ void WFC::FindAndErase(Tile* tile, char toFind)
 void WFC::CheckForEmptyTiles(Tile* tile)
 {
 	//if neighbour has no options left, clear that tile and its neighbours
-	if (tile->typesAndWeights.size() == 0 && tile->type == '0')
+	if (tile->typesAndWeights.size() == 0 && tile->GetType() == '0')
 	{
 		vector<Tile*> toReset;
 		toReset.push_back(tile);
 
 		for (int i = 0; i < 4; i++)
 		{
-			if (!IsInGrid(tile->pos, offsets[i])) continue;
-			toReset.push_back(gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y]);
+			if (!IsInGrid(tile->GetGridPos(), offsets[i])) continue;
+			toReset.push_back(gridRef->Tiles[tile->GetGridPos().x + offsets[i].x][tile->GetGridPos().y + offsets[i].y]);
 		}
 		ResetTiles(toReset);
 	}
@@ -237,11 +239,11 @@ void WFC::TypeIncrement(char typeToIncrement)
 
 bool WFC::EveryTileHasType()
 {
-	for (int x = 0; x < gridRef->sizeX; x++)
+	for (int x = 0; x < gridRef->GetGridSize().x; x++)
 	{
-		for (int y = 0; y < gridRef->sizeY; y++)
+		for (int y = 0; y < gridRef->GetGridSize().y; y++)
 		{
-			if (gridRef->Tiles[x][y]->type == '0')
+			if (gridRef->Tiles[x][y]->GetType() == '0')
 			{
 				return false;
 			}

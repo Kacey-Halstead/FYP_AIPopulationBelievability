@@ -16,8 +16,6 @@ struct Needs
 	float thirstVal = 100;
 };
 
-
-
 constexpr int gridSizeX = 30;
 constexpr int gridSizeY = 30;
 constexpr std::array<char, 3> allTypes = { 'L', 'C', 'S' };

@@ -4,25 +4,34 @@
 #include "Commons.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include<glm/glm.hpp>
 
 using namespace std;
 class Grid
 {
 public:
-	int sizeX;
-	int sizeY;
-	glm::ivec2 tileSize;
-	vector<vector<Tile*>> Tiles;
-	std::array<char, numberOfTypes> allTypes;
-	std::vector<SDL_Rect> rects;
 
 	Grid(int x, int y, std::array<char, numberOfTypes> types);
 	~Grid();
 
 	void CreateRects(SDL_Window* SDLWindowRef);
-	Tile* SmallestEntropy();
+
 	bool IsInGrid(glm::ivec2 point, glm::ivec2 dir);
+
+	Tile* SmallestEntropy();
+
+	inline glm::vec2 GetGridSize() { return glm::vec2(sizeX, sizeY); };
+
+	glm::ivec2 tileSize;
+	vector<vector<Tile*>> Tiles;
+	std::vector<SDL_Rect> rects;
+
 private:
+	int sizeX;
+	int sizeY;
+
+	std::array<char, numberOfTypes> allTypes;
+
 	void GridInit();
 };
 

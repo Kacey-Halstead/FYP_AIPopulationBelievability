@@ -25,9 +25,7 @@ void Grid::GridInit()
 		vector<Tile*> newTiles;
 		for (int y = 0; y < sizeY; y++)
 		{
-			Tile* tile = new Tile(allTypes);
-			tile->pos = { x, y };
-			tile->index = index;
+			Tile* tile = new Tile(glm::ivec2(x, y), index);
 			newTiles.push_back(tile);
 			index++;
 		}
@@ -44,7 +42,7 @@ void Grid::CreateRects(SDL_Window* SDLWindowRef)
 		for (int y = 0; y < sizeY; y++)
 		{
 			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / sizeX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / sizeY), tileSize.x, tileSize.y };
-			Tiles[x][y]->worldPos = { newRec.x + tileSize.x / 2, newRec.y + tileSize.y / 2 };
+			Tiles[x][y]->SetWorldPos(newRec.x + tileSize.x / 2, newRec.y + tileSize.y / 2);
 			rects.emplace_back(newRec);
 		}
 	}
@@ -60,13 +58,13 @@ Tile* Grid::SmallestEntropy()
 	{
 		for (int y = 0; y < sizeY; y++)
 		{
-			if (Tiles[x][y]->typesAndWeights.size() < numOptions && Tiles[x][y]->type == '0')
+			if (Tiles[x][y]->typesAndWeights.size() < numOptions && Tiles[x][y]->GetType() == '0')
 			{
 				smallest.clear();
 				smallest.push_back(Tiles[x][y]);
 				numOptions = Tiles[x][y]->typesAndWeights.size();
 			}
-			else if (Tiles[x][y]->typesAndWeights.size() == numOptions && Tiles[x][y]->type == '0')
+			else if (Tiles[x][y]->typesAndWeights.size() == numOptions && Tiles[x][y]->GetType() == '0')
 			{
 				smallest.push_back(Tiles[x][y]);
 			}
@@ -88,7 +86,7 @@ Tile* Grid::SmallestEntropy()
 		{
 			for (int y = 0; y < sizeY; y++)
 			{
-				if (Tiles[x][y]->type == '0')
+				if (Tiles[x][y]->GetType() == '0')
 				{
 					return Tiles[x][y];
 				}

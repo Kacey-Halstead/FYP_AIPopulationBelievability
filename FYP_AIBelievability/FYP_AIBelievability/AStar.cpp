@@ -79,7 +79,7 @@ namespace AStar
                         }
                     }
 
-                    glm::vec2 distbetween = neighbour->pos - current->tile->pos;
+                    glm::vec2 distbetween = neighbour->GetGridPos() - current->tile->GetGridPos();
 
                     float h = Heuristic_Manhatten(neighbour, end);
                     float g = current->gcost + glm::length(distbetween);
@@ -124,9 +124,9 @@ namespace AStar
         return path;
     }
 
-    float Heuristic_Manhatten(const Tile* start, const Tile* end)
+    float Heuristic_Manhatten(Tile* start, Tile* end)
     {
-        glm::ivec2 distance = end->pos - start->pos;
+        glm::ivec2 distance = end->GetGridPos() - start->GetGridPos();
         float XDiff = abs(distance.x);
         float YDiff = abs(distance.y);
         return XDiff + YDiff;
@@ -211,9 +211,9 @@ namespace AStar
 
         static std::array<glm::ivec2, 8> offsets = { { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, { -1, 0} , {-1, 1} } };
 
-        if (gridRef->IsInGrid(current->pos, offsets[index])) //is neighbour in grid
+        if (gridRef->IsInGrid(current->GetGridPos(), offsets[index])) //is neighbour in grid
         {
-            glm::ivec2 pos = current->pos + offsets[index];
+            glm::ivec2 pos = current->GetGridPos() + offsets[index];
             return gridRef->Tiles[pos.x][pos.y];
         }
 
