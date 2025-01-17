@@ -6,12 +6,6 @@
 
 using namespace std;
 
-SDL_Point operator-(const SDL_Point a, const SDL_Point b);
-
-bool operator==(const SDL_Point a, const SDL_Point b);
-
-SDL_Point operator +(const SDL_Point a, const SDL_Point b);
-
 class Tile
 {
 public:
@@ -19,8 +13,8 @@ public:
 	std::vector<std::pair<char, float>> typesAndWeights;
 	std::array<char, numberOfTypes> availableTypes; //currently available types
 	std::array<char, numberOfTypes> allAvTypes; //all available types possible
-	SDL_Point pos;
-	SDL_FPoint worldPos;
+	glm::ivec2 pos;
+	glm::vec2 worldPos;
 	bool walkable = true;
 	bool isInPath = false;
 	int index = 0;

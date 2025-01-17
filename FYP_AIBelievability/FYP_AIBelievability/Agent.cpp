@@ -2,54 +2,44 @@
 
 Agent::Agent()
 {
+
 }
 
-Agent::Agent(Grid* grid)
+Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 {
 	agentCount = ImGui_Implementation::agentCount;
 	moveState.agent = this;
 
-	gridRef = grid;
+	if (P1 == nullptr) //if no parents
+	{
+		//generates random personality
+		personalityComponent = PersonalityComponent();
 
-	position.x = rand() % 200 + 1;
-	position.y = rand() % 200 + 1;
-	agentRect = { (int)position.x, (int)position.y, size.x, size.y };
+		//random positions
+		position.x = rand() % 200 + 1;
+		position.y = rand() % 200 + 1;
+		agentRect = { (int)position.x, (int)position.y, size.x, size.y };
 
-	//generates random personality
-	personalityComponent = PersonalityComponent();
+		gridRef = grid;
+	}
+	else
+	{
+		gridRef = P1->gridRef;
 
-	//Sets GOAP Component
-	GOAPComponent = GOAP();
+		agentRect = { (int)P1->position.x, (int)P1->position.y, size.x, size.y };
 
-
-	//sets extern variables
-	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
-	ImGui_Implementation::Traits = personalityComponent.traits;
-	ImGui_Implementation::needStruct = needs;
-}
-
-Agent::Agent(Agent* P1, Agent* P2)
-{
-	agentCount = ImGui_Implementation::agentCount;
-
-	gridRef = P1->gridRef;
-
-	position.x = rand() % 200 + 1;
-	position.y = rand() % 200 + 1;
-	agentRect = { (int)position.x, (int)position.y, size.x, size.y };
-
-	//generates personality from parents
-	personalityComponent = PersonalityComponent(P1, P2);
-	parents[0] = P1;
-	parents[0] = P2;
-
-	//Sets GOAP Component
-	GOAPComponent = GOAP();
+		//generates personality from parents
+		personalityComponent = PersonalityComponent(P1, P2);
+		parents[0] = P1;
+		parents[0] = P2;
+	}
 
 	//sets extern variables
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
+
+
 }
 
 Agent::~Agent()
@@ -93,43 +83,33 @@ void Agent::DecreaseNeeds(float deltaTime)
 	}
 }
 
-void Agent::Move(SDL_FPoint destination)
+void Agent::Move(glm::vec2 destination)
 {
-	SDL_FPoint pos = destination - position;
-	velocity = Normalize(pos);
-	velocity = { velocity.x * speed, velocity.y * speed };
+	velocity = glm::normalize(destination - position) * speed;
 }
 
-Tile* Agent::GetTileFromPos(SDL_Point pos)
+Tile* Agent::GetTileFromPos(glm::vec2 pos)
 {
-	SDL_Point tilePos = { round(pos.x/gridRef->tileSize.x), round(pos.y / gridRef->tileSize.y) };
+	glm::vec2 tilePos = { round(pos.x/gridRef->tileSize.x), round(pos.y / gridRef->tileSize.y) };
 
 	return gridRef->Tiles[tilePos.x][tilePos.y];
 }
 
-bool Agent::ComparePositions(SDL_FPoint a, SDL_FPoint b)
+void Agent::UpdateImGui()
 {
-	SDL_FPoint diff = b - a;
-	float mag = Magnitude(diff);
-	return mag < 2.0f;
-}
+	if (ImGui_Implementation::time.size() >= 400)
+	{
+		ImGui_Implementation::time.erase(ImGui_Implementation::time.begin());
+	}
 
-float Agent::Magnitude(SDL_FPoint a)
-{
-	return sqrt((a.x * a.x) + (a.y * a.y));
-}
+	if (ImGui_Implementation::hungerValues.size() >= 400)
+	{
+		ImGui_Implementation::hungerValues.erase(ImGui_Implementation::hungerValues.begin());
+		ImGui_Implementation::thirstValues.erase(ImGui_Implementation::thirstValues.begin());
+	}
 
-SDL_FPoint Agent::ToFPoint(SDL_Point a)
-{
-	SDL_FPoint convert = { a.x, a.y };
-	return convert;
-}
-
-SDL_FPoint Agent::Normalize(SDL_FPoint a)
-{
-	float mag = Magnitude(a);
-	SDL_FPoint norm = { a.x / mag, a.y / mag };
-	return norm;
+	ImGui_Implementation::hungerValues.push_back(needs.hungerVal);
+	ImGui_Implementation::thirstValues.push_back(needs.thirstVal);
 }
 
 bool operator != (const SDL_FPoint& a, const SDL_FPoint& b)
@@ -137,14 +117,9 @@ bool operator != (const SDL_FPoint& a, const SDL_FPoint& b)
 	return ((a.x != b.x) && (a.y != b.y));
 }
 
-SDL_FPoint operator - (const SDL_FPoint& a, const SDL_FPoint& b)
-{
-	return { a.x - b.x, a.y - b.y };
-}
-
 bool MoveToState::IsComplete()
 {
-	if (agent->ComparePositions(agent->position, to))
+	if (ComparePositions(agent->position, to))
 	{
 		return true;
 	}

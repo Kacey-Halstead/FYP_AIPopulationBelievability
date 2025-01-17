@@ -9,11 +9,6 @@ namespace AStar
     int maxPathCount = 100;
     Grid* gridRef = nullptr;
 
-    void InitAStar(Grid* grid)
-    {
-        gridRef = grid;
-    }
-
     std::vector<Node> Findpath(Tile* start, Tile* end)
     {
         path.clear();
@@ -84,10 +79,10 @@ namespace AStar
                         }
                     }
 
-                    SDL_Point distbetween = neighbour->pos - current->tile->pos;
+                    glm::vec2 distbetween = neighbour->pos - current->tile->pos;
 
                     float h = Heuristic_Manhatten(neighbour, end);
-                    float g = current->gcost + Magnitude(distbetween);
+                    float g = current->gcost + glm::length(distbetween);
 
                     float f = g + h;
 
@@ -131,7 +126,7 @@ namespace AStar
 
     float Heuristic_Manhatten(const Tile* start, const Tile* end)
     {
-        SDL_Point distance = end->pos - start->pos;
+        glm::ivec2 distance = end->pos - start->pos;
         float XDiff = abs(distance.x);
         float YDiff = abs(distance.y);
         return XDiff + YDiff;
@@ -168,7 +163,6 @@ namespace AStar
             n.tile->isInPath = true;
         }
     }
-
 
     bool DoesContainNode(const std::vector<Node*>& list, Tile* tile)
     {
@@ -215,16 +209,17 @@ namespace AStar
     {
         //0 - up, 1- top right, 2- right, 3- bottom right, 4- bottom, 5-bottom left, 6-left, 7-top left
 
-        static std::array<SDL_Point, 8> offsets = { { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, { -1, 0} , {-1, 1} } };
+        static std::array<glm::ivec2, 8> offsets = { { {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, { -1, 0} , {-1, 1} } };
 
         if (gridRef->IsInGrid(current->pos, offsets[index])) //is neighbour in grid
         {
-            SDL_Point pos = current->pos + offsets[index];
+            glm::ivec2 pos = current->pos + offsets[index];
             return gridRef->Tiles[pos.x][pos.y];
         }
 
         return nullptr;
     }
+
     void SetGridRef(Grid* grid)
     {
         gridRef = grid;

@@ -37,7 +37,6 @@ struct Node {
 
 namespace AStar
 {
-	void InitAStar(Grid* grid);
 	std::vector<Node> Findpath(Tile* start, Tile* end);
 	void ResetTiles(vector<vector<Tile*>>& toReset);
 	void SetPath(Node* end);

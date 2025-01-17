@@ -11,7 +11,7 @@ class Grid
 public:
 	int sizeX;
 	int sizeY;
-	SDL_Point tileSize;
+	glm::ivec2 tileSize;
 	vector<vector<Tile*>> Tiles;
 	std::array<char, numberOfTypes> allTypes;
 	std::vector<SDL_Rect> rects;
@@ -21,7 +21,7 @@ public:
 
 	void CreateRects(SDL_Window* SDLWindowRef);
 	Tile* SmallestEntropy();
-	bool IsInGrid(SDL_Point point, SDL_Point dir);
+	bool IsInGrid(glm::ivec2 point, glm::ivec2 dir);
 private:
 	void GridInit();
 };

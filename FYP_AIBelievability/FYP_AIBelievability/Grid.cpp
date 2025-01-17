@@ -44,7 +44,7 @@ void Grid::CreateRects(SDL_Window* SDLWindowRef)
 		for (int y = 0; y < sizeY; y++)
 		{
 			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / sizeX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / sizeY), tileSize.x, tileSize.y };
-			Tiles[x][y]->worldPos = SDL_FPoint(newRec.x + tileSize.x/2, newRec.y + tileSize.y / 2);
+			Tiles[x][y]->worldPos = { newRec.x + tileSize.x / 2, newRec.y + tileSize.y / 2 };
 			rects.emplace_back(newRec);
 		}
 	}
@@ -99,9 +99,9 @@ Tile* Grid::SmallestEntropy()
 	return nullptr;
 }
 
-bool Grid::IsInGrid(SDL_Point point, SDL_Point dir)
+bool Grid::IsInGrid(glm::ivec2 point, glm::ivec2 dir)
 {
-	SDL_Point pos = point + dir; // tile position
+	glm::ivec2 pos = point + dir; // tile position
 
 	//if pos within X and Y bounds of grid
 	return (0 <= pos.x && pos.x < sizeX 

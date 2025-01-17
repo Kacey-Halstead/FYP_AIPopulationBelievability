@@ -78,11 +78,11 @@ struct MoveTo
 	{
 		if (!conditions.path.empty())
 		{
-			SDL_FPoint toGo = conditions.path[0].tile->worldPos;
+			glm::vec2 toGo = conditions.path[0].tile->worldPos;
 
 			conditions.agent->Move(toGo);
 
-			if (conditions.agent->ComparePositions(conditions.agent->position, toGo))
+			if (ComparePositions(conditions.agent->position, toGo))
 			{
 				conditions.path.erase(conditions.path.begin());
 			}
@@ -91,14 +91,14 @@ struct MoveTo
 
 	static bool IsValid(MoveToState& conditions)
 	{
-		return !conditions.agent->ComparePositions(conditions.agent->position, conditions.to);
+		return !ComparePositions(conditions.agent->position, conditions.to);
 	}
 };
 
 //Goal Completion Functions
 static bool GoalComplete(MoveToState& state)
 {
-	if (state.agent->ComparePositions(state.agent->position, state.to))
+	if (ComparePositions(state.agent->position, state.to))
 	{
 		return true;
 	}

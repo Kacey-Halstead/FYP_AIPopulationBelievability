@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
+#include <glm/glm.hpp>
 
 #include "Grid.h"
 #include "Tile.h"
@@ -30,26 +31,16 @@ public:
 
 	bool IsInTile(SDL_Point p, Tile t);
 
-	
-
 private:
 	Grid* gridRef = nullptr;
 
 	std::array<int, 3> typeCounter = {}; //L, C, S
 
-	std::array<int, gridSizeX* gridSizeY> neighboursOfSame = {};
-
-	std::vector<SDL_Point> offsets = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} }; //down, up, left, right
+	std::vector<glm::ivec2> offsets = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} }; //down, up, left, right
 	std::vector<char> GetTypeAndRules(char input, directions dir);
 
-	bool IsInGrid(const SDL_Point& pos, const SDL_Point& offset);
-
+	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset);
 	bool EveryTileHasType();
-
-	void UpdateGroups();
-	void IncrementGroups(Tile* tile);
-
-	bool CheckForLoners(Tile* tile, char toCheck);
 
 	void Evaluate(Tile* tile, directions dir);
 	void ResetTiles(vector<Tile*> tiles);
@@ -57,7 +48,6 @@ private:
 	void FindAndErase(Tile* tile, char toFind);
 	void CheckForEmptyTiles(Tile* tile);
 	void TypeIncrement(char typeToIncrement);
-
 
 	std::vector<std::array<char, 3>> rules = {
 

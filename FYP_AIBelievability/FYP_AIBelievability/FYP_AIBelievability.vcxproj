@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(PROJECTDIR)SDL2\include;$(PROJECTDIR)imgui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(PROJECTDIR)glm;$(PROJECTDIR)SDL2\include;$(PROJECTDIR)imgui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(PROJECTDIR)SDL2\include;$(PROJECTDIR)imgui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(PROJECTDIR)glm;$(PROJECTDIR)SDL2\include;$(PROJECTDIR)imgui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,9 +143,9 @@
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Agent.cpp" />
     <ClCompile Include="AStar.cpp" />
+    <ClCompile Include="Commons.cpp" />
     <ClCompile Include="FromJSON.cpp" />
     <ClCompile Include="FYP_AIBelievability.cpp" />
-    <ClCompile Include="GOAP.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="ImGuiImplementation.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -171,7 +171,6 @@
     <ClInclude Include="AStar.h" />
     <ClInclude Include="Commons.h" />
     <ClInclude Include="FromJSON.h" />
-    <ClInclude Include="GOAP.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImGuiImplementation.h" />
     <ClInclude Include="nlohmann\json.hpp" />

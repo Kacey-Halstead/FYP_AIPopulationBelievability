@@ -21,6 +21,8 @@
 
 using namespace std::chrono;
 
+std::vector<Agent> agents;
+
 struct InitVars
 {
 	SDL_Window* window = nullptr;
@@ -59,17 +61,112 @@ InitVars InitSDL()
 
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	return initVars;
-}
 
-int main(int argc, char* argv[])
-{
 	//unsigned int seed = time(nullptr);
 	unsigned int seed = 'k' + 'a' + 'c' + 'e' + 'y';
 	srand(seed);
 
 	FromJSONFile::ReadFromJSON();
 
+	return initVars;
+}
+
+bool PollEvents(Grid* grid, WFC* WFCComponent, InitVars* initVars)
+{
+	SDL_Event e;
+	if (SDL_PollEvent(&e))
+	{
+		ImGui_Implementation::ProcessEvents(&e);
+
+		if (e.type == SDL_QUIT)
+		{
+			return false;
+		}
+		if (e.type == SDL_MOUSEWHEEL)
+		{
+			for (Agent a : agents)
+			{
+				a.needs.hungerVal += 10;
+				a.needs.thirstVal += 10;
+			}
+		}
+		if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL_GetWindowID(initVars->window))
+		{
+			return false;
+		}
+		if (e.type == SDL_MOUSEBUTTONDOWN)
+		{
+			int padding = 50;
+			int x = e.button.x;
+			int y = e.button.y;
+
+			SDL_Point mousePos = { x,y };
+
+			//CLICKING AGENTS
+			for (Agent a : agents)
+			{
+
+				if (a.IsPointInAgent(mousePos))
+				{
+					ImGui_Implementation::isAgentPressed = true;
+					ImGui_Implementation::agentCount = a.agentCount;
+					ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
+					ImGui_Implementation::Traits = a.personalityComponent.traits;
+					ImGui_Implementation::needStruct = a.needs;
+
+					break;
+				}
+			}
+
+			//CLICKING TILES
+			for (std::vector<Tile*>& v : grid->Tiles) //gets vectors of tiles
+			{
+				for (Tile*& t : v) // tiles in vector
+				{
+					if (WFCComponent->IsInTile(mousePos, *t)) //if tile is clicked
+					{
+						//if (start == nullptr) 
+						//{
+						//	start = t;
+						//}
+						//else if (end == nullptr && t != start)
+						//{
+						//	end = t;
+						//}
+
+
+						//if (start != nullptr && end != nullptr)
+						//{
+						//	AStar::ResetTiles(grid->Tiles);	
+						//	AStar::Findpath(start, end);
+						//	start = nullptr;
+						//	end = nullptr;
+						//}
+
+						for (Agent& a : agents)
+						{
+							if (a.agentCount == 1)
+							{
+								AStar::ResetTiles(grid->Tiles);
+								a.GetState().from = a.position;
+								a.GetState().to = glm::vec2(mousePos.x, mousePos.y);
+								Tile* tile = a.GetTileFromPos(glm::vec2(a.position.x, a.position.y));
+								a.GetState().path = AStar::Findpath(tile, t);
+
+								if (a.GetState().path.size() > 1)
+									a.GetState().path.erase(a.GetState().path.begin());
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+int main(int argc, char* argv[])
+{
 	InitVars returnVal = InitSDL();
 	if (returnVal.initFail == true) return 0; //if init error
 	InitVars* initVars = &returnVal;
@@ -86,24 +183,19 @@ int main(int argc, char* argv[])
 	//WFC Init
 	WFC WFCComponent(grid);
 	WFCComponent.WFCBody();
-
 	grid->CreateRects(initVars->window);
-
-	//AStar
-	AStar::InitAStar(grid);
 
 	//temp - for A* test
 	Tile* start = nullptr;
 	Tile* end = nullptr;
 
-	std::vector<Agent> agents;
 	agents.reserve(10);
 
 	//Agent init
 	for (int i = 1; i < 11; i++)
 	{
 		ImGui_Implementation::agentCount = i;
-		agents.emplace_back(grid);
+		agents.emplace_back(grid, nullptr, nullptr);
 	}
 	
 	Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
@@ -114,95 +206,7 @@ int main(int argc, char* argv[])
 	//main loop
 	while (true)
 	{
-		SDL_Event e;
-		if (SDL_PollEvent(&e))
-		{
-			ImGui_Implementation::ProcessEvents(&e);
-
-			if (e.type == SDL_QUIT)
-			{
-				break;
-			}
-			if (e.type == SDL_MOUSEWHEEL)
-			{
-				for (Agent& a : agents)
-				{
-					a.needs.hungerVal += 10;
-					a.needs.thirstVal += 10;
-				}
-			}
-			if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL_GetWindowID(initVars->window))
-			{
-				break;
-			}
-			if (e.type == SDL_MOUSEBUTTONDOWN)
-			{
-				int padding = 50;
-				int x = e.button.x;
-				int y = e.button.y;
-
-				SDL_Point mousePos = { x,y };
-
-				//CLICKING AGENTS
-				for (Agent& a : agents)
-				{					
-
-					if (a.IsPointInAgent(mousePos))
-					{
-						ImGui_Implementation::isAgentPressed = true;
-						ImGui_Implementation::agentCount = a.agentCount;
-						ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
-						ImGui_Implementation::Traits = a.personalityComponent.traits;
-						ImGui_Implementation::needStruct = a.needs;
-
-						break;
-					}
-				}
-
-				//CLICKING TILES
-				for (std::vector<Tile*>& v : grid->Tiles) //gets vectors of tiles
-				{
-					for (Tile*& t : v) // tiles in vector
-					{
-						if (WFCComponent.IsInTile(mousePos, *t)) //if tile is clicked
-						{
-							//if (start == nullptr) 
-							//{
-							//	start = t;
-							//}
-							//else if (end == nullptr && t != start)
-							//{
-							//	end = t;
-							//}
-
-
-							//if (start != nullptr && end != nullptr)
-							//{
-							//	AStar::ResetTiles(grid->Tiles);	
-							//	AStar::Findpath(start, end);
-							//	start = nullptr;
-							//	end = nullptr;
-							//}
-
-							for (Agent& a : agents)
-							{
-								if (a.agentCount == 1)
-								{
-									AStar::ResetTiles(grid->Tiles);
-									a.GetState().from = a.position;
-									a.GetState().to = a.ToFPoint(mousePos);
-									Tile* tile = a.GetTileFromPos(SDL_Point(a.position.x, a.position.y));
-									a.GetState().path = AStar::Findpath(tile, t);
-
-									if(a.GetState().path.size() > 1)
-										a.GetState().path.erase(a.GetState().path.begin());
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		if (!PollEvents(grid, &WFCComponent, initVars)) break;
 
 		//ImGui windows
 		ImGui_Implementation::RenderBefore(); //setup
@@ -222,8 +226,9 @@ int main(int argc, char* argv[])
 			last = steady_clock::now();
 			const duration<float> frameTime = last - old;
 			float deltaTime = frameTime.count();
-			accumulatedTime += deltaTime;
-			counter += deltaTime;
+
+			accumulatedTime += deltaTime; //total accumulated
+			counter += deltaTime; //counter for not executing every frame
 
 			for (Agent& a : agents) //update agents
 			{
@@ -243,28 +248,12 @@ int main(int argc, char* argv[])
 					}
 				}
 
-
 				a.Update(deltaTime);
 
 				if (counter > 0.1 && ImGui_Implementation::agentCount == a.agentCount)
 				{
-					if (ImGui_Implementation::time.size() >= 400)
-					{
-						ImGui_Implementation::time.erase(ImGui_Implementation::time.begin());
-					}
-
-					if (ImGui_Implementation::hungerValues.size() >= 400)
-					{
-						ImGui_Implementation::hungerValues.erase(ImGui_Implementation::hungerValues.begin());
-						ImGui_Implementation::thirstValues.erase(ImGui_Implementation::thirstValues.begin());
-					}
-
-
 					ImGui_Implementation::time.push_back(accumulatedTime);
-					ImGui_Implementation::hungerValues.push_back(a.needs.hungerVal);
-					ImGui_Implementation::thirstValues.push_back(a.needs.thirstVal);
-
-
+					a.UpdateImGui();
 					counter = 0;
 				}
 			}

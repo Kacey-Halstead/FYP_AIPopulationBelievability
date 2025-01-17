@@ -63,7 +63,7 @@ void WFC::WFCBody()
 	//if groups of tiles less than specific number, regenerate
 }
 
-bool WFC::IsInGrid(const SDL_Point& pos, const SDL_Point& offset)
+bool WFC::IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)
 {
 	SDL_Point newPos = { pos.x + offset.x, pos.y+offset.y };
 
@@ -76,8 +76,8 @@ bool WFC::IsInGrid(const SDL_Point& pos, const SDL_Point& offset)
 
 void WFC::Evaluate(Tile* tile, directions dir)
 {
-	SDL_Point tilePos = { tile->pos.x, tile->pos.y };
-	SDL_Point offset = { 0, 0 };
+	glm::ivec2 tilePos = { tile->pos.x, tile->pos.y };
+	glm::ivec2 offset = { 0, 0 };
 	offset = offsets[dir];
 
 	if (!IsInGrid(tilePos, offset)) return; //if not valid pos in grid
@@ -111,7 +111,6 @@ void WFC::WFCReset()
 		ResetTiles(v);
 	}
 	typeCounter = { 0, 0, 0 }; //reset
-	neighboursOfSame = {};
 
 	WFCBody();
 }
@@ -249,56 +248,6 @@ bool WFC::EveryTileHasType()
 		}
 	}
 	return true;
-}
-
-void WFC::UpdateGroups()
-{
-	for (int i : neighboursOfSame)
-	{
-		if (i < 1)
-		{
-			WFCReset();
-			return;
-		}
-	}
-}
-
-void WFC::IncrementGroups(Tile* tile)
-{
-	for (int i = 0; i < 4; i++)
-	{
-		if (!IsInGrid(tile->pos, offsets[i])) continue;
-
-		Tile* neighbour = gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y];
-
-		if (neighbour->type == tile->type)
-		{
-			neighboursOfSame[tile->index]++;
-			neighboursOfSame[neighbour->index]++;
-		}
-	}
-}
-
-bool WFC::CheckForLoners(Tile* tile, char toCheck)
-{
-	auto it = std::find(tile->availableTypes.begin(), tile->availableTypes.end(), toCheck);
-
-	if (it != tile->availableTypes.end())
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			if (!IsInGrid(tile->pos, offsets[i])) continue;
-
-			Tile* neighbour = gridRef->Tiles[tile->pos.x + offsets[i].x][tile->pos.y + offsets[i].y];
-
-			if (neighbour->type == toCheck) break;
-
-			tile->SetType(toCheck);
-			TypeIncrement(toCheck);
-			return true;
-		}
-		return false;
-	}
 }
 
 bool WFC::IsInTile(SDL_Point p, Tile t)
