@@ -12,7 +12,9 @@ namespace TextureManager
 	"COAST",
 	"SEA",
 	"AGENT",
-	"PATH"
+	"PATH",
+	"BUSHE",
+	"BUSHF"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

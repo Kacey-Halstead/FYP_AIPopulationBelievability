@@ -105,3 +105,43 @@ bool Grid::IsInGrid(glm::ivec2 point, glm::ivec2 dir)
 	return (0 <= pos.x && pos.x < sizeX 
 		&& 0 <= pos.y && pos.y < sizeY);
 }
+
+void Grid::RenderGrid(SDL_Renderer* renderer)
+{
+	int counter = 0;
+	for (int x = 0; x < gridSizeX; x++)
+	{
+		for (int y = 0; y < gridSizeY; y++)
+		{
+			if (Tiles[x][y]->isInPath)
+			{
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
+				counter++;
+				continue;
+			}
+
+			switch (Tiles[x][y]->GetType())
+			{
+			case 'S':
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &rects[counter]);
+				break;
+			case 'L':
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &rects[counter]);
+				break;
+			case 'C':
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &rects[counter]);
+				break;
+			default:
+				break;
+			}
+			counter++;
+		}
+	}
+}
+
+Tile* Grid::GetTileFromPos(glm::vec2 pos)
+{
+	glm::vec2 tilePos = { round(pos.x / tileSize.x), round(pos.y / tileSize.y) };
+
+	return Tiles[tilePos.x][tilePos.y];
+}

@@ -7,20 +7,7 @@
 #include "ImGuiImplementation.h"
 #include "PersonalityComponent.h"
 #include "AStar.h"
-
-class Agent;
-
-struct MoveToState
-{
-	glm::vec2 to;
-	glm::vec2 from;
-
-	Agent* agent = nullptr;
-
-	std::vector<Node> path;
-
-	bool IsComplete();
-};
+#include "States.h"
 
 class Agent
 {
@@ -39,7 +26,7 @@ public:
 
 	bool IsPointInAgent(SDL_Point point);
 
-	Tile* GetTileFromPos(glm::vec2 pos);
+
 
 	MoveToState& GetState() { return moveState; }
 
@@ -50,11 +37,12 @@ public:
 	PersonalityComponent personalityComponent;
 
 	int agentCount = 0;
+	SDL_Point size = { 50, 50 };
 
 private:
 	MoveToState moveState;
 
-	SDL_Point size = {50, 50};
+
 	SDL_Rect agentRect;	
 
 	std::array<Agent*, 2> parents = {};

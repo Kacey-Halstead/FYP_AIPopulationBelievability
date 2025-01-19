@@ -16,6 +16,7 @@ namespace ImGui_Implementation
 	Needs needStruct{};
 	float currentTime = 0;
 	bool pause = false;
+	bool toSelectDest = false;
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
@@ -102,17 +103,25 @@ namespace ImGui_Implementation
 		}
 	}
 
-	void MainUI(WFC* wfcRef)
+	void MainUI()
 	{
 		ImGui_Implementation::Begin("Menu");
 		if (ImGui_Implementation::Button("Regenerate WFC", {120, 30}))
 		{
-			wfcRef->WFCReset();
+			WFC::WFCReset();
 		}
 
 		if (ImGui_Implementation::Button("Pause", { 120, 30 }))
 		{
 			pause = !pause;
+		}
+
+		if (isAgentPressed)
+		{
+			if (ImGui_Implementation::Button("Select end destination for agent", { 120, 30 }))
+			{
+				toSelectDest = true;
+			}
 		}
 
 		ImGui_Implementation::End();

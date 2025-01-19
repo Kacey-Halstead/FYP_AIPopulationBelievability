@@ -11,7 +11,9 @@ enum TextureIndexes
 	COAST,
 	SEA,
 	AGENT,
-	PATH
+	PATH,
+	BUSHE,
+	BUSHF
 };
 
 namespace TextureManager

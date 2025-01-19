@@ -20,7 +20,10 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 		position.y = rand() % 200 + 1;
 		agentRect = { (int)position.x, (int)position.y, size.x, size.y };
 
-		gridRef = grid;
+		if (grid != nullptr)
+		{
+			gridRef = grid;
+		}
 	}
 	else
 	{
@@ -88,13 +91,6 @@ void Agent::Move(glm::vec2 destination)
 	velocity = glm::normalize(destination - position) * speed;
 }
 
-Tile* Agent::GetTileFromPos(glm::vec2 pos)
-{
-	glm::vec2 tilePos = { round(pos.x/gridRef->tileSize.x), round(pos.y / gridRef->tileSize.y) };
-
-	return gridRef->Tiles[tilePos.x][tilePos.y];
-}
-
 void Agent::UpdateImGui()
 {
 	if (ImGui_Implementation::time.size() >= 400)
@@ -112,12 +108,4 @@ void Agent::UpdateImGui()
 	ImGui_Implementation::thirstValues.push_back(needs.thirstVal);
 }
 
-bool MoveToState::IsComplete()
-{
-	if (ComparePositions(agent->position, to))
-	{
-		return true;
-	}
 
-	return false;
-}

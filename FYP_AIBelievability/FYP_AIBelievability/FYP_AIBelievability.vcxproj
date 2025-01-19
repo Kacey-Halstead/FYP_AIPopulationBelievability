@@ -144,6 +144,7 @@
     <ClCompile Include="Agent.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="Commons.cpp" />
+    <ClCompile Include="FoodSource.cpp" />
     <ClCompile Include="FromJSON.cpp" />
     <ClCompile Include="FYP_AIBelievability.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -161,6 +162,8 @@
     <ClCompile Include="imgui\implot_items.cpp" />
     <ClCompile Include="PersonalityComponent.cpp" />
     <ClCompile Include="RandomGenerator.cpp" />
+    <ClCompile Include="SDLWindow.cpp" />
+    <ClCompile Include="States.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="WFC.cpp" />
@@ -170,6 +173,7 @@
     <ClInclude Include="Agent.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="Commons.h" />
+    <ClInclude Include="FoodSource.h" />
     <ClInclude Include="FromJSON.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImGuiImplementation.h" />
@@ -177,6 +181,7 @@
     <ClInclude Include="nlohmann\json_fwd.hpp" />
     <ClInclude Include="PersonalityComponent.h" />
     <ClInclude Include="RandomGenerator.h" />
+    <ClInclude Include="SDLWindow.h" />
     <ClInclude Include="States.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Tile.h" />

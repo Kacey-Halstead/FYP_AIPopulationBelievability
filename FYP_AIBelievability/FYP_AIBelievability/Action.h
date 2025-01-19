@@ -5,6 +5,9 @@
 #include "AStar.h"
 #include "Commons.h"
 #include "Agent.h"
+#include "States.h"
+#include "RandomGenerator.h"
+
 #include <functional>
 
 enum ActionProgress
@@ -92,6 +95,31 @@ struct MoveTo
 	static bool IsValid(MoveToState& conditions)
 	{
 		return !ComparePositions(conditions.agent->position, conditions.to);
+	}
+};
+
+struct FindFood
+{
+	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
+	{
+		//can check previous positions?
+		if (!foodConditions.prevFoodPositions.empty())
+		{
+			foodConditions.nextToCheck = foodConditions.prevFoodPositions[0];
+			conditions.to = foodConditions.nextToCheck;
+			return;
+		}
+
+		std::uniform_int_distribution<> distrib(1, gridSizeX - 1);
+		int triedPosX = distrib(RandomGenerator::gen);
+		int triedPosY = distrib(RandomGenerator::gen);
+		conditions.to.x = triedPosX * conditions.agent->size.x;
+		conditions.to.y = triedPosY * conditions.agent->size.y;
+	}
+
+	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
+	{
+		return !foodConditions.isFoodFound;
 	}
 };
 

@@ -1,5 +1,7 @@
 #pragma once
 #include <array>
+#include <glm/glm.hpp>
+
 #include "Commons.h"
 #include "WFC.h" 
 #include "PersonalityComponent.h"
@@ -15,7 +17,7 @@ namespace ImGui_Implementation
 	void ImGuiDraw(SDL_Renderer* renderer);
 	void ProcessEvents(SDL_Event* e);
 	void AgentPopUp();
-	void MainUI(WFC* wfcRef);
+	void MainUI();
 	void RenderBefore();
 
 	extern bool isAgentPressed;	
@@ -30,4 +32,5 @@ namespace ImGui_Implementation
 	extern std::vector<float> time;
 
 	extern bool pause;
+	extern bool toSelectDest;
 }
