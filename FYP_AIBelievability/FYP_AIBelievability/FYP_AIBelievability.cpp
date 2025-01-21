@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
 	//Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
 	Planner<MoveToState, FindFoodState> foodPlan{ &FoodGoalComplete, {
-		std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
 		std::make_pair(FindFood::Execute, FindFood::IsValid),
+		std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
 		std::make_pair(EatFood::Execute, EatFood::IsValid)} };
 	
 	float accumulatedTime = 0;
@@ -118,6 +118,24 @@ int main(int argc, char* argv[])
 					ImGui_Implementation::time.push_back(accumulatedTime);
 					a.UpdateImGui();
 					counter = 0;
+				}
+
+				for (FoodSource& f : food)
+				{
+					if (f.isInRect(a.position) && f.canEat)
+					{
+						a.GetFoodState().foundFoodRef = &f;
+						a.DetectFood(true, f.position);
+
+						//if (a.GetState().path.size() > 1)
+						//	a.GetState().path.erase(a.GetState().path.begin());
+
+					}
+					//else
+					//{
+					//	a.GetFoodState().foundFoodRef = nullptr;
+					//	a.DetectFood(false, {0,0});
+					//}
 				}
 			}
 		}

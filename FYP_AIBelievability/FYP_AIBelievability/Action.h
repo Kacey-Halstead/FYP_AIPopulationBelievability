@@ -81,6 +81,8 @@ struct MoveTo
 {
 	static void Execute(MoveToState& conditions, Structs& ...)
 	{
+		conditions.from = conditions.agent->position;
+
 		if (!conditions.path.empty())
 		{
 			glm::vec2 toGo = conditions.path[0].tile->GetWorldPos();
@@ -91,6 +93,11 @@ struct MoveTo
 			{
 				conditions.path.erase(conditions.path.begin());
 			}
+		}
+
+		if (ComparePositions(conditions.agent->position, conditions.to) || conditions.path.empty())
+		{
+			conditions.isMoveToSet = false;
 		}
 	}
 
@@ -104,23 +111,35 @@ struct FindFood
 {
 	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
 	{
+		foodConditions.eaten = false;
+
 		//can check previous positions?
 		if (!foodConditions.prevFoodPositions.empty())
 		{
 			foodConditions.nextToCheck = foodConditions.prevFoodPositions[0];
 			conditions.to = foodConditions.nextToCheck;
 			conditions.isMoveToSet = true;
+			conditions.from = conditions.agent->position;
+			conditions.path = AStar::toFindPath(conditions.from, conditions.to);
 			return;
 		}
 
 		//loop to find next unsearch patrol point
-		for (std::pair<glm::vec2, bool> p : foodConditions.patrolPoints)
+		for (std::pair<glm::vec2, bool>& p : foodConditions.patrolPoints)
 		{
+			if (foodConditions.nextToCheck == p.first)
+			{
+				p.second = true;
+			}
+
 			if (!p.second)
 			{
 				foodConditions.nextToCheck = p.first;
+				foodConditions.nextToCheck = foodConditions.nextToCheck;
 				conditions.to = foodConditions.nextToCheck;
 				conditions.isMoveToSet = true;
+				conditions.from = conditions.agent->position;
+				conditions.path = AStar::toFindPath(conditions.from, conditions.to);
 				break;
 			}
 		}
@@ -128,7 +147,7 @@ struct FindFood
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return !foodConditions.isFoodFound && !conditions.isMoveToSet && !foodConditions.foundFoodRef.canEat;
+		return !foodConditions.isFoodFound && !conditions.isMoveToSet && foodConditions.foundFoodRef == nullptr;
 	}
 };
 
@@ -136,12 +155,19 @@ struct EatFood
 {
 	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		foodConditions.foundFoodRef.EatFrom(5);
+		if (conditions.agent->needs.hungerVal < 80)
+		{
+			foodConditions.foundFoodRef->EatFrom(5);
+		}
+		else
+		{
+			foodConditions.eaten = true;
+		}
 	}
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return foodConditions.foundFoodRef.canEat && foodConditions.isFoodFound && ComparePositions(conditions.agent->position, foodConditions.foundFoodRef.position) && conditions.agent->needs.hungerVal < 80;
+		return foodConditions.foundFoodRef->canEat && foodConditions.isFoodFound && ComparePositions(conditions.agent->position, foodConditions.foundFoodRef->position);
 	}
 };
 

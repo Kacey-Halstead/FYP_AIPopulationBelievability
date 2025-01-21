@@ -18,6 +18,7 @@ public:
 	void Update(float deltaTime);
 	void EatFrom(float amount);
 	void Replenish(float deltaTime);
+	bool isInRect(glm::vec2 point);
 
 	bool canEat = true;
 	glm::vec2 position;

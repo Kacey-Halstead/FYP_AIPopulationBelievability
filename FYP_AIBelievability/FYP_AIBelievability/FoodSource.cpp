@@ -66,3 +66,9 @@ void FoodSource::Replenish(float deltaTime)
 		}
 	}
 }
+
+bool FoodSource::isInRect(glm::vec2 point)
+{
+	SDL_Point pos = { point.x, point.y };
+	return SDL_PointInRect(&pos, &detectRect);
+}

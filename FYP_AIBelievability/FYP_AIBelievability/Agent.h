@@ -26,6 +26,8 @@ public:
 
 	bool IsPointInAgent(SDL_Point point);
 
+	void DetectFood(bool detect, glm::vec2 pos);
+
 	MoveToState& GetState() { return moveState; }
 	FindFoodState& GetFoodState() { return foodState; }
 
@@ -48,7 +50,7 @@ private:
 
 	Grid* gridRef;
 
-	std::vector<glm::vec2> patrolPositions = { {1, 1}, {gridSizeX, 1}, {1, gridSizeY}, {gridSizeX, gridSizeY}, {gridSizeX/2, gridSizeY/2} };
+	std::vector<glm::ivec2> patrolPositions = { {1, 1}, {gridSizeX-1, 1}, {1, gridSizeY - 1}, {gridSizeX - 1, gridSizeY - 1}, {(gridSizeX - 1 )/2, (gridSizeY - 1 )/2} };
 
 
 	glm::vec2 velocity = { 0, 0 };

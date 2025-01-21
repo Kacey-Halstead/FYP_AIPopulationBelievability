@@ -42,6 +42,8 @@ namespace AStar
 	void SetPath(Node* end);
 	void DrawPath();
 
+	std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end);
+
 	bool DoesContainNode(const std::vector<Node*>& list, Tile* tile);
 
 	float Heuristic_Manhatten(Tile* start, Tile* end);

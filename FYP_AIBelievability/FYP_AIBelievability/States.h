@@ -7,7 +7,7 @@ class Agent;
 
 struct MoveToState
 {
-	glm::vec2 to;
+	glm::vec2 to = {1, 1};
 	glm::vec2 from;
 
 	Agent* agent = nullptr;
@@ -15,6 +15,8 @@ struct MoveToState
 	bool isMoveToSet = false;
 
 	std::vector<Node> path;
+
+	glm::vec2 nextInPatrol;
 
 	bool IsComplete();
 };
@@ -29,7 +31,7 @@ struct FindFoodState
 
 	bool isFoodFound = false;
 
-	FoodSource foundFoodRef;
+	FoodSource* foundFoodRef = nullptr;
 
 	bool eaten;
 

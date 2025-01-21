@@ -164,6 +164,14 @@ namespace AStar
         }
     }
 
+    std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end)
+    {
+        ResetTiles(gridRef->Tiles);
+        Tile* tile = gridRef->GetTileFromPos(start);
+        Tile* endTile = gridRef->GetTileFromPos(end);
+        return Findpath(tile, endTile);
+    }
+
     bool DoesContainNode(const std::vector<Node*>& list, Tile* tile)
     {
         for (const Node* n : list)

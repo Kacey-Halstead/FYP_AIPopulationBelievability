@@ -114,14 +114,9 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 						{
 							if (ImGui_Implementation::toSelectDest && ImGui_Implementation::agentCount == a.agentCount)
 							{
-								AStar::ResetTiles(grid->Tiles);
 								a.GetState().from = a.position;
 								a.GetState().to = t->GetGridPos();
-								Tile* tile = grid->GetTileFromPos(glm::vec2(a.position.x, a.position.y));
-								a.GetState().path = AStar::Findpath(tile, t);
-
-								if (a.GetState().path.size() > 1)
-									a.GetState().path.erase(a.GetState().path.begin());
+								a.GetState().isMoveToSet = true;
 
 								ImGui_Implementation::toSelectDest = false;
 							}

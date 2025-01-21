@@ -10,12 +10,6 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	agentCount = ImGui_Implementation::agentCount;
 	moveState.agent = this;
 
-	for (int i = 0; i < foodState.patrolPoints.size(); i++)
-	{
-		foodState.patrolPoints[i].first = patrolPositions[i];
-		foodState.patrolPoints[i].second = false;
-	}
-
 	if (P1 == nullptr) //if no parents
 	{
 		//generates random personality
@@ -48,7 +42,11 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
 
-
+	for (int i = 0; i < foodState.patrolPoints.size(); i++)
+	{
+		foodState.patrolPoints[i].first = patrolPositions[i] * gridRef->tileSize;
+		foodState.patrolPoints[i].second = false;
+	}
 }
 
 Agent::~Agent()
@@ -77,6 +75,18 @@ void Agent::Render(SDL_Renderer* renderer, SDL_Window* window)
 bool Agent::IsPointInAgent(SDL_Point point)
 {
 	return SDL_PointInRect(&point, &agentRect);
+}
+
+void Agent::DetectFood(bool detect, glm::vec2 pos)
+{
+	foodState.isFoodFound = detect;
+	moveState.isMoveToSet = detect;
+
+	if (detect)
+	{		
+		moveState.to = pos;
+		moveState.from = position;
+	}
 }
 
 void Agent::DecreaseNeeds(float deltaTime)
