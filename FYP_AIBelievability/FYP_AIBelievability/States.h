@@ -1,9 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "AStar.h"
+#include "FoodSource.h"
 
 class Agent;
-class FoodSource;
 
 struct MoveToState
 {
@@ -11,6 +11,8 @@ struct MoveToState
 	glm::vec2 from;
 
 	Agent* agent = nullptr;
+
+	bool isMoveToSet = false;
 
 	std::vector<Node> path;
 
@@ -21,13 +23,15 @@ struct FindFoodState
 {
 	std::vector<glm::vec2> prevFoodPositions;
 
-	Agent* agent = nullptr;
+	std::array<std::pair<glm::vec2, bool>, 5> patrolPoints;  //vec of pairs: pos and bool (if checked)
 
 	glm::vec2 nextToCheck;
 
 	bool isFoodFound = false;
 
 	FoodSource foundFoodRef;
+
+	bool eaten;
 
 	bool IsComplete();
 };

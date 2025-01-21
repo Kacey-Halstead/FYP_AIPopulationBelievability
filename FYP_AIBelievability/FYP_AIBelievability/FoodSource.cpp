@@ -28,6 +28,7 @@ FoodSource::FoodSource(Grid* grid)
 	position.y = triedPosY * grid->tileSize.y;
 
 	rect = { (int)position.x, (int)position.y, size.x, size.y };
+	detectRect = { rect.x, rect.y, rect.w * 5, rect.h * 5 };
 }
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window)
@@ -40,12 +41,11 @@ void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window)
 void FoodSource::Update(float deltaTime)
 {
 	Replenish(deltaTime);
+	foodAmount > 0 ? canEat = true : canEat = false;
 ;}
 
 void FoodSource::EatFrom(float amount)
 {
-	foodAmount > 0 ? canEat = true : canEat = false;
-
 	if (canEat)
 	{
 		foodAmount -= amount;
@@ -54,7 +54,7 @@ void FoodSource::EatFrom(float amount)
 
 void FoodSource::Replenish(float deltaTime)
 {
-	if (foodAmount <= maxfoodAmount)
+	if (foodAmount < maxfoodAmount)
 	{
 		counter += deltaTime * 2;
 

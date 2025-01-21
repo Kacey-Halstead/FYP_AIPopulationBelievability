@@ -52,8 +52,13 @@ int main(int argc, char* argv[])
 		food.push_back(grid);
 	}
 	
-	Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
+	//Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
+	Planner<MoveToState, FindFoodState> foodPlan{ &FoodGoalComplete, {
+		std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
+		std::make_pair(FindFood::Execute, FindFood::IsValid),
+		std::make_pair(EatFood::Execute, EatFood::IsValid)} };
+	
 	float accumulatedTime = 0;
 	float counter = 0;
 
@@ -93,12 +98,12 @@ int main(int argc, char* argv[])
 
 			for (Agent& a : agents) //update agents
 			{
-				auto [executeFunc, completion] = plan.ActionSelector(a.GetState());
+				auto [executeFunc, completion] = foodPlan.ActionSelector(a.GetState(), a.GetFoodState());
 
 				switch (completion)
 				{
 				case InProgress:
-					(*executeFunc)(a.GetState());
+					(*executeFunc)(a.GetState(), a.GetFoodState());
 					break;
 				case Complete:
 					break;

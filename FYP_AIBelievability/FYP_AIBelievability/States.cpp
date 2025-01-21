@@ -1,6 +1,5 @@
 #include "States.h"
 #include "Agent.h"
-#include "FoodSource.h"
 
 bool MoveToState::IsComplete()
 {
@@ -14,7 +13,7 @@ bool MoveToState::IsComplete()
 
 bool FindFoodState::IsComplete()
 {
-	if (ComparePositions(agent->position, foundFoodRef.position) && isFoodFound)
+	if (isFoodFound && eaten)
 	{
 		return true;
 	}

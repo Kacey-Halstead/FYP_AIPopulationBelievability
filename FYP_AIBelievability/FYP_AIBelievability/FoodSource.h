@@ -20,11 +20,13 @@ public:
 	void Replenish(float deltaTime);
 
 	bool canEat = true;
+	glm::vec2 position;
 
 private:
 	SDL_Rect rect;
+	SDL_Rect detectRect;
 	float foodAmount;
-	glm::vec2 position;
+
 	TextureIndexes indexForTexture = BUSHF; 
 	glm::ivec2 size = { 30, 30 };
 

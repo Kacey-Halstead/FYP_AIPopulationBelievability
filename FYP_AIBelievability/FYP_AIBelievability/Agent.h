@@ -26,9 +26,8 @@ public:
 
 	bool IsPointInAgent(SDL_Point point);
 
-
-
 	MoveToState& GetState() { return moveState; }
+	FindFoodState& GetFoodState() { return foodState; }
 
 	glm::vec2 position = {};
 
@@ -41,13 +40,16 @@ public:
 
 private:
 	MoveToState moveState;
-
+	FindFoodState foodState;
 
 	SDL_Rect agentRect;	
 
 	std::array<Agent*, 2> parents = {};
 
 	Grid* gridRef;
+
+	std::vector<glm::vec2> patrolPositions = { {1, 1}, {gridSizeX, 1}, {1, gridSizeY}, {gridSizeX, gridSizeY}, {gridSizeX/2, gridSizeY/2} };
+
 
 	glm::vec2 velocity = { 0, 0 };
 	float speed = 100.0f;

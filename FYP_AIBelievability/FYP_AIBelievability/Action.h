@@ -75,9 +75,11 @@ private:
 };
 
 //Defined Actions
+
+template<typename... Structs> //so moveTo can be used in many plans
 struct MoveTo
 {
-	static void Execute(MoveToState& conditions)
+	static void Execute(MoveToState& conditions, Structs& ...)
 	{
 		if (!conditions.path.empty())
 		{
@@ -92,9 +94,9 @@ struct MoveTo
 		}
 	}
 
-	static bool IsValid(MoveToState& conditions)
+	static bool IsValid(MoveToState& conditions, Structs& ...)
 	{
-		return !ComparePositions(conditions.agent->position, conditions.to);
+		return !ComparePositions(conditions.agent->position, conditions.to) && conditions.isMoveToSet;
 	}
 };
 
@@ -107,19 +109,39 @@ struct FindFood
 		{
 			foodConditions.nextToCheck = foodConditions.prevFoodPositions[0];
 			conditions.to = foodConditions.nextToCheck;
+			conditions.isMoveToSet = true;
 			return;
 		}
 
-		std::uniform_int_distribution<> distrib(1, gridSizeX - 1);
-		int triedPosX = distrib(RandomGenerator::gen);
-		int triedPosY = distrib(RandomGenerator::gen);
-		conditions.to.x = triedPosX * conditions.agent->size.x;
-		conditions.to.y = triedPosY * conditions.agent->size.y;
+		//loop to find next unsearch patrol point
+		for (std::pair<glm::vec2, bool> p : foodConditions.patrolPoints)
+		{
+			if (!p.second)
+			{
+				foodConditions.nextToCheck = p.first;
+				conditions.to = foodConditions.nextToCheck;
+				conditions.isMoveToSet = true;
+				break;
+			}
+		}
 	}
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return !foodConditions.isFoodFound;
+		return !foodConditions.isFoodFound && !conditions.isMoveToSet && !foodConditions.foundFoodRef.canEat;
+	}
+};
+
+struct EatFood
+{
+	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
+	{
+		foodConditions.foundFoodRef.EatFrom(5);
+	}
+
+	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
+	{
+		return foodConditions.foundFoodRef.canEat && foodConditions.isFoodFound && ComparePositions(conditions.agent->position, foodConditions.foundFoodRef.position) && conditions.agent->needs.hungerVal < 80;
 	}
 };
 
@@ -127,6 +149,15 @@ struct FindFood
 static bool GoalComplete(MoveToState& state)
 {
 	if (ComparePositions(state.agent->position, state.to))
+	{
+		return true;
+	}
+	return false;
+}
+
+static bool FoodGoalComplete(MoveToState& state, FindFoodState& foodState)
+{
+	if (foodState.isFoodFound && foodState.eaten) //is hunger value bigger now?
 	{
 		return true;
 	}

@@ -10,6 +10,12 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	agentCount = ImGui_Implementation::agentCount;
 	moveState.agent = this;
 
+	for (int i = 0; i < foodState.patrolPoints.size(); i++)
+	{
+		foodState.patrolPoints[i].first = patrolPositions[i];
+		foodState.patrolPoints[i].second = false;
+	}
+
 	if (P1 == nullptr) //if no parents
 	{
 		//generates random personality
@@ -34,7 +40,7 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 		//generates personality from parents
 		personalityComponent = PersonalityComponent(P1, P2);
 		parents[0] = P1;
-		parents[0] = P2;
+		parents[1] = P2;
 	}
 
 	//sets extern variables
