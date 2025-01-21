@@ -111,8 +111,6 @@ struct FindFood
 {
 	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		foodConditions.eaten = false;
-
 		//can check previous positions?
 		if (!foodConditions.prevFoodPositions.empty())
 		{
@@ -127,7 +125,7 @@ struct FindFood
 		//loop to find next unsearch patrol point
 		for (std::pair<glm::vec2, bool>& p : foodConditions.patrolPoints)
 		{
-			if (foodConditions.nextToCheck == p.first)
+			if (ComparePositions(foodConditions.nextToCheck, p.first))
 			{
 				p.second = true;
 			}
@@ -135,19 +133,17 @@ struct FindFood
 			if (!p.second)
 			{
 				foodConditions.nextToCheck = p.first;
-				foodConditions.nextToCheck = foodConditions.nextToCheck;
 				conditions.to = foodConditions.nextToCheck;
 				conditions.isMoveToSet = true;
 				conditions.from = conditions.agent->position;
 				conditions.path = AStar::toFindPath(conditions.from, conditions.to);
-				break;
 			}
 		}
 	}
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return !foodConditions.isFoodFound && !conditions.isMoveToSet && foodConditions.foundFoodRef == nullptr;
+		return !foodConditions.foundFoodRef && !foodConditions.eaten && !conditions.isMoveToSet;
 	}
 };
 
@@ -157,17 +153,47 @@ struct EatFood
 	{
 		if (conditions.agent->needs.hungerVal < 80)
 		{
-			foodConditions.foundFoodRef->EatFrom(5);
+			foodConditions.foundFoodRef->EatFrom(1);
+			foodConditions.prevFoodPositions.push_back(foodConditions.foundFoodRef->position);
 		}
 		else
 		{
 			foodConditions.eaten = true;
+			foodConditions.foundFoodRef = nullptr;
 		}
 	}
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return foodConditions.foundFoodRef->canEat && foodConditions.isFoodFound && ComparePositions(conditions.agent->position, foodConditions.foundFoodRef->position);
+		return foodConditions.foundFoodRef != nullptr && ComparePositions(conditions.agent->position, foodConditions.foundFoodRef->position) && !foodConditions.eaten;
+	}
+};
+
+struct Wander
+{
+	static void Execute(MoveToState& conditions)
+	{
+		std::uniform_int_distribution<> distrib(1, gridSizeX - 1);
+
+		conditions.from = conditions.agent->position;
+
+		while (true)
+		{
+			conditions.to.x = distrib(RandomGenerator::gen) * conditions.agent->GetGridRef()->tileSize.x;
+			conditions.to.y = distrib(RandomGenerator::gen) * conditions.agent->GetGridRef()->tileSize.y;
+
+			conditions.path = AStar::toFindPath(conditions.from, conditions.to);
+			if (!conditions.path.empty())
+			{
+				conditions.isMoveToSet = true;
+				break;
+			}
+		}
+	}
+
+	static bool IsValid(MoveToState& conditions)
+	{
+		return !conditions.isMoveToSet;
 	}
 };
 
@@ -183,7 +209,7 @@ static bool GoalComplete(MoveToState& state)
 
 static bool FoodGoalComplete(MoveToState& state, FindFoodState& foodState)
 {
-	if (foodState.isFoodFound && foodState.eaten) //is hunger value bigger now?
+	if (foodState.eaten) //is hunger value bigger now?
 	{
 		return true;
 	}

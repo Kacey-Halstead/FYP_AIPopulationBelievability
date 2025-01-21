@@ -12,8 +12,8 @@ struct Trait
 
 struct Needs
 {
-	float hungerVal = 100;
-	float thirstVal = 100;
+	float hungerVal = 50;
+	float thirstVal = 50;
 };
 
 constexpr int gridSizeX = 30;

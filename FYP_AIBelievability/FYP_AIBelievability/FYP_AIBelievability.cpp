@@ -55,9 +55,13 @@ int main(int argc, char* argv[])
 	//Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
 	Planner<MoveToState, FindFoodState> foodPlan{ &FoodGoalComplete, {
-		std::make_pair(FindFood::Execute, FindFood::IsValid),
 		std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
-		std::make_pair(EatFood::Execute, EatFood::IsValid)} };
+		std::make_pair(FindFood::Execute, FindFood::IsValid),
+		std::make_pair(EatFood::Execute, EatFood::IsValid)
+	}};
+
+	Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
+	std::make_pair(Wander::Execute, Wander::IsValid)} };
 	
 	float accumulatedTime = 0;
 	float counter = 0;
@@ -100,10 +104,27 @@ int main(int argc, char* argv[])
 			{
 				auto [executeFunc, completion] = foodPlan.ActionSelector(a.GetState(), a.GetFoodState());
 
+				bool toExecute = false;
+
+				//if (completion != InProgress)
+				//	toExecute = true;
+				//	auto executeWander = wanderPlan.ActionSelector(a.GetState()).first;
+				//	completion = wanderPlan.ActionSelector(a.GetState()).second;
+
+
 				switch (completion)
 				{
 				case InProgress:
-					(*executeFunc)(a.GetState(), a.GetFoodState());
+				{
+					if (toExecute)
+					{
+						////(*executeWander)(a.GetState());
+					}
+					else
+					{
+						(*executeFunc)(a.GetState(), a.GetFoodState());
+					}
+				}
 					break;
 				case Complete:
 					break;
@@ -122,10 +143,11 @@ int main(int argc, char* argv[])
 
 				for (FoodSource& f : food)
 				{
-					if (f.isInRect(a.position) && f.canEat)
+					if (f.isInRect(a.position) && f.canEat && a.GetFoodState().foundFoodRef == nullptr)
 					{
 						a.GetFoodState().foundFoodRef = &f;
 						a.DetectFood(true, f.position);
+						f.canEat = false;
 
 						//if (a.GetState().path.size() > 1)
 						//	a.GetState().path.erase(a.GetState().path.begin());

@@ -86,6 +86,7 @@ void Agent::DetectFood(bool detect, glm::vec2 pos)
 	{		
 		moveState.to = pos;
 		moveState.from = position;
+		moveState.path = AStar::toFindPath(moveState.from, moveState.to);
 	}
 }
 
@@ -94,6 +95,13 @@ void Agent::DecreaseNeeds(float deltaTime)
 	if (needs.hungerVal > 0)
 	{
 		needs.hungerVal -= 1 * deltaTime;
+
+		if (needs.hungerVal < 80)
+		{
+			foodState.eaten = false;
+		}
+		else
+			foodState.eaten = true;
 	}
 
 	if (needs.thirstVal > 0)

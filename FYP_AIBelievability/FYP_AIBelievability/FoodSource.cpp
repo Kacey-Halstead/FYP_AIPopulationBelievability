@@ -28,7 +28,7 @@ FoodSource::FoodSource(Grid* grid)
 	position.y = triedPosY * grid->tileSize.y;
 
 	rect = { (int)position.x, (int)position.y, size.x, size.y };
-	detectRect = { rect.x, rect.y, rect.w * 5, rect.h * 5 };
+	detectRect = { rect.x - ((rect.w * 5)/2), rect.y - ((rect.h * 5)/2), rect.w * 5, rect.h * 5};
 }
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window)
@@ -36,6 +36,7 @@ void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window)
 	canEat ? indexForTexture = BUSHF : indexForTexture = BUSHE;
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(indexForTexture), NULL, &rect);
 	SDL_RenderDrawRect(renderer, &rect);
+	SDL_RenderDrawRect(renderer, &detectRect);
 }
 
 void FoodSource::Update(float deltaTime)

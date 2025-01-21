@@ -31,6 +31,8 @@ public:
 	MoveToState& GetState() { return moveState; }
 	FindFoodState& GetFoodState() { return foodState; }
 
+	inline Grid* GetGridRef() { return gridRef; }
+
 	glm::vec2 position = {};
 
 	Needs needs = {};
