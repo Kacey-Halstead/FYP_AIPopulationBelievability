@@ -144,6 +144,7 @@
     <ClCompile Include="Agent.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="Commons.cpp" />
+    <ClCompile Include="DAG.cpp" />
     <ClCompile Include="FoodSource.cpp" />
     <ClCompile Include="FromJSON.cpp" />
     <ClCompile Include="FYP_AIBelievability.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Agent.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="Commons.h" />
+    <ClInclude Include="DAG.h" />
     <ClInclude Include="FoodSource.h" />
     <ClInclude Include="FromJSON.h" />
     <ClInclude Include="Grid.h" />

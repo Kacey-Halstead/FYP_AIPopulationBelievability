@@ -35,15 +35,15 @@ using Action = std::pair<ExecuteFunc<Structs...>, IsValidFunc<Structs...>>;
 template<typename... Structs>
 using IsGoalComplete = std::function<bool(Structs&...)>;
 
+template<typename... Structs>
+using ActionWithStructs = Action<Structs...>;
 
 //PLANNER
 template<typename... Structs>
 class Planner 
 {
-	using Action = Action<Structs...>;
-
 public:
-	Planner(IsGoalComplete<Structs...> goal, std::vector<Action>&& allActions) //planner requires goal complete func and actions in plan
+	Planner(IsGoalComplete<Structs...> goal, std::vector<ActionWithStructs<Structs...>>&& allActions) //planner requires goal complete func and actions in plan
 	{
 		isGoalComplete = goal;
 		actions = allActions;
@@ -71,7 +71,7 @@ public:
 
 private:
 	IsGoalComplete<Structs...> isGoalComplete;
-	std::vector<Action> actions;
+	std::vector<ActionWithStructs<Structs...>> actions;
 };
 
 //Defined Actions
@@ -79,10 +79,9 @@ private:
 template<typename... Structs> //so moveTo can be used in many plans
 struct MoveTo
 {
+
 	static void Execute(MoveToState& conditions, Structs& ...)
 	{
-		conditions.from = conditions.agent->position;
-
 		if (!conditions.path.empty())
 		{
 			glm::vec2 toGo = conditions.path[0].tile->GetWorldPos();
@@ -103,12 +102,13 @@ struct MoveTo
 
 	static bool IsValid(MoveToState& conditions, Structs& ...)
 	{
-		return !ComparePositions(conditions.agent->position, conditions.to) && conditions.isMoveToSet;
+		return !ComparePositions(conditions.from, conditions.to) && conditions.isMoveToSet;
 	}
 };
 
 struct FindFood
 {
+
 	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
 	{
 		//can check previous positions?
@@ -118,14 +118,14 @@ struct FindFood
 			conditions.to = foodConditions.nextToCheck;
 			conditions.isMoveToSet = true;
 			conditions.from = conditions.agent->position;
-			conditions.path = AStar::toFindPath(conditions.from, conditions.to);
+			conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
 			return;
 		}
 
 		//loop to find next unsearch patrol point
 		for (std::pair<glm::vec2, bool>& p : foodConditions.patrolPoints)
 		{
-			if (ComparePositions(foodConditions.nextToCheck, p.first))
+			if (foodConditions.nextToCheck == p.first)
 			{
 				p.second = true;
 			}
@@ -134,9 +134,10 @@ struct FindFood
 			{
 				foodConditions.nextToCheck = p.first;
 				conditions.to = foodConditions.nextToCheck;
-				conditions.isMoveToSet = true;
 				conditions.from = conditions.agent->position;
-				conditions.path = AStar::toFindPath(conditions.from, conditions.to);
+				conditions.isMoveToSet = true;
+				conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
+
 			}
 		}
 	}
@@ -165,7 +166,7 @@ struct EatFood
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return foodConditions.foundFoodRef != nullptr && ComparePositions(conditions.agent->position, foodConditions.foundFoodRef->position) && !foodConditions.eaten;
+		return foodConditions.foundFoodRef != nullptr && ComparePositions(conditions.from, foodConditions.foundFoodRef->position) && !foodConditions.eaten;
 	}
 };
 

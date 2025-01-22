@@ -5,7 +5,12 @@
 
 class Agent;
 
-struct MoveToState
+struct state
+{
+
+};
+
+struct MoveToState : public state
 {
 	glm::vec2 to = {1, 1};
 	glm::vec2 from;
@@ -21,7 +26,7 @@ struct MoveToState
 	bool IsComplete();
 };
 
-struct FindFoodState
+struct FindFoodState : public state
 {
 	std::vector<glm::vec2> prevFoodPositions;
 

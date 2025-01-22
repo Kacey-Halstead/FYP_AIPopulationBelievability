@@ -8,6 +8,7 @@
 #include "Action.h"
 #include "SDLWindow.h"
 #include "FoodSource.h"
+#include "DAG.h"
 
 using namespace std::chrono;
 
@@ -60,9 +61,16 @@ int main(int argc, char* argv[])
 		std::make_pair(EatFood::Execute, EatFood::IsValid)
 	}};
 
+
 	Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
 	std::make_pair(Wander::Execute, Wander::IsValid)} };
 	
+	std::vector<ActionWithStructs<MoveToState, FindFoodState>> allFoodActions = {
+	std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
+	std::make_pair(FindFood::Execute, FindFood::IsValid),
+	std::make_pair(EatFood::Execute, EatFood::IsValid)
+	};
+
 	float accumulatedTime = 0;
 	float counter = 0;
 
