@@ -17,6 +17,11 @@ enum ActionProgress
 	Impossible
 };
 
+enum ActionIDs
+{
+	FOODACTION,
+};
+
 //Action - 2 functions (Execute and IsValid) 
 template<typename... Structs>
 using ExecuteFunc = std::function<void(Structs&...)>;
@@ -28,8 +33,7 @@ using IsValidFunc = IsValidReturnType(*)(Structs&...); //function pointer - smal
 
 //action definition 
 template<typename... Structs>
-using Action = std::pair<ExecuteFunc<Structs...>, IsValidFunc<Structs...>>;
-
+using Action = std::pair<std::pair<ExecuteFunc<Structs...>, IsValidFunc<Structs...>>, ActionIDs>;
 
 //Goal Completion function (IsGoalComplete)
 template<typename... Structs>
@@ -43,6 +47,7 @@ template<typename... Structs>
 class Planner 
 {
 public:
+
 	Planner(IsGoalComplete<Structs...> goal, std::vector<ActionWithStructs<Structs...>>&& allActions) //planner requires goal complete func and actions in plan
 	{
 		isGoalComplete = goal;
@@ -54,11 +59,12 @@ public:
 		if (!isGoalComplete(states...))
 		{
 			//cycle through actions and decide action
-			for (const auto& [executeFunc, isValidFunc] : actions)
+			for (auto& [funcs, ID] : actions)
 			{
-				if (isValidFunc(states...))
+
+				if (funcs.second(states...))
 				{
-					return std::make_pair(&executeFunc, InProgress);
+					return std::make_pair(&funcs.first, InProgress);
 				}
 			}
 
@@ -108,7 +114,6 @@ struct MoveTo
 
 struct FindFood
 {
-
 	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
 	{
 		//can check previous positions?
@@ -137,7 +142,7 @@ struct FindFood
 				conditions.from = conditions.agent->position;
 				conditions.isMoveToSet = true;
 				conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
-
+				break;
 			}
 		}
 	}
@@ -154,7 +159,8 @@ struct EatFood
 	{
 		if (conditions.agent->needs.hungerVal < 80)
 		{
-			foodConditions.foundFoodRef->EatFrom(1);
+			foodConditions.foundFoodRef->EatFrom(5);
+			conditions.agent->needs.hungerVal += 5;
 			foodConditions.prevFoodPositions.push_back(foodConditions.foundFoodRef->position);
 		}
 		else
@@ -166,7 +172,7 @@ struct EatFood
 
 	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
 	{
-		return foodConditions.foundFoodRef != nullptr && ComparePositions(conditions.from, foodConditions.foundFoodRef->position) && !foodConditions.eaten;
+		return foodConditions.foundFoodRef != nullptr && !conditions.isMoveToSet && !foodConditions.eaten;
 	}
 };
 
@@ -210,7 +216,7 @@ static bool GoalComplete(MoveToState& state)
 
 static bool FoodGoalComplete(MoveToState& state, FindFoodState& foodState)
 {
-	if (foodState.eaten) //is hunger value bigger now?
+	if (foodState.eaten) 
 	{
 		return true;
 	}

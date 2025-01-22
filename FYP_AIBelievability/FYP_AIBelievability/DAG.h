@@ -3,35 +3,52 @@
 #include "Action.h"
 
 template<typename... Structs>
-struct DAGNode
+struct node
 {
+	int id;
+
 	ActionWithStructs<Structs...> action;
 
-	bool test()
-	{
-		return action.second(Structs...);
-	}
-
-	void apply(Structs... states)
-	{
-		action.first(states);
-	}
-
-	//will need some sort of cost eventually
+	std::vector<ActionWithStructs<Structs...>> children;
 };
 
 template<typename... Structs>
 class DAG
 {
 public:
-	DAG();
-	~DAG();
+
+	DAG(std::vector<ActionWithStructs<Structs...>> allActionsOfType)
+	{
+		int counter = 0;
+		for (auto Action : allActionsOfType)
+		{
+			node<Structs...> n{};
+			n.id = counter++;
+			n.action = Action;
+			allActions.push_back(n);
+		}
+	}
 
 
-	void CreateGraph(std::vector<ActionWithStructs<Structs...>> allActionsofType);
+	~DAG()
+	{
+
+	}
+
+
+	void AddRelation(ActionWithStructs<Structs...> parent, ActionWithStructs<Structs...> child)
+	{
+		for (node n : allActions)
+		{
+			if (n.id == parent.second)
+			{
+				n.children.push_back(child);
+			}
+		}
+	}
 
 private:
-	std::vector<DAGNode<Structs...>> allNodes;
+	std::vector<node<Structs...>> allActions;
 };
 
 

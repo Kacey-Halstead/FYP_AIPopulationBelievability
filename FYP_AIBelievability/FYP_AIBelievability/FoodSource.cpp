@@ -42,12 +42,12 @@ void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window)
 void FoodSource::Update(float deltaTime)
 {
 	Replenish(deltaTime);
-	foodAmount > 0 ? canEat = true : canEat = false;
+	foodAmount > 10 ? canEat = true : canEat = false;
 ;}
 
 void FoodSource::EatFrom(float amount)
 {
-	if (canEat)
+	if (canEat && foodAmount >= amount)
 	{
 		foodAmount -= amount;
 	}

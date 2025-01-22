@@ -21,6 +21,7 @@ public:
 	bool isInRect(glm::vec2 point);
 
 	bool canEat = true;
+	bool taken = true;
 	glm::vec2 position;
 
 private:
@@ -34,6 +35,8 @@ private:
 	Grid* gridRef;
 
 	const float maxfoodAmount = 100;
+
+
 
 	//for replenishment
 	int counter = 0;

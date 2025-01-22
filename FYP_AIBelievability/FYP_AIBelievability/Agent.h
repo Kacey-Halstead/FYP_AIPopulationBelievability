@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <glm/glm.hpp>
+#include <queue>
 
 #include "TextureManager.h"
 #include "ImGuiImplementation.h"
@@ -43,6 +44,8 @@ public:
 	SDL_Point size = { 50, 50 };
 
 private:
+
+
 	MoveToState moveState;
 	FindFoodState foodState;
 

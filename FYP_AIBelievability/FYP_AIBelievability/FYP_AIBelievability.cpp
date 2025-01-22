@@ -56,20 +56,22 @@ int main(int argc, char* argv[])
 	//Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
 	Planner<MoveToState, FindFoodState> foodPlan{ &FoodGoalComplete, {
-		std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
-		std::make_pair(FindFood::Execute, FindFood::IsValid),
-		std::make_pair(EatFood::Execute, EatFood::IsValid)
+		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
+		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION)
 	}};
 
 
-	Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
-	std::make_pair(Wander::Execute, Wander::IsValid)} };
+	//Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
+	//std::make_pair(Wander::Execute, Wander::IsValid)} };
 	
-	std::vector<ActionWithStructs<MoveToState, FindFoodState>> allFoodActions = {
-	std::make_pair(MoveTo<FindFoodState>::Execute, MoveTo<FindFoodState>::IsValid),
-	std::make_pair(FindFood::Execute, FindFood::IsValid),
-	std::make_pair(EatFood::Execute, EatFood::IsValid)
+	std::vector<ActionWithStructs<MoveToState, FindFoodState>> allActions = {
+		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
+		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION)
 	};
+
+	DAG<MoveToState, FindFoodState> dag = DAG<MoveToState, FindFoodState>(allActions);
+
+	dag.AddRelation(allActions[1], allActions[0]);
 
 	float accumulatedTime = 0;
 	float counter = 0;
@@ -110,28 +112,37 @@ int main(int argc, char* argv[])
 
 			for (Agent& a : agents) //update agents
 			{
+
+				//movement
+				if (a.GetState().isMoveToSet)
+				{
+					if (!a.GetState().path.empty())
+					{
+						glm::vec2 toGo = a.GetState().path[0].tile->GetWorldPos();
+
+						a.GetState().agent->Move(toGo);
+
+						if (ComparePositions(a.GetState().agent->position, toGo))
+						{
+							a.GetState().path.erase(a.GetState().path.begin());
+						}
+					}
+
+					if (ComparePositions(a.GetState().agent->position, a.GetState().to) || a.GetState().path.empty())
+					{
+						a.GetState().isMoveToSet = false;
+					}
+				}
+
+
+				//GOAP selection
 				auto [executeFunc, completion] = foodPlan.ActionSelector(a.GetState(), a.GetFoodState());
-
-				bool toExecute = false;
-
-				//if (completion != InProgress)
-				//	toExecute = true;
-				//	auto executeWander = wanderPlan.ActionSelector(a.GetState()).first;
-				//	completion = wanderPlan.ActionSelector(a.GetState()).second;
-
 
 				switch (completion)
 				{
 				case InProgress:
 				{
-					if (toExecute)
-					{
-						////(*executeWander)(a.GetState());
-					}
-					else
-					{
-						(*executeFunc)(a.GetState(), a.GetFoodState());
-					}
+					(*executeFunc)(a.GetState(), a.GetFoodState());
 				}
 					break;
 				case Complete:
@@ -151,11 +162,11 @@ int main(int argc, char* argv[])
 
 				for (FoodSource& f : food)
 				{
-					if (f.isInRect(a.position) && f.canEat && a.GetFoodState().foundFoodRef == nullptr)
+					if (f.isInRect(a.position) && f.taken && a.GetFoodState().foundFoodRef == nullptr)
 					{
 						a.GetFoodState().foundFoodRef = &f;
 						a.DetectFood(true, f.position);
-						f.canEat = false;
+						f.taken = false;
 
 						//if (a.GetState().path.size() > 1)
 						//	a.GetState().path.erase(a.GetState().path.begin());
