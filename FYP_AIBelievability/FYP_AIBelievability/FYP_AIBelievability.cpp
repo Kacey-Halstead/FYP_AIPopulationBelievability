@@ -55,28 +55,28 @@ int main(int argc, char* argv[])
 	
 	//Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
-	Planner<MoveToState, FindFoodState> foodPlan{ &FoodGoalComplete, {
-		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
-		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
-	}};
+	//Planner<MoveToState, FindState, FindFoodState> foodPlan{ &FindGoalComplete<MoveToState, FindState, FindFoodState>, {
+	//	std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
+	//	std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
+	//}};
 
 
 	//Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
 	//std::make_pair(Wander::Execute, Wander::IsValid)} };
 	
-	std::vector<Action<MoveToState, FindFoodState>> allActions = {
+	std::vector<Action<MoveToState, FindState, FindFoodState>> allActions = {
 		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
 		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
 	};
 
-	DAG<MoveToState, FindFoodState> dag = DAG<MoveToState, FindFoodState>(allActions);
+	DAG<MoveToState, FindState, FindFoodState> dag = DAG<MoveToState, FindState, FindFoodState>(allActions);
 
 	dag.AddRelation(&allActions[1], &allActions[0]);
 
 	float accumulatedTime = 0;
 	float counter = 0;
 
-	Planner<MoveToState, FindFoodState> plan;
+	Planner<MoveToState, FindState, FindFoodState> plan;
 
 	//main loop
 	while (true)
@@ -140,28 +140,30 @@ int main(int argc, char* argv[])
 
 
 				//GOAP selection
-				auto [executeFunc, completion] = plan.ActionSelector(a.GetState(), a.GetFoodState());
+				auto [executeFunc, completion] = plan.ActionSelector(a.GetState(), a.GetFindState(), a.GetFoodState());
 
 				switch (completion)
 				{
 				case InProgress:
 				{
-					(*executeFunc)(a.GetState(), a.GetFoodState());
+					(*executeFunc)(a.GetState(), a.GetFindState(), a.GetFoodState());
 				}
 					break;
 				case Complete:
 				{
-					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFoodState()))
+					dag.ClearPlan();
+					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFindState(), a.GetFoodState()))
 					{
-						plan.SetPlan(&FoodGoalComplete, dag.GetAction());
+						plan.SetPlan(&FindGoalComplete<FindFoodState>, dag.GetAction());
 					}
 				}
 					break;
 				case Impossible:
 				{
-					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFoodState()))
+					dag.ClearPlan();
+					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFindState(), a.GetFoodState()))
 					{
-						plan.SetPlan(&FoodGoalComplete, dag.GetAction());
+						plan.SetPlan(&FindGoalComplete<FindFoodState>, dag.GetAction());
 					}
 				}
 					break;

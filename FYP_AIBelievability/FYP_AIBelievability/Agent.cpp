@@ -42,10 +42,10 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
 
-	for (int i = 0; i < foodState.patrolPoints.size(); i++)
+	for (int i = 0; i < findState.patrolPoints.size(); i++)
 	{
-		foodState.patrolPoints[i].first = patrolPositions[i] * gridRef->tileSize;
-		foodState.patrolPoints[i].second = false;
+		findState.patrolPoints[i].first = patrolPositions[i] * gridRef->tileSize;
+		findState.patrolPoints[i].second = false;
 	}
 }
 
@@ -79,7 +79,7 @@ bool Agent::IsPointInAgent(SDL_Point point)
 
 void Agent::DetectFood(bool detect, glm::vec2 pos)
 {
-	foodState.isFoodFound = detect;
+	findState.isFound = detect;
 	moveState.isMoveToSet = detect;
 
 	if (detect)
@@ -104,10 +104,10 @@ void Agent::DecreaseNeeds(float deltaTime)
 
 		if (needs.hungerVal < 80)
 		{
-			foodState.eaten = false;
+			findState.complete = false;
 		}
 		else
-			foodState.eaten = true;
+			findState.complete = true;
 	}
 
 	if (needs.thirstVal > 0)

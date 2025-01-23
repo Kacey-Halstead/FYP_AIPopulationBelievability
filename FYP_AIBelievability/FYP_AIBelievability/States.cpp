@@ -13,7 +13,25 @@ bool MoveToState::IsComplete()
 
 bool FindFoodState::IsComplete()
 {
-	if (isFoodFound && eaten)
+	if (foundFoodRef != nullptr || !prevFoodPositions.empty())
+	{
+		return true;
+	}
+	return false;
+}
+
+bool FindWaterState::IsComplete()
+{
+	if (foundWaterRef != nullptr || !prevWaterPositions.empty())
+	{
+		return true;
+	}
+	return false;
+}
+
+bool FindState::IsComplete()
+{
+	if (isFound && complete)
 	{
 		return true;
 	}

@@ -31,6 +31,7 @@ public:
 
 	MoveToState& GetState() { return moveState; }
 	FindFoodState& GetFoodState() { return foodState; }
+	FindState& GetFindState() { return findState; }
 
 	inline Grid* GetGridRef() { return gridRef; }
 
@@ -45,9 +46,9 @@ public:
 
 private:
 
-
 	MoveToState moveState;
 	FindFoodState foodState;
+	FindState findState;
 
 	SDL_Rect agentRect;	
 

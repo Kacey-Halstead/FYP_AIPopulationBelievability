@@ -91,6 +91,11 @@ private:
 	std::vector<Action<Structs...>> actions;
 };
 
+//Decide on goal
+//function to return goal and structs, evaluating agent needs
+
+
+
 //Defined Actions
 
 template<typename... Structs> //so moveTo can be used in many plans
@@ -123,15 +128,16 @@ struct MoveTo
 	}
 };
 
+//FOOD
 struct FindFood
 {
-	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
+	static void Execute(MoveToState& conditions, FindState& findState, FindFoodState& foodConditions)
 	{
 		//can check previous positions?
 		if (!foodConditions.prevFoodPositions.empty())
 		{
-			foodConditions.nextToCheck = foodConditions.prevFoodPositions[0];
-			conditions.to = foodConditions.nextToCheck;
+			findState.nextToCheck = foodConditions.prevFoodPositions[0];
+			conditions.to = findState.nextToCheck;
 			conditions.isMoveToSet = true;
 			conditions.from = conditions.agent->position;
 			conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
@@ -140,17 +146,17 @@ struct FindFood
 		}
 
 		//loop to find next unsearch patrol point
-		for (std::pair<glm::vec2, bool>& p : foodConditions.patrolPoints)
+		for (std::pair<glm::vec2, bool>& p : findState.patrolPoints)
 		{
-			if (foodConditions.nextToCheck == p.first)
+			if (findState.nextToCheck == p.first)
 			{
 				p.second = true;
 			}
 
 			if (!p.second)
 			{
-				foodConditions.nextToCheck = p.first;
-				conditions.to = foodConditions.nextToCheck;
+				findState.nextToCheck = p.first;
+				conditions.to = findState.nextToCheck;
 				conditions.from = conditions.agent->position;
 				conditions.isMoveToSet = true;
 				conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
@@ -160,15 +166,15 @@ struct FindFood
 		}
 	}
 
-	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
+	static bool IsValid(MoveToState& conditions, FindState& findState, FindFoodState& foodConditions)
 	{
-		return !foodConditions.foundFoodRef && !foodConditions.eaten && !conditions.isMoveToSet;
+		return !foodConditions.foundFoodRef && !findState.complete && !conditions.isMoveToSet;
 	}
 };
 
 struct EatFood
 {
-	static void Execute(MoveToState& conditions, FindFoodState& foodConditions)
+	static void Execute(MoveToState& conditions, FindState& findState, FindFoodState& foodConditions)
 	{
 		if (conditions.agent->needs.hungerVal < 80)
 		{
@@ -179,14 +185,82 @@ struct EatFood
 		}
 		else
 		{
-			foodConditions.eaten = true;
+			findState.complete = true;
 			foodConditions.foundFoodRef = nullptr;
 		}
 	}
 
-	static bool IsValid(MoveToState& conditions, FindFoodState& foodConditions)
+	static bool IsValid(MoveToState& conditions, FindState& findState, FindFoodState& foodConditions)
 	{
-		return foodConditions.foundFoodRef != nullptr && !conditions.isMoveToSet && !foodConditions.eaten;
+		return foodConditions.foundFoodRef != nullptr && !conditions.isMoveToSet && !findState.complete;
+	}
+};
+
+//WATER
+struct FindWater
+{
+	static void Execute(MoveToState& conditions, FindState& findState, FindWaterState& waterConditions)
+	{
+		//can check previous positions?
+		if (!waterConditions.prevWaterPositions.empty())
+		{
+			findState.nextToCheck = waterConditions.prevWaterPositions[0];
+			conditions.to = findState.nextToCheck;
+			conditions.isMoveToSet = true;
+			conditions.from = conditions.agent->position;
+			conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
+
+			return;
+		}
+
+		//loop to find next unsearch patrol point
+		for (std::pair<glm::vec2, bool>& p : findState.patrolPoints)
+		{
+			if (findState.nextToCheck == p.first)
+			{
+				p.second = true;
+			}
+
+			if (!p.second)
+			{
+				findState.nextToCheck = p.first;
+				conditions.to = findState.nextToCheck;
+				conditions.from = conditions.agent->position;
+				conditions.isMoveToSet = true;
+				conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
+
+				break;
+			}
+		}
+	}
+
+	static bool IsValid(MoveToState& conditions, FindState& findState, FindWaterState& waterConditions)
+	{
+		return !waterConditions.foundWaterRef && !findState.complete && !conditions.isMoveToSet;
+	}
+};
+
+struct DrinkWater
+{
+	static void Execute(MoveToState& conditions, FindWaterState& waterConditions, FindState& findState)
+	{
+		if (conditions.agent->needs.hungerVal < 80)
+		{
+			if (waterConditions.foundWaterRef->EatFrom(10))
+			{
+				conditions.agent->needs.hungerVal += 5;
+			}
+		}
+		else
+		{
+			findState.complete = true;
+			waterConditions.foundWaterRef = nullptr;
+		}
+	}
+
+	static bool IsValid(MoveToState& conditions, FindWaterState& waterConditions, FindState& findState)
+	{
+		return waterConditions.foundWaterRef != nullptr && !conditions.isMoveToSet && !findState.complete;
 	}
 };
 
@@ -228,9 +302,10 @@ static bool GoalComplete(MoveToState& state)
 	return false;
 }
 
-static bool FoodGoalComplete(MoveToState& state, FindFoodState& foodState)
+template<typename... Structs>
+static bool FindGoalComplete(MoveToState& state, FindState& findState, Structs&...)
 {
-	if (foodState.eaten) 
+	if (findState.complete)
 	{
 		return true;
 	}
