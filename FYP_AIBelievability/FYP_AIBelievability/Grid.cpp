@@ -42,7 +42,7 @@ void Grid::CreateRects(SDL_Window* SDLWindowRef)
 		for (int y = 0; y < sizeY; y++)
 		{
 			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / sizeX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / sizeY), tileSize.x, tileSize.y };
-			Tiles[x][y]->SetWorldPos(newRec.x + tileSize.x / 2, newRec.y + tileSize.y / 2);
+			Tiles[x][y]->SetWorldPos(newRec.x + (tileSize.x / 2), newRec.y + (tileSize.y / 2));
 			rects.emplace_back(newRec);
 		}
 	}
@@ -116,6 +116,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 			if (Tiles[x][y]->isInPath)
 			{
 				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
+				//SDL_RenderDrawRect(renderer, &rects[counter]);
 				counter++;
 				continue;
 			}
@@ -134,6 +135,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 			default:
 				break;
 			}
+			//SDL_RenderDrawRect(renderer, &rects[counter]);
 			counter++;
 		}
 	}
@@ -141,7 +143,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 
 Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
-	glm::vec2 tilePos = { round(pos.x / tileSize.x), round(pos.y / tileSize.y) };
+	glm::vec2 tilePos = { floor(pos.x / tileSize.x), floor(pos.y / tileSize.y) };
 
 	return Tiles[tilePos.x][tilePos.y];
 }

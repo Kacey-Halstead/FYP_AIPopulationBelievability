@@ -20,6 +20,7 @@ enum ActionProgress
 enum ActionIDs
 {
 	FOODACTION,
+	FOODACTION2
 };
 
 //Action - 2 functions (Execute and IsValid) 
@@ -39,16 +40,24 @@ using Action = std::pair<std::pair<ExecuteFunc<Structs...>, IsValidFunc<Structs.
 template<typename... Structs>
 using IsGoalComplete = std::function<bool(Structs&...)>;
 
-template<typename... Structs>
-using ActionWithStructs = Action<Structs...>;
-
 //PLANNER
 template<typename... Structs>
 class Planner 
 {
 public:
 
-	Planner(IsGoalComplete<Structs...> goal, std::vector<ActionWithStructs<Structs...>>&& allActions) //planner requires goal complete func and actions in plan
+	Planner()
+	{
+
+	}
+
+	void SetPlan(IsGoalComplete<Structs...> goal, std::vector<Action<Structs...>>&& allActions)
+	{
+		isGoalComplete = goal;
+		actions = allActions;
+	}
+
+	Planner(IsGoalComplete<Structs...> goal, std::vector<Action<Structs...>>&& allActions) //planner requires goal complete func and actions in plan
 	{
 		isGoalComplete = goal;
 		actions = allActions;
@@ -56,6 +65,8 @@ public:
 
 	std::pair<const ExecuteFunc<Structs...>*, ActionProgress> ActionSelector(Structs&... states)
 	{
+		if (actions.empty()) return { nullptr, Impossible };
+
 		if (!isGoalComplete(states...))
 		{
 			//cycle through actions and decide action
@@ -77,7 +88,7 @@ public:
 
 private:
 	IsGoalComplete<Structs...> isGoalComplete;
-	std::vector<ActionWithStructs<Structs...>> actions;
+	std::vector<Action<Structs...>> actions;
 };
 
 //Defined Actions
@@ -124,6 +135,7 @@ struct FindFood
 			conditions.isMoveToSet = true;
 			conditions.from = conditions.agent->position;
 			conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
+
 			return;
 		}
 
@@ -142,6 +154,7 @@ struct FindFood
 				conditions.from = conditions.agent->position;
 				conditions.isMoveToSet = true;
 				conditions.path = AStar::toFindPath(conditions.agent->position, conditions.to);
+
 				break;
 			}
 		}
@@ -159,9 +172,10 @@ struct EatFood
 	{
 		if (conditions.agent->needs.hungerVal < 80)
 		{
-			foodConditions.foundFoodRef->EatFrom(5);
-			conditions.agent->needs.hungerVal += 5;
-			foodConditions.prevFoodPositions.push_back(foodConditions.foundFoodRef->position);
+			if (foodConditions.foundFoodRef->EatFrom(10))
+			{
+				conditions.agent->needs.hungerVal += 5;
+			}
 		}
 		else
 		{

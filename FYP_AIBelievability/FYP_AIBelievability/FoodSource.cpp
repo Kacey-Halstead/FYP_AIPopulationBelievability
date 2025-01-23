@@ -45,12 +45,14 @@ void FoodSource::Update(float deltaTime)
 	foodAmount > 10 ? canEat = true : canEat = false;
 ;}
 
-void FoodSource::EatFrom(float amount)
+bool FoodSource::EatFrom(float amount)
 {
 	if (canEat && foodAmount >= amount)
 	{
 		foodAmount -= amount;
+		return true;
 	}
+	return false;
 }
 
 void FoodSource::Replenish(float deltaTime)

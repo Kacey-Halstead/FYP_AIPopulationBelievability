@@ -55,7 +55,7 @@ private:
 
 	Grid* gridRef;
 
-	std::vector<glm::ivec2> patrolPositions = { {1, 1}, {gridSizeX-1, 1}, {1, gridSizeY - 1}, {gridSizeX - 1, gridSizeY - 1}, {(gridSizeX - 1 )/2, (gridSizeY - 1 )/2} };
+	std::vector<glm::ivec2> patrolPositions = { {1, 1}, {gridSizeX-1, 1}, {1, gridSizeY - 1}, {25, 25}, {(gridSizeX - 1 )/2, (gridSizeY - 1 )/2} };
 
 
 	glm::vec2 velocity = { 0, 0 };

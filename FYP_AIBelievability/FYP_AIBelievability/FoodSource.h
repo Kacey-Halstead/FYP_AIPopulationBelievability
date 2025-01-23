@@ -16,7 +16,7 @@ public:
 	void Render(SDL_Renderer* renderer, SDL_Window* window);
 
 	void Update(float deltaTime);
-	void EatFrom(float amount);
+	bool EatFrom(float amount);
 	void Replenish(float deltaTime);
 	bool isInRect(glm::vec2 point);
 

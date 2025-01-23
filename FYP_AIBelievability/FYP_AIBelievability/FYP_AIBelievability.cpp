@@ -57,24 +57,26 @@ int main(int argc, char* argv[])
 
 	Planner<MoveToState, FindFoodState> foodPlan{ &FoodGoalComplete, {
 		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
-		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION)
+		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
 	}};
 
 
 	//Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
 	//std::make_pair(Wander::Execute, Wander::IsValid)} };
 	
-	std::vector<ActionWithStructs<MoveToState, FindFoodState>> allActions = {
+	std::vector<Action<MoveToState, FindFoodState>> allActions = {
 		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
-		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION)
+		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
 	};
 
 	DAG<MoveToState, FindFoodState> dag = DAG<MoveToState, FindFoodState>(allActions);
 
-	dag.AddRelation(allActions[1], allActions[0]);
+	dag.AddRelation(&allActions[1], &allActions[0]);
 
 	float accumulatedTime = 0;
 	float counter = 0;
+
+	Planner<MoveToState, FindFoodState> plan;
 
 	//main loop
 	while (true)
@@ -135,8 +137,10 @@ int main(int argc, char* argv[])
 				}
 
 
+
+
 				//GOAP selection
-				auto [executeFunc, completion] = foodPlan.ActionSelector(a.GetState(), a.GetFoodState());
+				auto [executeFunc, completion] = plan.ActionSelector(a.GetState(), a.GetFoodState());
 
 				switch (completion)
 				{
@@ -146,8 +150,20 @@ int main(int argc, char* argv[])
 				}
 					break;
 				case Complete:
+				{
+					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFoodState()))
+					{
+						plan.SetPlan(&FoodGoalComplete, dag.GetAction());
+					}
+				}
 					break;
 				case Impossible:
+				{
+					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFoodState()))
+					{
+						plan.SetPlan(&FoodGoalComplete, dag.GetAction());
+					}
+				}
 					break;
 				}
 

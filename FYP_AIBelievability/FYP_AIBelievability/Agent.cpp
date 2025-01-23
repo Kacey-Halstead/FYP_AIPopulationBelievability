@@ -88,6 +88,12 @@ void Agent::DetectFood(bool detect, glm::vec2 pos)
 		moveState.from = position;
 		moveState.path = AStar::toFindPath(moveState.from, moveState.to);
 	}
+
+	auto it = std::find(foodState.prevFoodPositions.begin(), foodState.prevFoodPositions.end(), pos);
+	if (it == foodState.prevFoodPositions.end())
+	{
+		foodState.prevFoodPositions.push_back(pos);
+	}
 }
 
 void Agent::DecreaseNeeds(float deltaTime)
