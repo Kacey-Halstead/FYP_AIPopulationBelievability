@@ -10,6 +10,14 @@
 #include "AStar.h"
 #include "States.h"
 
+struct States
+{
+	MoveToState moveState{};
+	FindFoodState foodState{};
+	FindState findState{};
+	FindWaterState waterState{};
+};
+
 class Agent
 {
 public:
@@ -29,9 +37,9 @@ public:
 
 	void DetectFood(bool detect, glm::vec2 pos);
 
-	MoveToState& GetState() { return moveState; }
-	FindFoodState& GetFoodState() { return foodState; }
-	FindState& GetFindState() { return findState; }
+	int DecideOnGoal();
+
+	States& GetStates() { return states; }
 
 	inline Grid* GetGridRef() { return gridRef; }
 
@@ -45,11 +53,12 @@ public:
 	SDL_Point size = { 50, 50 };
 
 private:
+	States states;
 
-	MoveToState moveState;
-	FindFoodState foodState;
-	FindState findState;
+	std::vector<Action> taskQueue{};
+	std::vector<Action> reactiveQueue{};
 
+	SDL_Rect detectRect;
 	SDL_Rect agentRect;	
 
 	std::array<Agent*, 2> parents = {};
@@ -61,6 +70,7 @@ private:
 
 	glm::vec2 velocity = { 0, 0 };
 	float speed = 100.0f;
+
 };
 
 

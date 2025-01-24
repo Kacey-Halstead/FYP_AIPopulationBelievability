@@ -52,31 +52,15 @@ int main(int argc, char* argv[])
 	{
 		food.push_back(grid);
 	}
-	
-	//Planner<MoveToState> plan{ &GoalComplete, {std::make_pair(MoveTo::Execute, MoveTo::IsValid)} };
 
-	//Planner<MoveToState, FindState, FindFoodState> foodPlan{ &FindGoalComplete<MoveToState, FindState, FindFoodState>, {
-	//	std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
-	//	std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
-	//}};
+	DAG dag = DAG(Actions::GetActions(0));
 
-
-	//Planner<MoveToState> wanderPlan{ &GoalComplete, {std::make_pair(MoveTo<>::Execute, MoveTo<>::IsValid), 
-	//std::make_pair(Wander::Execute, Wander::IsValid)} };
-	
-	std::vector<Action<MoveToState, FindState, FindFoodState>> allActions = {
-		std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
-		std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
-	};
-
-	DAG<MoveToState, FindState, FindFoodState> dag = DAG<MoveToState, FindState, FindFoodState>(allActions);
-
-	dag.AddRelation(&allActions[1], &allActions[0]);
+	dag.AddRelation(&Actions::GetActions(0)[1], &Actions::GetActions(0)[0]);
 
 	float accumulatedTime = 0;
 	float counter = 0;
 
-	Planner<MoveToState, FindState, FindFoodState> plan;
+	Planner plan;
 
 	//main loop
 	while (true)
@@ -116,54 +100,61 @@ int main(int argc, char* argv[])
 			{
 
 				//movement
-				if (a.GetState().isMoveToSet)
+				if (a.GetStates().moveState.isMoveToSet)
 				{
-					if (!a.GetState().path.empty())
+					if (!a.GetStates().moveState.path.empty())
 					{
-						glm::vec2 toGo = a.GetState().path[0].tile->GetWorldPos();
+						glm::vec2 toGo = a.GetStates().moveState.path[0].tile->GetWorldPos();
 
-						a.GetState().agent->Move(toGo);
+						a.GetStates().moveState.agent->Move(toGo);
 
-						if (ComparePositions(a.GetState().agent->position, toGo))
+						if (ComparePositions(a.GetStates().moveState.agent->position, toGo))
 						{
-							a.GetState().path.erase(a.GetState().path.begin());
+							a.GetStates().moveState.path.erase(a.GetStates().moveState.path.begin());
 						}
 					}
 
-					if (ComparePositions(a.GetState().agent->position, a.GetState().to) || a.GetState().path.empty())
+					if (ComparePositions(a.GetStates().moveState.agent->position, a.GetStates().moveState.to) || a.GetStates().moveState.path.empty())
 					{
-						a.GetState().isMoveToSet = false;
+						a.GetStates().moveState.isMoveToSet = false;
 					}
 				}
 
-
-
+				//for every agent
+				//decide on a priority (food, water, etc.)
+				//cycle through actions and decide best path
+				//once have plan, execute
 
 				//GOAP selection
-				auto [executeFunc, completion] = plan.ActionSelector(a.GetState(), a.GetFindState(), a.GetFoodState());
+
+
+				
+				auto [executeFunc, completion] = plan.ActionSelector(a.GetStates());
 
 				switch (completion)
 				{
 				case InProgress:
 				{
-					(*executeFunc)(a.GetState(), a.GetFindState(), a.GetFoodState());
+					(*executeFunc)(a.GetStates());
 				}
 					break;
 				case Complete:
 				{
+					std::pair<IsGoalComplete, std::vector<Action>> goalPair = Goals::PickGoal(a.GetStates());
 					dag.ClearPlan();
-					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFindState(), a.GetFoodState()))
+					if (dag.FindPlan(&goalPair.second[1], a.GetStates()))
 					{
-						plan.SetPlan(&FindGoalComplete<FindFoodState>, dag.GetAction());
+						plan.SetPlan(goalPair.first, dag.GetAction());
 					}
 				}
 					break;
 				case Impossible:
 				{
+					std::pair<IsGoalComplete, std::vector<Action>> goalPair = Goals::PickGoal(a.GetStates());
 					dag.ClearPlan();
-					if (dag.FindPlan(&allActions[1], a.GetState(), a.GetFindState(), a.GetFoodState()))
+					if (dag.FindPlan(&goalPair.second[1], a.GetStates()))
 					{
-						plan.SetPlan(&FindGoalComplete<FindFoodState>, dag.GetAction());
+						plan.SetPlan(goalPair.first, dag.GetAction());
 					}
 				}
 					break;
@@ -171,6 +162,7 @@ int main(int argc, char* argv[])
 
 				a.Update(deltaTime);
 
+				//update ImGui
 				if (counter > 0.1 && ImGui_Implementation::agentCount == a.agentCount)
 				{
 					ImGui_Implementation::time.push_back(accumulatedTime);
@@ -178,24 +170,23 @@ int main(int argc, char* argv[])
 					counter = 0;
 				}
 
+
+
+				//detect food sources
 				for (FoodSource& f : food)
 				{
-					if (f.isInRect(a.position) && f.taken && a.GetFoodState().foundFoodRef == nullptr)
+					if (f.isInRect(a.position) && f.taken && a.GetStates().foodState.foundFoodRef == nullptr)
 					{
-						a.GetFoodState().foundFoodRef = &f;
+						a.GetStates().foodState.foundFoodRef = &f;
 						a.DetectFood(true, f.position);
 						f.taken = false;
-
-						//if (a.GetState().path.size() > 1)
-						//	a.GetState().path.erase(a.GetState().path.begin());
-
 					}
-					//else
-					//{
-					//	a.GetFoodState().foundFoodRef = nullptr;
-					//	a.DetectFood(false, {0,0});
-					//}
+
 				}
+
+
+				//detect water
+
 			}
 		}
 

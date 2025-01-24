@@ -1,39 +1,33 @@
 #pragma once
-
 #include "Action.h"
 
-template<typename... Structs>
 struct node
 {
-	ActionIDs id;
+	Action action;
 
-	Action<Structs...> action;
-
-	std::vector<node<Structs...>> children;
+	std::vector<node> children;
 };
 
-template<typename... Structs>
 class DAG
 {
 public:
 
-	DAG(std::vector<Action<Structs...>> allActionsOfType)
+	DAG(std::vector<Action> allActionsOfType)
 	{
 		for (auto Action : allActionsOfType)
 		{
-			node<Structs...> n{};
+			node n{};
 			n.action = Action;
-			n.id = Action.second;
 			allActions.push_back(n);
 		}
 	}
 
-	void AddRelation(Action<Structs...>* parent, Action<Structs...>* child)
+	void AddRelation(Action* parent, Action* child)
 	{
-		node<Structs...>* parentNode = FindNode(parent);
+		node* parentNode = FindNode(parent);
 		if (parentNode != nullptr)
 		{
-			node<Structs...>* childNode = FindNode(child);
+			node* childNode = FindNode(child);
 
 			if (childNode != nullptr)
 			{
@@ -42,14 +36,14 @@ public:
 		}
 	}
 
-	bool FindPlan(Action<Structs...>* action, Structs... states)
+	bool FindPlan(Action* action, States& states)
 	{
-		node<Structs...>* parentNode = FindNode(action);
+		node* parentNode = FindNode(action);
 		if (parentNode == nullptr) return false;
 
 		//if node is valid, return
 
-		if (parentNode->action.first.second(states...))
+		if (parentNode->action.first.second(states))
 		{
 			comprisedPlan.push_back(*parentNode);
 			return true;
@@ -59,9 +53,9 @@ public:
 			if (parentNode->children.empty()) return false;
 
 			//try all children until valid action found
-			for (node<Structs...>& child : parentNode->children)
+			for (node& child : parentNode->children)
 			{
-				if (FindPlan(&child.action, states...))
+				if (FindPlan(&child.action, states))
 				{
 					comprisedPlan.push_back(child);
 					return true;
@@ -72,11 +66,11 @@ public:
 		return false;
 	}
 
-	node<Structs...>* FindNode(Action<Structs...>* toFind)
+	node* FindNode(Action* toFind)
 	{
-		for (node<Structs...>& n : allActions)
+		for (node& n : allActions)
 		{
-			if (n.id == toFind->second)
+			if (n.action.second == toFind->second)
 			{
 				return &n;
 			}
@@ -84,11 +78,11 @@ public:
 		return nullptr;
 	}
 
-	std::vector<Action<Structs...>> GetAction()
+	std::vector<Action> GetAction()
 	{
-		std::vector<Action<Structs...>> actions;
+		std::vector<Action> actions;
 
-		for (node<Structs...> vecNode : comprisedPlan)
+		for (node vecNode : comprisedPlan)
 		{
 			actions.push_back(vecNode.action);
 		}
@@ -102,8 +96,8 @@ public:
 	}
 
 private:
-	std::vector<node<Structs...>> allActions;
-	std::vector<node<Structs...>> comprisedPlan;
+	std::vector<node> allActions;
+	std::vector<node> comprisedPlan;
 
 };
 

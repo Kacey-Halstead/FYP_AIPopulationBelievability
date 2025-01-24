@@ -8,7 +8,7 @@ Agent::Agent()
 Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 {
 	agentCount = ImGui_Implementation::agentCount;
-	moveState.agent = this;
+	states.moveState.agent = this;
 
 	if (P1 == nullptr) //if no parents
 	{
@@ -18,7 +18,9 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 		//random positions
 		position.x = rand() % 200 + 1;
 		position.y = rand() % 200 + 1;
+
 		agentRect = { (int)position.x, (int)position.y, size.x, size.y };
+		detectRect = { agentRect.x - ((agentRect.w * 5) / 2), agentRect.y - ((agentRect.h * 5) / 2), agentRect.w * 5, agentRect.h * 5 };
 
 		if (grid != nullptr)
 		{
@@ -42,10 +44,10 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
 
-	for (int i = 0; i < findState.patrolPoints.size(); i++)
+	for (int i = 0; i < states.findState.patrolPoints.size(); i++)
 	{
-		findState.patrolPoints[i].first = patrolPositions[i] * gridRef->tileSize;
-		findState.patrolPoints[i].second = false;
+		states.findState.patrolPoints[i].first = patrolPositions[i] * gridRef->tileSize;
+		states.findState.patrolPoints[i].second = false;
 	}
 }
 
@@ -56,8 +58,11 @@ Agent::~Agent()
 
 void Agent::Update(float deltaTime)
 {
+
 	agentRect.x = position.x - agentRect.w/2;
 	agentRect.y = position.y - agentRect.h/2;
+	detectRect.x = position.x - detectRect.w / 2;
+	detectRect.y = position.y - detectRect.h / 2;
 
 	position.x += velocity.x * deltaTime;
 	position.y += velocity.y * deltaTime;
@@ -70,6 +75,7 @@ void Agent::Render(SDL_Renderer* renderer, SDL_Window* window)
 {
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &agentRect);
 	SDL_RenderDrawRect(renderer, &agentRect);
+	//SDL_RenderDrawRect(renderer, &detectRect);
 }
 
 bool Agent::IsPointInAgent(SDL_Point point)
@@ -79,20 +85,35 @@ bool Agent::IsPointInAgent(SDL_Point point)
 
 void Agent::DetectFood(bool detect, glm::vec2 pos)
 {
-	findState.isFound = detect;
-	moveState.isMoveToSet = detect;
+	states.findState.isFound = detect;
+	states.moveState.isMoveToSet = detect;
 
 	if (detect)
 	{		
-		moveState.to = pos;
-		moveState.from = position;
-		moveState.path = AStar::toFindPath(moveState.from, moveState.to);
+		states.moveState.to = pos;
+		states.moveState.from = position;
+		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 	}
 
-	auto it = std::find(foodState.prevFoodPositions.begin(), foodState.prevFoodPositions.end(), pos);
-	if (it == foodState.prevFoodPositions.end())
+	auto it = std::find(states.foodState.prevFoodPositions.begin(), states.foodState.prevFoodPositions.end(), pos);
+	if (it == states.foodState.prevFoodPositions.end())
 	{
-		foodState.prevFoodPositions.push_back(pos);
+		states.foodState.prevFoodPositions.push_back(pos);
+	}
+}
+
+int Agent::DecideOnGoal()
+{
+	float hungerUtility = sqrt((100 - needs.hungerVal) / 100);
+	float thirstUtility = sqrt((100 - needs.thirstVal) / 100);
+
+	if (hungerUtility > thirstUtility)
+	{
+		return 0; 
+	}
+	else
+	{
+		return 1;
 	}
 }
 
@@ -100,19 +121,21 @@ void Agent::DecreaseNeeds(float deltaTime)
 {
 	if (needs.hungerVal > 0)
 	{
-		needs.hungerVal -= 1 * deltaTime;
+		needs.hungerVal -= 2 * deltaTime;
 
 		if (needs.hungerVal < 80)
 		{
-			findState.complete = false;
+			states.foodState.complete = false;
 		}
 		else
-			findState.complete = true;
+		{
+			states.foodState.complete = true;
+		}
 	}
 
 	if (needs.thirstVal > 0)
 	{
-		needs.thirstVal -= 5 * deltaTime;
+		needs.thirstVal -= 0.2 * deltaTime;
 	}
 }
 

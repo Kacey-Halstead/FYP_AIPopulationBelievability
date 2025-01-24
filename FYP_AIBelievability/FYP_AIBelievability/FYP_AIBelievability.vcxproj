@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Action.cpp" />
+    <ClCompile Include="ActionDefinitions.cpp" />
     <ClCompile Include="Agent.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="Commons.cpp" />
@@ -171,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
+    <ClInclude Include="ActionDefinitions.h" />
     <ClInclude Include="Agent.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="Commons.h" />

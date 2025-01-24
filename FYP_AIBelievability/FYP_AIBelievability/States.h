@@ -5,7 +5,12 @@
 
 class Agent;
 
-struct MoveToState
+struct State
+{
+
+};
+
+struct MoveToState : State
 {
 	glm::vec2 to = {1, 1};
 	glm::vec2 from;
@@ -21,7 +26,7 @@ struct MoveToState
 	bool IsComplete();
 };
 
-struct FindState
+struct FindState : State
 {
 	std::array<std::pair<glm::vec2, bool>, 5> patrolPoints;  //vec of pairs: pos and bool (if checked)
 
@@ -29,25 +34,29 @@ struct FindState
 
 	bool isFound = false;
 
-	bool complete = false;
-
 	bool IsComplete();
 };
 
-struct FindFoodState
+struct FindFoodState : State
 {
 	std::vector<glm::vec2> prevFoodPositions;
 
 	FoodSource* foundFoodRef = nullptr;
 
+	bool complete = false;
+
 	bool IsComplete();
 };
 
-struct FindWaterState
+struct FindWaterState : State
 {
 	std::vector<glm::vec2> prevWaterPositions;
 
-	FoodSource* foundWaterRef = nullptr;
+	glm::vec2 foundWaterRef = {-1, -1};
+
+	bool waterRefSet = false;
+
+	bool complete = false;
 
 	bool IsComplete();
 };

@@ -22,7 +22,7 @@ bool FindFoodState::IsComplete()
 
 bool FindWaterState::IsComplete()
 {
-	if (foundWaterRef != nullptr || !prevWaterPositions.empty())
+	if (waterRefSet || !prevWaterPositions.empty())
 	{
 		return true;
 	}
@@ -31,7 +31,7 @@ bool FindWaterState::IsComplete()
 
 bool FindState::IsComplete()
 {
-	if (isFound && complete)
+	if (isFound)
 	{
 		return true;
 	}

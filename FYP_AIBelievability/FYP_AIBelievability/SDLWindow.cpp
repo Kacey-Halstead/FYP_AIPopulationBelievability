@@ -114,9 +114,9 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 						{
 							if (ImGui_Implementation::toSelectDest && ImGui_Implementation::agentCount == a.agentCount)
 							{
-								a.GetState().from = a.position;
-								a.GetState().to = t->GetGridPos();
-								a.GetState().isMoveToSet = true;
+								a.GetStates().moveState.from = a.position;
+								a.GetStates().moveState.to = t->GetGridPos();
+								a.GetStates().moveState.isMoveToSet = true;
 
 								ImGui_Implementation::toSelectDest = false;
 							}
