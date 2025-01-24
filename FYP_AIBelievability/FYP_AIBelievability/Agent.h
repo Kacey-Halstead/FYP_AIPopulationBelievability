@@ -36,6 +36,9 @@ public:
 	bool IsPointInAgent(SDL_Point point);
 
 	void DetectFood(bool detect, glm::vec2 pos);
+	void DetectWater(bool detect, glm::vec2 pos);
+
+	void DrinkWater(float amount);
 
 	int DecideOnGoal();
 
@@ -54,9 +57,6 @@ public:
 
 private:
 	States states;
-
-	std::vector<Action> taskQueue{};
-	std::vector<Action> reactiveQueue{};
 
 	SDL_Rect detectRect;
 	SDL_Rect agentRect;	

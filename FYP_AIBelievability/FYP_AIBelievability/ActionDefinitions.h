@@ -4,10 +4,14 @@
 
 #include "Agent.h"
 
+class DAG;
+
 enum ActionIDs
 {
 	FOODACTION,
-	FOODACTION2
+	FOODACTION2,
+	WATERACTION,
+	WATERACTION2
 };
 
 //Action - 2 functions (Execute and IsValid) 
@@ -20,9 +24,20 @@ using IsValidFunc = IsValidReturnType(*)(States&); //function pointer - smaller 
 //action definition 
 using Action = std::pair<std::pair<ExecuteFunc, IsValidFunc>, ActionIDs>;
 
+
 namespace Actions
 {
-	extern std::vector<Action> foodActions;
+	enum ActionIndexes
+	{
+		FOOD,
+		WATER
+	};
 
-	std::vector<Action> GetActions(int index);
+	extern std::vector<Action> foodActions;
+	extern std::vector<Action> waterActions;
+
+	extern std::vector<DAG> dags;
+
+	DAG GetDAG(ActionIndexes index);
+	std::vector<Action> GetActions(ActionIndexes index);
 }

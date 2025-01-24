@@ -32,6 +32,8 @@ public:
 	vector<vector<Tile*>> Tiles;
 	std::vector<SDL_Rect> rects;
 
+	std::vector<glm::vec2> waterPositions{};
+
 private:
 	int sizeX;
 	int sizeY;

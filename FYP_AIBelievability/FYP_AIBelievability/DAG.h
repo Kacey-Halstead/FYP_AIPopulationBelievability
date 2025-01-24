@@ -14,10 +14,10 @@ public:
 
 	DAG(std::vector<Action> allActionsOfType)
 	{
-		for (auto Action : allActionsOfType)
+		for (auto a : allActionsOfType)
 		{
 			node n{};
-			n.action = Action;
+			n.action = a;
 			allActions.push_back(n);
 		}
 	}

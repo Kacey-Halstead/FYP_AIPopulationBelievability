@@ -1,4 +1,5 @@
 #include "ActionDefinitions.h"
+#include "DAG.h"
 
 //Defined Actions
 
@@ -19,7 +20,7 @@ struct FindFood
 		for (std::pair<glm::vec2, bool>& p : states.findState.patrolPoints)
 		{
 			if (states.findState.nextToCheck == p.first)
-			{
+			{ 
 				p.second = true;
 			}
 
@@ -122,7 +123,7 @@ struct DrinkWater
 	{
 		if (states.moveState.agent->needs.thirstVal < 80)
 		{
-
+			states.moveState.agent->DrinkWater(10);
 		}
 		else
 		{
@@ -168,17 +169,37 @@ struct Wander
 
 namespace Actions
 {
+
 	extern std::vector<Action> foodActions = {
 	std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
 	std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
 	};
 
-	std::vector<Action> GetActions(int index)
+	extern std::vector<Action> waterActions = {
+	std::make_pair(std::make_pair(FindWater::Execute, FindWater::IsValid), WATERACTION),
+	std::make_pair(std::make_pair(DrinkWater::Execute, DrinkWater::IsValid), WATERACTION2)
+	};
+
+
+
+	extern std::vector<DAG> dags = {
+		DAG(foodActions),
+		DAG(waterActions)
+	};
+
+	DAG GetDAG(ActionIndexes index)
+	{
+		return dags[index];
+	}
+
+	std::vector<Action> GetActions(ActionIndexes index)
 	{
 		switch (index)
 		{
-		case 0:
+		case FOOD:
 			return foodActions;
+		case WATER:
+			return waterActions;
 		}
 
 		return std::vector<Action>();

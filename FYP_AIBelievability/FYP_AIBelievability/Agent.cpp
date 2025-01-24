@@ -102,6 +102,33 @@ void Agent::DetectFood(bool detect, glm::vec2 pos)
 	}
 }
 
+void Agent::DetectWater(bool detect, glm::vec2 pos)
+{
+	states.findState.isFound = detect;
+	states.moveState.isMoveToSet = detect;
+
+	if (detect)
+	{
+		states.moveState.to = pos;
+		states.moveState.from = position;
+		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
+	}
+
+	auto it = std::find(states.waterState.prevWaterPositions.begin(), states.waterState.prevWaterPositions.end(), pos);
+	if (it == states.waterState.prevWaterPositions.end())
+	{
+		states.waterState.prevWaterPositions.push_back(pos);
+	}
+}
+
+void Agent::DrinkWater(float amount)
+{
+	if (needs.thirstVal < (100 - amount))
+	{
+		needs.thirstVal += amount;
+	}
+}
+
 int Agent::DecideOnGoal()
 {
 	float hungerUtility = sqrt((100 - needs.hungerVal) / 100);

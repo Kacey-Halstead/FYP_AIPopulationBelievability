@@ -9,6 +9,7 @@
 #include "SDLWindow.h"
 #include "FoodSource.h"
 #include "DAG.h"
+#include "ActionDefinitions.h"
 
 using namespace std::chrono;
 
@@ -53,9 +54,8 @@ int main(int argc, char* argv[])
 		food.push_back(grid);
 	}
 
-	DAG dag = DAG(Actions::GetActions(0));
-
-	dag.AddRelation(&Actions::GetActions(0)[1], &Actions::GetActions(0)[0]);
+	Actions::GetDAG(Actions::FOOD).AddRelation(&Actions::GetActions(Actions::FOOD)[1], &Actions::GetActions(Actions::FOOD)[0]);
+	Actions::GetDAG(Actions::WATER).AddRelation(&Actions::GetActions(Actions::WATER)[1], &Actions::GetActions(Actions::WATER)[0]);
 
 	float accumulatedTime = 0;
 	float counter = 0;
@@ -140,21 +140,21 @@ int main(int argc, char* argv[])
 					break;
 				case Complete:
 				{
-					std::pair<IsGoalComplete, std::vector<Action>> goalPair = Goals::PickGoal(a.GetStates());
-					dag.ClearPlan();
-					if (dag.FindPlan(&goalPair.second[1], a.GetStates()))
+					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> goalPair = Goals::PickGoal(a.GetStates());
+					goalPair.second.ClearPlan();
+					if (goalPair.second.FindPlan(&goalPair.first.second[1], a.GetStates()))
 					{
-						plan.SetPlan(goalPair.first, dag.GetAction());
+						plan.SetPlan(goalPair.first.first, goalPair.second.GetAction());
 					}
 				}
 					break;
 				case Impossible:
 				{
-					std::pair<IsGoalComplete, std::vector<Action>> goalPair = Goals::PickGoal(a.GetStates());
-					dag.ClearPlan();
-					if (dag.FindPlan(&goalPair.second[1], a.GetStates()))
+					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> goalPair = Goals::PickGoal(a.GetStates());
+					goalPair.second.ClearPlan();
+					if (goalPair.second.FindPlan(&goalPair.first.second[1], a.GetStates()))
 					{
-						plan.SetPlan(goalPair.first, dag.GetAction());
+						plan.SetPlan(goalPair.first.first, goalPair.second.GetAction());
 					}
 				}
 					break;
@@ -184,8 +184,15 @@ int main(int argc, char* argv[])
 
 				}
 
-
-				//detect water
+				for (glm::vec2 pos : grid->waterPositions)
+				{
+					//detect water
+					if (ComparePositions(a.position, pos) && !a.GetStates().waterState.waterRefSet)
+					{
+						a.GetStates().waterState.foundWaterRef = pos;
+						a.DetectWater(true, pos);
+					}
+				}
 
 			}
 		}

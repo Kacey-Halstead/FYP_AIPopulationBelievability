@@ -7,7 +7,9 @@
 #include "Commons.h"
 #include "States.h"
 #include "RandomGenerator.h"
-#include"ActionDefinitions.h"
+#include "ActionDefinitions.h"
+
+class DAG;
 
 enum ActionProgress
 {
@@ -107,21 +109,5 @@ public:
 
 	//decide goal
 
-	static std::pair<IsGoalComplete, std::vector<Action>> PickGoal(States& states)
-	{
-		int index = states.moveState.agent->DecideOnGoal();
-
-		switch (index)
-		{
-		case 0:
-
-			return std::make_pair(FoodGoalComplete, Actions::GetActions(0));
-			break;
-		case 1:
-			return std::make_pair(ThirstGoalComplete, Actions::GetActions(0)); //CHANGE TO THIRST ACTIONS
-			break;
-		}
-
-		return std::make_pair(FoodGoalComplete, Actions::GetActions(0));
-	}
+	static std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> PickGoal(States& states);
 };
