@@ -3,7 +3,7 @@
 
 bool MoveToState::IsComplete()
 {
-	if (ComparePositions(agent->position, to))
+	if (ComparePositions(agent->position, to, 5))
 	{
 		return true;
 	}
@@ -13,8 +13,9 @@ bool MoveToState::IsComplete()
 
 bool FindFoodState::IsComplete()
 {
-	if (foundFoodRef != nullptr || !prevFoodPositions.empty())
+	if (foundFoodRef != nullptr)
 	{
+		complete = false;
 		return true;
 	}
 	return false;
@@ -22,8 +23,9 @@ bool FindFoodState::IsComplete()
 
 bool FindWaterState::IsComplete()
 {
-	if (waterRefSet || !prevWaterPositions.empty())
+	if (waterRefSet)
 	{
+		complete = false;
 		return true;
 	}
 	return false;

@@ -47,7 +47,7 @@ void FoodSource::Update(float deltaTime)
 
 bool FoodSource::EatFrom(float amount)
 {
-	if (canEat && foodAmount >= amount)
+	if (canEat)
 	{
 		foodAmount -= amount;
 		return true;
@@ -59,7 +59,7 @@ void FoodSource::Replenish(float deltaTime)
 {
 	if (foodAmount < maxfoodAmount)
 	{
-		counter += deltaTime * 2;
+		counter += deltaTime * 10;
 
 		//only replishes every timestamp
 		if (counter > 5)

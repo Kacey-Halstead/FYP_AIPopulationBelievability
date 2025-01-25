@@ -1,7 +1,7 @@
 #include "Action.h"
 #include "DAG.h"
 
-std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> Goals::PickGoal(States& states)
+std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> Goals::PickGoal(States& states)
 {
 	int index = states.moveState.agent->DecideOnGoal();
 
@@ -13,6 +13,9 @@ std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> Goals::PickGoal(S
 		break;
 	case 1:
 		return std::make_pair(std::make_pair(ThirstGoalComplete, Actions::GetActions(Actions::WATER)), Actions::GetDAG(Actions::WATER)); //CHANGE TO THIRST ACTIONS
+		break;
+	case 2:
+		return std::make_pair(std::make_pair(GoalComplete, Actions::GetActions(Actions::WANDER)), Actions::GetDAG(Actions::WANDER)); //CHANGE TO THIRST ACTIONS
 		break;
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <glm/glm.hpp>
+#include <string>
 
 #include "Commons.h"
 #include "WFC.h" 
@@ -26,6 +27,7 @@ namespace ImGui_Implementation
 	extern std::array<Trait, 6> Traits;
 	extern Needs needStruct;
 	extern float currentTime;
+	extern std::string action;
 
 	extern std::vector<float> hungerValues;
 	extern std::vector<float> thirstValues;

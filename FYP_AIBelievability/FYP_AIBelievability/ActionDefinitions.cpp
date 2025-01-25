@@ -36,7 +36,7 @@ struct FindFood
 
 	static bool IsValid(States& states)
 	{
-		return !states.foodState.foundFoodRef && !states.foodState.complete && !states.moveState.isMoveToSet;
+		return !states.foodState.foundFoodRef && !states.moveState.isMoveToSet;
 	}
 
 	static void setNextCheck(States& states)
@@ -52,23 +52,19 @@ struct EatFood
 {
 	static void Execute(States& states)
 	{
-		if (states.moveState.agent->needs.hungerVal < 80)
+		if (states.foodState.foundFoodRef->EatFrom(100 - states.moveState.agent->needs.hungerVal))
 		{
-			if (states.foodState.foundFoodRef->EatFrom(10))
-			{
-				states.moveState.agent->needs.hungerVal += 5;
-			}
+			states.moveState.agent->needs.hungerVal += (100 - states.moveState.agent->needs.hungerVal);
 		}
-		else
-		{
-			states.foodState.complete = true;
-			states.foodState.foundFoodRef = nullptr;
-		}
+
+		states.findState = {};
+		states.foodState = {};
+		states.foodState.foundFoodRef = nullptr;
 	}
 
 	static bool IsValid(States& states)
 	{
-		return states.foodState.foundFoodRef != nullptr && !states.moveState.isMoveToSet && !states.foodState.complete;
+		return states.foodState.foundFoodRef != nullptr && !states.moveState.isMoveToSet;
 	}
 };
 
@@ -77,6 +73,8 @@ struct FindWater
 {
 	static void Execute(States& states)
 	{
+		states.moveState.from = states.moveState.agent->position;
+
 		//can check previous positions?
 		if (!states.waterState.prevWaterPositions.empty())
 		{
@@ -92,6 +90,12 @@ struct FindWater
 			if (states.findState.nextToCheck == p.first)
 			{
 				p.second = true;
+
+				//if all patrol points exhausted
+				if (p.first == states.findState.patrolPoints[4].first)
+				{
+					states.findState.patrolPoints = {};
+				}
 			}
 
 			if (!p.second)
@@ -108,12 +112,12 @@ struct FindWater
 		states.moveState.to = states.findState.nextToCheck;
 		states.moveState.isMoveToSet = true;
 		states.moveState.from = states.moveState.agent->position;
-		states.moveState.path = AStar::toFindPath(states.moveState.agent->position, states.moveState.to);
+		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 	}
 
 	static bool IsValid(States& states)
 	{
-		return !states.waterState.waterRefSet && !states.waterState.complete && !states.moveState.isMoveToSet;
+		return !states.waterState.waterRefSet && !states.moveState.isMoveToSet;
 	}
 };
 
@@ -121,48 +125,38 @@ struct DrinkWater
 {
 	static void Execute(States& states)
 	{
-		if (states.moveState.agent->needs.thirstVal < 80)
-		{
-			states.moveState.agent->DrinkWater(10);
-		}
-		else
-		{
-			states.waterState.complete = true;
-			states.waterState.waterRefSet = false;
-		}
+		states.moveState.agent->DrinkWater((100-states.moveState.agent->needs.thirstVal));
+		states.findState = {};
+		states.waterState = {};
 	}
 
 	static bool IsValid(States& states)
 	{
-		return states.waterState.waterRefSet && !states.moveState.isMoveToSet && !states.waterState.complete;
+		return states.waterState.waterRefSet && !states.moveState.isMoveToSet;
 	}
 };
 
 struct Wander
 {
-	static void Execute(MoveToState& conditions)
+	static void Execute(States& states)
 	{
 		std::uniform_int_distribution<> distrib(1, gridSizeX - 1);
 
-		conditions.from = conditions.agent->position;
+		states.moveState.from = states.moveState.agent->position;
 
-		while (true)
+		states.moveState.to.x = distrib(RandomGenerator::gen) * states.moveState.agent->GetGridRef()->tileSize.x;
+		states.moveState.to.y = distrib(RandomGenerator::gen) * states.moveState.agent->GetGridRef()->tileSize.y;
+
+		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
+		if (!states.moveState.path.empty())
 		{
-			conditions.to.x = distrib(RandomGenerator::gen) * conditions.agent->GetGridRef()->tileSize.x;
-			conditions.to.y = distrib(RandomGenerator::gen) * conditions.agent->GetGridRef()->tileSize.y;
-
-			conditions.path = AStar::toFindPath(conditions.from, conditions.to);
-			if (!conditions.path.empty())
-			{
-				conditions.isMoveToSet = true;
-				break;
-			}
+			states.moveState.isMoveToSet = true;
 		}
 	}
 
-	static bool IsValid(MoveToState& conditions)
+	static bool IsValid(States& states)
 	{
-		return !conditions.isMoveToSet;
+		return !states.moveState.isMoveToSet;
 	}
 };
 
@@ -170,26 +164,25 @@ struct Wander
 namespace Actions
 {
 
-	extern std::vector<Action> foodActions = {
-	std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION),
-	std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2)
+	std::vector<Action> foodActions = {
+	std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2),
+	std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION)
 	};
 
-	extern std::vector<Action> waterActions = {
-	std::make_pair(std::make_pair(FindWater::Execute, FindWater::IsValid), WATERACTION),
-	std::make_pair(std::make_pair(DrinkWater::Execute, DrinkWater::IsValid), WATERACTION2)
+	std::vector<Action> waterActions = {
+	std::make_pair(std::make_pair(DrinkWater::Execute, DrinkWater::IsValid), WATERACTION2),
+	std::make_pair(std::make_pair(FindWater::Execute, FindWater::IsValid), WATERACTION)
 	};
 
-
-
-	extern std::vector<DAG> dags = {
-		DAG(foodActions),
-		DAG(waterActions)
+	std::vector<Action> wanderActions = {
+	std::make_pair(std::make_pair(Wander::Execute, Wander::IsValid), WANDER1)
 	};
 
-	DAG GetDAG(ActionIndexes index)
+	extern std::vector<DAG> dags = {};
+
+	DAG* GetDAG(ActionIndexes index)
 	{
-		return dags[index];
+		return &dags[index];
 	}
 
 	std::vector<Action> GetActions(ActionIndexes index)
@@ -200,6 +193,8 @@ namespace Actions
 			return foodActions;
 		case WATER:
 			return waterActions;
+		case WANDER:
+			return wanderActions;
 		}
 
 		return std::vector<Action>();

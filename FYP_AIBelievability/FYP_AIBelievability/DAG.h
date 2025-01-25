@@ -57,7 +57,7 @@ public:
 			{
 				if (FindPlan(&child.action, states))
 				{
-					comprisedPlan.push_back(child);
+					comprisedPlan.push_back(*parentNode);
 					return true;
 				}
 			}

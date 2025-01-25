@@ -8,6 +8,7 @@
 #include "States.h"
 #include "RandomGenerator.h"
 #include "ActionDefinitions.h"
+#include "ImGuiImplementation.h"
 
 class DAG;
 
@@ -43,6 +44,25 @@ public:
 		actions = allActions;
 	}
 
+	std::string Getname(ActionIDs IDs)
+	{
+		switch (IDs)
+		{
+		case FOODACTION:
+			return "Find Food";
+		case FOODACTION2:
+			return "Eat Food";
+		case WATERACTION:
+			return "Find Water";
+		case WATERACTION2:
+			return "Drink Water";
+		case WANDER1:
+			return "Wander";
+		}
+
+		return " ";
+	}
+
 	std::pair<const ExecuteFunc*, ActionProgress> ActionSelector(States& states)
 	{
 		if (actions.empty()) return { nullptr, Impossible };
@@ -55,6 +75,7 @@ public:
 
 				if (funcs.second(states))
 				{
+					ImGui_Implementation::action = Getname(ID);
 					return std::make_pair(&funcs.first, InProgress);
 				}
 			}
@@ -78,9 +99,9 @@ public:
 
 
 	//Goal Completion Functions
-	static bool GoalComplete(MoveToState& state)
+	static bool GoalComplete(States& state)
 	{
-		if (ComparePositions(state.agent->position, state.to))
+		if (ComparePositions(state.moveState.agent->position, state.moveState.to, 5))
 		{
 			return true;
 		}
@@ -90,7 +111,7 @@ public:
 
 	static bool FoodGoalComplete(States& states)
 	{
-		if (states.foodState.complete)
+		if (states.moveState.agent->needs.hungerVal > 80)
 		{
 			return true;
 		}
@@ -100,7 +121,7 @@ public:
 
 	static bool ThirstGoalComplete(States& states)
 	{
-		if (states.waterState.complete)
+		if (states.moveState.agent->needs.thirstVal > 80)
 		{
 			return true;
 		}
@@ -109,5 +130,5 @@ public:
 
 	//decide goal
 
-	static std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> PickGoal(States& states);
+	static std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> PickGoal(States& states);
 };

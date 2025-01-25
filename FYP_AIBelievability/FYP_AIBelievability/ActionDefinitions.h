@@ -11,7 +11,8 @@ enum ActionIDs
 	FOODACTION,
 	FOODACTION2,
 	WATERACTION,
-	WATERACTION2
+	WATERACTION2,
+	WANDER1
 };
 
 //Action - 2 functions (Execute and IsValid) 
@@ -30,14 +31,16 @@ namespace Actions
 	enum ActionIndexes
 	{
 		FOOD,
-		WATER
+		WATER,
+		WANDER
 	};
 
 	extern std::vector<Action> foodActions;
 	extern std::vector<Action> waterActions;
+	extern std::vector<Action> wanderActions;
 
 	extern std::vector<DAG> dags;
 
-	DAG GetDAG(ActionIndexes index);
+	DAG* GetDAG(ActionIndexes index);
 	std::vector<Action> GetActions(ActionIndexes index);
 }

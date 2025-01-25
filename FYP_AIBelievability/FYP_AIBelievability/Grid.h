@@ -21,6 +21,7 @@ public:
 	void RenderGrid(SDL_Renderer* renderer);
 
 	Tile* GetTileFromPos(glm::vec2 pos);
+	glm::vec2 GetPosFromTile(Tile* tile);
 
 	bool IsInGrid(glm::ivec2 point, glm::ivec2 dir);
 

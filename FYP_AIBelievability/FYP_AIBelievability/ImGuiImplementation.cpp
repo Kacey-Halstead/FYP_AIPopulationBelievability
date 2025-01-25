@@ -17,6 +17,7 @@ namespace ImGui_Implementation
 	float currentTime = 0;
 	bool pause = false;
 	bool toSelectDest = false;
+	std::string action = " ";
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
@@ -58,6 +59,8 @@ namespace ImGui_Implementation
 		if (isAgentPressed)
 		{
 			ImGui_Implementation::Begin("Agent Information");
+
+			ImGui_Implementation::Text("Performing Action: = %s", action.c_str());
 
 			//AGENT NEEDS
 			if (ImPlot::BeginPlot("Agent Needs"))

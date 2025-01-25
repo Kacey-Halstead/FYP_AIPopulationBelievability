@@ -54,8 +54,12 @@ int main(int argc, char* argv[])
 		food.push_back(grid);
 	}
 
-	Actions::GetDAG(Actions::FOOD).AddRelation(&Actions::GetActions(Actions::FOOD)[1], &Actions::GetActions(Actions::FOOD)[0]);
-	Actions::GetDAG(Actions::WATER).AddRelation(&Actions::GetActions(Actions::WATER)[1], &Actions::GetActions(Actions::WATER)[0]);
+	Actions::dags.push_back(DAG(Actions::foodActions));
+	Actions::dags.push_back(DAG(Actions::waterActions));
+	Actions::dags.push_back(DAG(Actions::wanderActions));
+
+	Actions::GetDAG(Actions::FOOD)->AddRelation(&Actions::GetActions(Actions::FOOD)[0], &Actions::GetActions(Actions::FOOD)[1]);
+	Actions::GetDAG(Actions::WATER)->AddRelation(&Actions::GetActions(Actions::WATER)[0], &Actions::GetActions(Actions::WATER)[1]);
 
 	float accumulatedTime = 0;
 	float counter = 0;
@@ -108,13 +112,13 @@ int main(int argc, char* argv[])
 
 						a.GetStates().moveState.agent->Move(toGo);
 
-						if (ComparePositions(a.GetStates().moveState.agent->position, toGo))
+						if (ComparePositions(a.GetStates().moveState.agent->position, toGo, 5))
 						{
 							a.GetStates().moveState.path.erase(a.GetStates().moveState.path.begin());
 						}
 					}
 
-					if (ComparePositions(a.GetStates().moveState.agent->position, a.GetStates().moveState.to) || a.GetStates().moveState.path.empty())
+					if (ComparePositions(a.GetStates().moveState.agent->position, a.GetStates().moveState.to, 5) || a.GetStates().moveState.path.empty())
 					{
 						a.GetStates().moveState.isMoveToSet = false;
 					}
@@ -131,6 +135,8 @@ int main(int argc, char* argv[])
 				
 				auto [executeFunc, completion] = plan.ActionSelector(a.GetStates());
 
+
+
 				switch (completion)
 				{
 				case InProgress:
@@ -140,21 +146,21 @@ int main(int argc, char* argv[])
 					break;
 				case Complete:
 				{
-					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> goalPair = Goals::PickGoal(a.GetStates());
-					goalPair.second.ClearPlan();
-					if (goalPair.second.FindPlan(&goalPair.first.second[1], a.GetStates()))
+					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> goalPair = Goals::PickGoal(a.GetStates());
+					goalPair.second->ClearPlan();
+					if (goalPair.second->FindPlan(&goalPair.first.second[0], a.GetStates()))
 					{
-						plan.SetPlan(goalPair.first.first, goalPair.second.GetAction());
+						plan.SetPlan(goalPair.first.first, goalPair.second->GetAction());
 					}
 				}
 					break;
 				case Impossible:
 				{
-					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG> goalPair = Goals::PickGoal(a.GetStates());
-					goalPair.second.ClearPlan();
-					if (goalPair.second.FindPlan(&goalPair.first.second[1], a.GetStates()))
+					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> goalPair = Goals::PickGoal(a.GetStates());
+					goalPair.second->ClearPlan();
+					if (goalPair.second->FindPlan(&goalPair.first.second[0], a.GetStates()))
 					{
-						plan.SetPlan(goalPair.first.first, goalPair.second.GetAction());
+						plan.SetPlan(goalPair.first.first, goalPair.second->GetAction());
 					}
 				}
 					break;
@@ -187,10 +193,13 @@ int main(int argc, char* argv[])
 				for (glm::vec2 pos : grid->waterPositions)
 				{
 					//detect water
-					if (ComparePositions(a.position, pos) && !a.GetStates().waterState.waterRefSet)
+					glm::vec2 worldPos = grid->GetPosFromTile(grid->Tiles[pos.x][pos.y]);
+
+					if (ComparePositions(a.position, worldPos, 10) && !a.GetStates().waterState.waterRefSet)
 					{
-						a.GetStates().waterState.foundWaterRef = pos;
-						a.DetectWater(true, pos);
+						a.GetStates().waterState.foundWaterRef = worldPos;
+						a.GetStates().waterState.waterRefSet = true;
+						a.DetectWater(true, worldPos);
 					}
 				}
 

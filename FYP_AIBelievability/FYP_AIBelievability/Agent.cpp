@@ -134,13 +134,17 @@ int Agent::DecideOnGoal()
 	float hungerUtility = sqrt((100 - needs.hungerVal) / 100);
 	float thirstUtility = sqrt((100 - needs.thirstVal) / 100);
 
-	if (hungerUtility > thirstUtility)
+	if (hungerUtility > thirstUtility && hungerUtility < 40)
 	{
 		return 0; 
 	}
-	else
+	else if (thirstUtility <= hungerUtility && thirstUtility < 40 )
 	{
 		return 1;
+	}
+	else
+	{
+		return 2;
 	}
 }
 
@@ -162,7 +166,7 @@ void Agent::DecreaseNeeds(float deltaTime)
 
 	if (needs.thirstVal > 0)
 	{
-		needs.thirstVal -= 0.2 * deltaTime;
+		needs.thirstVal -= 2 * deltaTime;
 	}
 }
 

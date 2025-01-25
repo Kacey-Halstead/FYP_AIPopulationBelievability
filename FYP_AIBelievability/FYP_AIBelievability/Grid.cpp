@@ -147,3 +147,9 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 
 	return Tiles[tilePos.x][tilePos.y];
 }
+
+glm::vec2 Grid::GetPosFromTile(Tile* tile)
+{
+	glm::vec2 pos = {tile->GetGridPos().x * tileSize.x, tile->GetGridPos().x * tileSize.x};
+	return pos;
+}

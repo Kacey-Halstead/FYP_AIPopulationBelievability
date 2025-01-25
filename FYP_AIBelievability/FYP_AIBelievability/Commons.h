@@ -12,8 +12,8 @@ struct Trait
 
 struct Needs
 {
-	float hungerVal = 50;
-	float thirstVal = 50;
+	float hungerVal = 100;
+	float thirstVal = 100;
 };
 
 constexpr int gridSizeX = 30;
@@ -21,6 +21,6 @@ constexpr int gridSizeY = 30;
 constexpr std::array<char, 3> allTypes = { 'L', 'C', 'S' };
 constexpr int numberOfTypes = allTypes.size();
 
-bool ComparePositions(glm::vec2 a, glm::vec2 b);
+bool ComparePositions(glm::vec2 a, glm::vec2 b, float acceptanceRadius);
 
 
