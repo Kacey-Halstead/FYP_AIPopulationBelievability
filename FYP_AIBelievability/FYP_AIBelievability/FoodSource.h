@@ -13,15 +13,14 @@ class FoodSource
 public:
 	FoodSource();
 	FoodSource(Grid* grid);
-	void Render(SDL_Renderer* renderer, SDL_Window* window);
+	void Render(SDL_Renderer* renderer, SDL_Window* window) const;
 
 	void Update(float deltaTime);
 	bool EatFrom(float amount);
 	void Replenish(float deltaTime);
-	bool isInRect(glm::vec2 point);
+	bool IsInRect(glm::vec2 point);
 
 	bool canEat = true;
-	bool taken = true;
 	glm::vec2 position;
 
 private:
@@ -29,14 +28,11 @@ private:
 	SDL_Rect detectRect;
 	float foodAmount;
 
-	TextureIndexes indexForTexture = BUSHF; 
 	glm::ivec2 size = { 30, 30 };
 
 	Grid* gridRef;
 
 	const float maxfoodAmount = 100;
-
-
 
 	//for replenishment
 	int counter = 0;

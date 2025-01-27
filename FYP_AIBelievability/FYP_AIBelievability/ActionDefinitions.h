@@ -39,8 +39,8 @@ namespace Actions
 	extern std::vector<Action> waterActions;
 	extern std::vector<Action> wanderActions;
 
-	extern std::vector<DAG> dags;
+	std::vector<Action>* GetActions(ActionIndexes index);
 
-	DAG* GetDAG(ActionIndexes index);
-	std::vector<Action> GetActions(ActionIndexes index);
+	std::string Getname(ActionIDs IDs);
+
 }

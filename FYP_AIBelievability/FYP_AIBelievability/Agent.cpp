@@ -44,10 +44,9 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
 
-	for (int i = 0; i < states.findState.patrolPoints.size(); i++)
+	for (int i = 0; i < 5; i++)
 	{
-		states.findState.patrolPoints[i].first = patrolPositions[i] * gridRef->tileSize;
-		states.findState.patrolPoints[i].second = false;
+		states.findState.patrolPoints[i] = patrolPositions[i] * gridRef->tileSize;
 	}
 }
 
@@ -71,11 +70,10 @@ void Agent::Update(float deltaTime)
 	DecreaseNeeds(deltaTime);
 }
 
-void Agent::Render(SDL_Renderer* renderer, SDL_Window* window)
+void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &agentRect);
 	SDL_RenderDrawRect(renderer, &agentRect);
-	//SDL_RenderDrawRect(renderer, &detectRect);
 }
 
 bool Agent::IsPointInAgent(SDL_Point point)
@@ -83,18 +81,8 @@ bool Agent::IsPointInAgent(SDL_Point point)
 	return SDL_PointInRect(&point, &agentRect);
 }
 
-void Agent::DetectFood(bool detect, glm::vec2 pos)
+void Agent::DetectFood(glm::vec2 pos)
 {
-	states.findState.isFound = detect;
-	states.moveState.isMoveToSet = detect;
-
-	if (detect)
-	{		
-		states.moveState.to = pos;
-		states.moveState.from = position;
-		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
-	}
-
 	auto it = std::find(states.foodState.prevFoodPositions.begin(), states.foodState.prevFoodPositions.end(), pos);
 	if (it == states.foodState.prevFoodPositions.end())
 	{
@@ -102,18 +90,8 @@ void Agent::DetectFood(bool detect, glm::vec2 pos)
 	}
 }
 
-void Agent::DetectWater(bool detect, glm::vec2 pos)
+void Agent::DetectWater(glm::vec2 pos)
 {
-	states.findState.isFound = detect;
-	states.moveState.isMoveToSet = detect;
-
-	if (detect)
-	{
-		states.moveState.to = pos;
-		states.moveState.from = position;
-		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
-	}
-
 	auto it = std::find(states.waterState.prevWaterPositions.begin(), states.waterState.prevWaterPositions.end(), pos);
 	if (it == states.waterState.prevWaterPositions.end())
 	{
@@ -172,7 +150,10 @@ void Agent::DecreaseNeeds(float deltaTime)
 
 void Agent::Move(glm::vec2 destination)
 {
-	velocity = glm::normalize(destination - position) * speed;
+	glm::vec2 toDest = destination - position;
+	if (toDest == glm::vec2(0.0f))
+		return;
+	velocity = glm::normalize(toDest) * speed;
 }
 
 void Agent::UpdateImGui()

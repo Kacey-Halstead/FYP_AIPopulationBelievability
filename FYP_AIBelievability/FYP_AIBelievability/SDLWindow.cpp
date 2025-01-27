@@ -1,45 +1,41 @@
 #include "SDLWindow.h"
+#include "Agent.h"
+#include "Grid.h"
+#include "Commons.h"
+
+#include <iostream>
+#include <vector>
+#include <SDL_image.h>
 
 SDLWindow::SDLWindow()
 {
-
-}
-
-SDLWindow::~SDLWindow()
-{
-}
-
-bool SDLWindow::InitSDL()
-{
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) //initialise SDL
 	{
-		std::cout << "Unable to initialise SDL: " << SDL_GetError();
-		return false;
+		std::string error{ "Unable to initialise SDL: ", SDL_GetError() };
+		throw std::runtime_error(error);
 	}
 
 	if (IMG_Init(IMG_INIT_PNG) == 0) {
-		std::cout << "Error SDL2_image Initialization";
-		return false;
+		std::string error{ "Error SDL2_image Initialization", IMG_GetError() };
+		throw std::runtime_error(error);
 	}
 
 	//Create window
-	window = SDL_CreateWindow("WFC", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL); //name, horizontal pos, vertical pos, width, height, mode
-	if (window == NULL) {
-		std::cout << "Error window creation";
-		return false;
+	window = SDL_CreateWindow("WFC", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowSize.x, windowSize.y, SDL_WINDOW_OPENGL); //name, horizontal pos, vertical pos, width, height, mode
+	if (!window) {
+		std::string error{ "Error window creation", SDL_GetError() };
+		throw std::runtime_error(error);
 	}
 
 	//Create renderer
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); //window to render to, index of rendering driver (-1 = first available), mode
-	if (renderer == NULL) {
-		std::cout << "Error renderer creation";
-		return false;
+	if (!renderer) {
+		std::string error{ "Failed to create SDL Renderer: ", SDL_GetError() };
+		throw std::runtime_error(error);
 	}
-
-	return true;
 }
 
-void SDLWindow::DestroySDL()
+SDLWindow::~SDLWindow()
 {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -104,18 +100,18 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			}
 
 			//CLICKING TILES
-			for (std::vector<Tile*>& v : grid->Tiles) //gets vectors of tiles
+			for (std::vector<Tile>& v : grid->Tiles) //gets vectors of tiles
 			{
-				for (Tile*& t : v) // tiles in vector
+				for (Tile& t : v) // tiles in vector
 				{
-					if (WFC::IsInTile(mousePos, *t)) //if tile is clicked
+					if (WFC::IsInTile(mousePos, t)) //if tile is clicked
 					{
 						for (Agent& a : agents)
 						{
 							if (ImGui_Implementation::toSelectDest && ImGui_Implementation::agentCount == a.agentCount)
 							{
 								a.GetStates().moveState.from = a.position;
-								a.GetStates().moveState.to = t->GetGridPos();
+								a.GetStates().moveState.to = t.GetGridPos();
 								a.GetStates().moveState.isMoveToSet = true;
 
 								ImGui_Implementation::toSelectDest = false;
@@ -126,7 +122,6 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			}
 		}
 	}
-	return true;
 
-	return false;
+	return true;
 }

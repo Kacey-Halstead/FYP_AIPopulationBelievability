@@ -1,14 +1,34 @@
 #include "Grid.h"
-#include "iostream"
+#include "Tile.h"
 
-using namespace std;
-
-Grid::Grid(int x, int y, std::array<char, numberOfTypes> types)
+Grid::Grid(std::array<char, numberOfTypes> types)
 {
-	sizeX = x;
-	sizeY = y;
 	allTypes = types;
-	GridInit();
+	tileSize = { windowSize.x / gridSizeX, windowSize.y / gridSizeY };
+
+	//for every cell, define possible tiles
+	int index = 0;
+	Tiles.reserve(gridSizeX);
+	for (int x = 0; x < gridSizeX; x++)
+	{
+		std::vector<Tile> newTiles;
+		newTiles.reserve(gridSizeY);
+		for (int y = 0; y < gridSizeY; y++)
+		{
+			newTiles.emplace_back(glm::ivec2(x, y),tileSize, index);
+			index++;
+		}
+		Tiles.push_back(newTiles);
+	}
+
+	for (int x = 0; x < gridSizeX; x++)
+	{
+		for (int y = 0; y < gridSizeY; y++)
+		{
+			SDL_Rect newRec{ x * tileSize.x, y * tileSize.y, tileSize.x, tileSize.y };
+			rects.emplace_back(newRec);
+		}
+	}
 }
 
 Grid::~Grid()
@@ -16,79 +36,47 @@ Grid::~Grid()
 
 }
 
-void Grid::GridInit()
-{
-	int index = 0;
-	//for every cell, define possible tiles
-	for (int x = 0; x < sizeX; x++)
-	{
-		vector<Tile*> newTiles;
-		for (int y = 0; y < sizeY; y++)
-		{
-			Tile* tile = new Tile(glm::ivec2(x, y), index);
-			newTiles.push_back(tile);
-			index++;
-		}
-		Tiles.push_back(newTiles);
-	}
-}
-
-void Grid::CreateRects(SDL_Window* SDLWindowRef)
-{
-	tileSize = { SDL_GetWindowSurface(SDLWindowRef)->w / sizeX, SDL_GetWindowSurface(SDLWindowRef)->h / sizeY };
-
-	for (int x = 0; x < sizeX; x++)
-	{
-		for (int y = 0; y < sizeY; y++)
-		{
-			SDL_Rect newRec{ x * (SDL_GetWindowSurface(SDLWindowRef)->w / sizeX), y * (SDL_GetWindowSurface(SDLWindowRef)->h / sizeY), tileSize.x, tileSize.y };
-			Tiles[x][y]->SetWorldPos(newRec.x + (tileSize.x / 2), newRec.y + (tileSize.y / 2));
-			rects.emplace_back(newRec);
-		}
-	}
-}
-
 Tile* Grid::SmallestEntropy()
 {
 	//find cell with smallest number of options
-	vector<Tile*> smallest;
+	std::vector<Tile*> smallestTiles;
 	int numOptions = 3;
 
-	for (int x = 0; x < sizeX; x++)
+	for (int x = 0; x < gridSizeX; x++)
 	{
-		for (int y = 0; y < sizeY; y++)
+		for (int y = 0; y < gridSizeY; y++)
 		{
-			if (Tiles[x][y]->typesAndWeights.size() < numOptions && Tiles[x][y]->GetType() == '0')
+			if (Tiles[x][y].typesAndWeights.size() < numOptions && Tiles[x][y].GetType() == '0')
 			{
-				smallest.clear();
-				smallest.push_back(Tiles[x][y]);
-				numOptions = Tiles[x][y]->typesAndWeights.size();
+				smallestTiles.clear();
+				smallestTiles.push_back(&Tiles[x][y]);
+				numOptions = Tiles[x][y].typesAndWeights.size();
 			}
-			else if (Tiles[x][y]->typesAndWeights.size() == numOptions && Tiles[x][y]->GetType() == '0')
+			else if (Tiles[x][y].typesAndWeights.size() == numOptions && Tiles[x][y].GetType() == '0')
 			{
-				smallest.push_back(Tiles[x][y]);
+				smallestTiles.push_back(&Tiles[x][y]);
 			}
 		}
 	}
 
-	if (smallest.size() == 1)
+	if (smallestTiles.size() == 1)
 	{
-		return smallest[0];
+		return smallestTiles[0];
 	}
-	else if(smallest.size() > 1)
+	else if(smallestTiles.size() > 1)
 	{
-		int random = rand() % (smallest.size());
-		return smallest[random];
+		int random = rand() % (smallestTiles.size());
+		return smallestTiles[random];
 	}
 	else
 	{
-		for (int x = 0; x < sizeX; x++)
+		for (int x = 0; x < gridSizeX; x++)
 		{
-			for (int y = 0; y < sizeY; y++)
+			for (int y = 0; y < gridSizeY; y++)
 			{
-				if (Tiles[x][y]->GetType() == '0')
+				if (Tiles[x][y].GetType() == '0')
 				{
-					return Tiles[x][y];
+					return &Tiles[x][y];
 				}
 			}
 		}
@@ -102,8 +90,8 @@ bool Grid::IsInGrid(glm::ivec2 point, glm::ivec2 dir)
 	glm::ivec2 pos = point + dir; // tile position
 
 	//if pos within X and Y bounds of grid
-	return (0 <= pos.x && pos.x < sizeX 
-		&& 0 <= pos.y && pos.y < sizeY);
+	return (0 <= pos.x && pos.x < gridSizeX 
+		&& 0 <= pos.y && pos.y < gridSizeY);
 }
 
 void Grid::RenderGrid(SDL_Renderer* renderer)
@@ -113,7 +101,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 	{
 		for (int y = 0; y < gridSizeY; y++)
 		{
-			if (Tiles[x][y]->isInPath)
+			if (Tiles[x][y].isInPath)
 			{
 				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
 				//SDL_RenderDrawRect(renderer, &rects[counter]);
@@ -121,7 +109,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 				continue;
 			}
 
-			switch (Tiles[x][y]->GetType())
+			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
 				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &rects[counter]);
@@ -141,15 +129,36 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 	}
 }
 
+std::vector<glm::vec2> Grid::GetLandTiles() const
+{
+	std::vector<glm::vec2> landTileWorldPositions;
+	for (int x = 0; x < gridSizeX; x++)
+	{
+		for (int y = 0; y < gridSizeY; y++)
+		{
+			if (Tiles[x][y].GetType() == 'L')
+			{
+				landTileWorldPositions.emplace_back(Tiles[x][y].GetWorldPos());
+			}
+		}
+	}
+	return landTileWorldPositions;
+}
+
 Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x / tileSize.x), floor(pos.y / tileSize.y) };
 
-	return Tiles[tilePos.x][tilePos.y];
+	return &Tiles[tilePos.x][tilePos.y];
 }
 
-glm::vec2 Grid::GetPosFromTile(Tile* tile)
+glm::vec2 Grid::GridToWorldPos(glm::ivec2 pos) const
 {
-	glm::vec2 pos = {tile->GetGridPos().x * tileSize.x, tile->GetGridPos().x * tileSize.x};
+	return glm::vec2{ pos.x * tileSize.x, pos.y * tileSize.y };
+}
+
+glm::vec2 Grid::GetWorldPosFromTile(Tile* tile) const
+{
+	glm::vec2 pos = {tile->GetGridPos().x * tileSize.x, tile->GetGridPos().y * tileSize.y};
 	return pos;
 }

@@ -27,7 +27,6 @@ namespace WFC
 	void WFCReset();
 	void WFCBody(Grid* grid);
 	void Evaluate(Tile* tile, directions dir);
-	void ResetTiles(vector<Tile*> tiles);
 	void ChangeTileWeighting(Tile* tile);
 	void FindAndErase(Tile* tile, char toFind);
 	void CheckForEmptyTiles(Tile* tile);

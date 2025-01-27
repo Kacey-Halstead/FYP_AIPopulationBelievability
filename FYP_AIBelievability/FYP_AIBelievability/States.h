@@ -23,12 +23,14 @@ struct MoveToState : State
 
 	glm::vec2 nextInPatrol;
 
+	int patrolIndex = 0;
+
 	bool IsComplete();
 };
 
 struct FindState : State
 {
-	std::array<std::pair<glm::vec2, bool>, 5> patrolPoints;  //vec of pairs: pos and bool (if checked)
+	std::array<glm::vec2, 5> patrolPoints;  //vec of pairs: pos and bool (if checked)
 
 	glm::vec2 nextToCheck;
 

@@ -18,6 +18,8 @@ struct Needs
 
 constexpr int gridSizeX = 30;
 constexpr int gridSizeY = 30;
+constexpr glm::ivec2 windowSize{ 900, 900 };
+
 constexpr std::array<char, 3> allTypes = { 'L', 'C', 'S' };
 constexpr int numberOfTypes = allTypes.size();
 

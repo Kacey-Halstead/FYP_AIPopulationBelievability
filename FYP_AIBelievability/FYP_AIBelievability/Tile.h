@@ -9,20 +9,16 @@ using namespace std;
 class Tile
 {
 public:
-
-	Tile();
-	Tile(glm::ivec2 gPos, int intIndex);
+	Tile(glm::ivec2 gPos, glm::ivec2 tileSize, int intIndex);
 
 	void Reset();
 	void UpdateTypeandWeight(char c, float weightChange);
 
-	inline char GetType() { return type; };
+	inline char GetType() const { return type; };
 	inline void SetType(char toSet) { type = toSet; };
 
-	inline glm::ivec2 GetGridPos() { return gridPos; };
-	inline glm::vec2 GetWorldPos() { return worldPos; };
-
-	inline void SetWorldPos(float toSetX, float toSetY) { worldPos = glm::vec2(toSetX, toSetY); };
+	inline glm::ivec2 GetGridPos() const { return gridPos; };
+	inline glm::vec2 GetWorldPos() const { return worldPos; };
 
 	std::vector<std::pair<char, float>> typesAndWeights;
 	std::array<char, numberOfTypes> availableTypes; //currently available types

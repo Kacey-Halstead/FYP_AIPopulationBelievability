@@ -162,6 +162,7 @@
     <ClCompile Include="imgui\implot.cpp" />
     <ClCompile Include="imgui\implot_demo.cpp" />
     <ClCompile Include="imgui\implot_items.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="PersonalityComponent.cpp" />
     <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="SDLWindow.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="DAG.h" />
     <ClInclude Include="FoodSource.h" />
     <ClInclude Include="FromJSON.h" />
+    <ClInclude Include="FYP_AIBelievability.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImGuiImplementation.h" />
     <ClInclude Include="nlohmann\json.hpp" />

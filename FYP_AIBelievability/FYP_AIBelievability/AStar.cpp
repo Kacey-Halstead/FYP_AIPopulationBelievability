@@ -1,4 +1,5 @@
 #include "AStar.h"
+#include "Tile.h"
 
 namespace AStar
 {
@@ -132,13 +133,13 @@ namespace AStar
         return XDiff + YDiff;
     }
 
-    void ResetTiles(vector<vector<Tile*>>& toReset)
+    void ResetTiles(std::vector<std::vector<Tile>>& toReset)
     {
-        for (std::vector<Tile*>& v : toReset)
+        for (std::vector<Tile>& v : toReset)
         {
-            for (Tile* t : v)
+            for (Tile& t : v)
             {
-                t->isInPath = false;
+                t.isInPath = false;
             }
         }
     }
@@ -222,7 +223,7 @@ namespace AStar
         if (gridRef->IsInGrid(current->GetGridPos(), offsets[index])) //is neighbour in grid
         {
             glm::ivec2 pos = current->GetGridPos() + offsets[index];
-            return gridRef->Tiles[pos.x][pos.y];
+            return &gridRef->Tiles[pos.x][pos.y];
         }
 
         return nullptr;

@@ -1,3 +1,4 @@
+#include "FYP_AIBelievability.h"
 #include <chrono>
 
 #include "ImGuiImplementation.h"
@@ -13,210 +14,188 @@
 
 using namespace std::chrono;
 
-std::vector<Agent> agents;
-
-int main(int argc, char* argv[])
+FYP_AIBelievability::FYP_AIBelievability() :
+	mSDL{new SDLWindow()},
+	mGrid{new Grid(allTypes)},
+	mDAG{new DAG()}
 {
-	SDLWindow SDL = SDLWindow();
-	if (!SDL.InitSDL()) return 0;
-
 	//unsigned int seed = time(nullptr);
 	unsigned int seed = 'k' + 'a' + 'c' + 'e' + 'y';
 	srand(seed);
-
+	
 	FromJSONFile::ReadFromJSON();
 
 	//TextureManager Init
-	if (!TextureManager::TextureManagerInit(SDL.getRenderer(), SDL.getWindow())) return 0; //if error loading textures
+	if (!TextureManager::TextureManagerInit(mSDL->getRenderer(), mSDL->getWindow())) throw std::runtime_error("Failed to load textures");
 
 	//ImGui Init
-	ImGui_Implementation::Init(SDL.getRenderer(), SDL.getWindow());
-
-	//Grid Init
-	Grid* grid = new Grid(gridSizeX, gridSizeY, allTypes);
+	ImGui_Implementation::Init(mSDL->getRenderer(), mSDL->getWindow());
 
 	//WFC Init
-	WFC::WFCBody(grid);
-	grid->CreateRects(SDL.getWindow());
-
+	WFC::WFCBody(mGrid.get());
+	for (int i = 0; i < 5; ++i)
+	{
+		mFoodSources.emplace_back(mGrid.get());
+	}
 	//Agent init
-	agents.reserve(10);
+	mAgents.reserve(10);
 	for (int i = 1; i < 11; i++)
 	{
 		ImGui_Implementation::agentCount = i;
-		agents.emplace_back(grid, nullptr, nullptr);
+		mAgents.emplace_back(mGrid.get(), nullptr, nullptr);
 	}
 
-	std::vector<FoodSource> food;
-	//Food init
-	for (int i = 0; i < 5; i++)
-	{
-		food.push_back(grid);
-	}
+	mDAG->CreateNode(Actions::GetActions(Actions::WATER));
+	mDAG->CreateNode(Actions::GetActions(Actions::FOOD));
+	mDAG->CreateNode(Actions::GetActions(Actions::WANDER));
 
-	Actions::dags.push_back(DAG(Actions::foodActions));
-	Actions::dags.push_back(DAG(Actions::waterActions));
-	Actions::dags.push_back(DAG(Actions::wanderActions));
+	const std::vector<Action>* waterVec = Actions::GetActions(Actions::WATER);
 
-	Actions::GetDAG(Actions::FOOD)->AddRelation(&Actions::GetActions(Actions::FOOD)[0], &Actions::GetActions(Actions::FOOD)[1]);
-	Actions::GetDAG(Actions::WATER)->AddRelation(&Actions::GetActions(Actions::WATER)[0], &Actions::GetActions(Actions::WATER)[1]);
+	node* waterNode = mDAG->FindNode(waterVec->at(0).second);
+	waterNode->children.push_back(mDAG->FindNode(waterVec->at(1).second));
 
-	float accumulatedTime = 0;
-	float counter = 0;
+	const std::vector<Action>* foodVec = Actions::GetActions(Actions::FOOD);
 
-	Planner plan;
+	node* foodNode = mDAG->FindNode(foodVec->at(0).second);
+	foodNode->children.push_back(mDAG->FindNode(foodVec->at(1).second));
+}
 
+FYP_AIBelievability::~FYP_AIBelievability()
+{
+	// Cleanup
+	ImGui_Implementation::Destroy();
+}
+
+void FYP_AIBelievability::MainLoop()
+{
 	//main loop
 	while (true)
 	{
-		if (!SDL.Events(grid, agents)) break;
+		if (!mSDL->Events(mGrid.get(), mAgents)) break;
 
-		//ImGui windows
-		ImGui_Implementation::RenderBefore(); //setup
-		ImGui_Implementation::AgentPopUp();
-		ImGui_Implementation::MainUI();
+		Update();
+		Render();
+	}
+}
 
-		//RENDERING
-		SDL.BeginRender();
+void FYP_AIBelievability::Render() const
+{
+	//ImGui windows
+	ImGui_Implementation::RenderBefore(); //setup
+	ImGui_Implementation::AgentPopUp();
+	ImGui_Implementation::MainUI();
 
-		grid->RenderGrid(SDL.getRenderer()); //render WFC 
+	//RENDERING
+	mSDL->BeginRender();
 
-		if (!ImGui_Implementation::pause)
-		{
-			//DeltaTime
-			static auto last = steady_clock::now();
-			auto old = last;
-			last = steady_clock::now();
-			const duration<float> frameTime = last - old;
-			float deltaTime = frameTime.count();
+	mGrid->RenderGrid(mSDL->getRenderer()); //render WFC 
 
-			accumulatedTime += deltaTime; //total accumulated
-			counter += deltaTime; //counter for not executing every frame
-
-			//FOOD
-			for (FoodSource f : food)
-			{
-				f.Update(deltaTime);
-				f.Render(SDL.getRenderer(), SDL.getWindow());
-			}
-
-			for (Agent& a : agents) //update agents
-			{
-
-				//movement
-				if (a.GetStates().moveState.isMoveToSet)
-				{
-					if (!a.GetStates().moveState.path.empty())
-					{
-						glm::vec2 toGo = a.GetStates().moveState.path[0].tile->GetWorldPos();
-
-						a.GetStates().moveState.agent->Move(toGo);
-
-						if (ComparePositions(a.GetStates().moveState.agent->position, toGo, 5))
-						{
-							a.GetStates().moveState.path.erase(a.GetStates().moveState.path.begin());
-						}
-					}
-
-					if (ComparePositions(a.GetStates().moveState.agent->position, a.GetStates().moveState.to, 5) || a.GetStates().moveState.path.empty())
-					{
-						a.GetStates().moveState.isMoveToSet = false;
-					}
-				}
-
-				//for every agent
-				//decide on a priority (food, water, etc.)
-				//cycle through actions and decide best path
-				//once have plan, execute
-
-				//GOAP selection
-
-
-				
-				auto [executeFunc, completion] = plan.ActionSelector(a.GetStates());
-
-
-
-				switch (completion)
-				{
-				case InProgress:
-				{
-					(*executeFunc)(a.GetStates());
-				}
-					break;
-				case Complete:
-				{
-					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> goalPair = Goals::PickGoal(a.GetStates());
-					goalPair.second->ClearPlan();
-					if (goalPair.second->FindPlan(&goalPair.first.second[0], a.GetStates()))
-					{
-						plan.SetPlan(goalPair.first.first, goalPair.second->GetAction());
-					}
-				}
-					break;
-				case Impossible:
-				{
-					std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> goalPair = Goals::PickGoal(a.GetStates());
-					goalPair.second->ClearPlan();
-					if (goalPair.second->FindPlan(&goalPair.first.second[0], a.GetStates()))
-					{
-						plan.SetPlan(goalPair.first.first, goalPair.second->GetAction());
-					}
-				}
-					break;
-				}
-
-				a.Update(deltaTime);
-
-				//update ImGui
-				if (counter > 0.1 && ImGui_Implementation::agentCount == a.agentCount)
-				{
-					ImGui_Implementation::time.push_back(accumulatedTime);
-					a.UpdateImGui();
-					counter = 0;
-				}
-
-
-
-				//detect food sources
-				for (FoodSource& f : food)
-				{
-					if (f.isInRect(a.position) && f.taken && a.GetStates().foodState.foundFoodRef == nullptr)
-					{
-						a.GetStates().foodState.foundFoodRef = &f;
-						a.DetectFood(true, f.position);
-						f.taken = false;
-					}
-
-				}
-
-				for (glm::vec2 pos : grid->waterPositions)
-				{
-					//detect water
-					glm::vec2 worldPos = grid->GetPosFromTile(grid->Tiles[pos.x][pos.y]);
-
-					if (ComparePositions(a.position, worldPos, 10) && !a.GetStates().waterState.waterRefSet)
-					{
-						a.GetStates().waterState.foundWaterRef = worldPos;
-						a.GetStates().waterState.waterRefSet = true;
-						a.DetectWater(true, worldPos);
-					}
-				}
-
-			}
-		}
-
-		for (Agent& a : agents) //render agents
-		{
-			a.Render(SDL.getRenderer(), SDL.getWindow());
-		}
-
-		ImGui_Implementation::ImGuiDraw(SDL.getRenderer()); //render ImGUi
-		SDL.EndRender();
+	for (const auto& foodSource : mFoodSources)
+	{
+		foodSource.Render(mSDL->getRenderer(), mSDL->getWindow());
 	}
 
-	// Cleanup
-	ImGui_Implementation::Destroy();
-	SDL.DestroySDL();
-	return 0;
+	for (const Agent& a : mAgents) //render agents
+	{
+		a.Render(mSDL->getRenderer(), mSDL->getWindow());
+	}
+
+	ImGui_Implementation::ImGuiDraw(mSDL->getRenderer()); //render ImGUi
+	mSDL->EndRender();
+}
+
+void FYP_AIBelievability::Update()
+{
+	if (ImGui_Implementation::pause) return;
+
+	//DeltaTime
+	static auto last = steady_clock::now();
+	auto old = last;
+	last = steady_clock::now();
+	const duration<float> frameTime = last - old;
+	float deltaTime = frameTime.count();
+
+	// large deltatime causes agents to move too far
+	if (deltaTime > 1.0f)
+		deltaTime = 0.0f;
+
+	mAccumulatedTime += deltaTime; //total accumulated
+	mCounter += deltaTime; //counter for not executing every frame
+
+	//FOOD
+	for (FoodSource& foodSource : mFoodSources)
+	{
+		foodSource.Update(deltaTime);
+	}
+
+	for (Agent& agent : mAgents) //update agents
+	{
+		//movement
+		if (agent.GetStates().moveState.isMoveToSet)
+		{
+			if (!agent.GetStates().moveState.path.empty())
+			{
+				glm::vec2 toGo = agent.GetStates().moveState.path[0].tile->GetWorldPos();
+
+				agent.GetStates().moveState.agent->Move(toGo);
+
+				if (ComparePositions(agent.position, toGo, 30))
+				{
+					agent.GetStates().moveState.path.erase(agent.GetStates().moveState.path.begin());
+				}
+			}
+
+			if (ComparePositions(agent.GetStates().moveState.agent->position, agent.GetStates().moveState.to, 30) || agent.GetStates().moveState.path.empty())
+			{
+				agent.GetStates().moveState.isMoveToSet = false;
+			}
+		}
+		else
+		{
+			auto [GoalComplete, actions] = Goals::PickGoal(agent.GetStates());
+			node* currentNode = mDAG->FindPlan(actions->front().second, agent.GetStates());
+
+			if (currentNode != nullptr)
+			{
+				currentNode->action->first.first(agent.GetStates());
+				ImGui_Implementation::action = Actions::Getname(currentNode->action->second);
+			}
+		}
+
+		agent.Update(deltaTime);
+
+		//update ImGui
+		if (mCounter > 0.1 && ImGui_Implementation::agentCount == agent.agentCount)
+		{
+			ImGui_Implementation::time.push_back(mAccumulatedTime);
+			agent.UpdateImGui();
+			mCounter = 0;
+		}
+
+		//detect food sources
+		for (FoodSource& foodSource : mFoodSources)
+		{
+			if (foodSource.IsInRect(agent.position))
+			{
+				agent.DetectFood(foodSource.position);
+
+				if (ComparePositions(agent.position, foodSource.position, 20.0f))
+				{
+					agent.GetStates().foodState.foundFoodRef = &foodSource;
+				}
+			}
+		}
+
+		for (glm::ivec2 pos : mGrid->waterPositions)
+		{
+			//detect water
+			glm::vec2 worldPos = mGrid->GridToWorldPos(pos);
+
+			if (ComparePositions(agent.position, worldPos, 3 * mGrid->tileSize.x))
+			{
+				agent.DetectWater(worldPos);
+			}
+		}
+
+	}
 }

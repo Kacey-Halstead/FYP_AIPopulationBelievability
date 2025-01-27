@@ -22,76 +22,6 @@ enum ActionProgress
 //Goal Completion function (IsGoalComplete)
 using IsGoalComplete = std::function<bool(States&)>;
 
-//PLANNER
-class Planner 
-{
-public:
-
-	Planner()
-	{
-
-	}
-
-	void SetPlan(IsGoalComplete goal, std::vector<Action>&& allActions)
-	{
-		isGoalComplete = goal;
-		actions = allActions;
-	}
-
-	Planner(IsGoalComplete goal, std::vector<Action>&& allActions) //planner requires goal complete func and actions in plan
-	{
-		isGoalComplete = goal;
-		actions = allActions;
-	}
-
-	std::string Getname(ActionIDs IDs)
-	{
-		switch (IDs)
-		{
-		case FOODACTION:
-			return "Find Food";
-		case FOODACTION2:
-			return "Eat Food";
-		case WATERACTION:
-			return "Find Water";
-		case WATERACTION2:
-			return "Drink Water";
-		case WANDER1:
-			return "Wander";
-		}
-
-		return " ";
-	}
-
-	std::pair<const ExecuteFunc*, ActionProgress> ActionSelector(States& states)
-	{
-		if (actions.empty()) return { nullptr, Impossible };
-
-		if (!isGoalComplete(states))
-		{
-			//cycle through actions and decide action
-			for (auto& [funcs, ID] : actions)
-			{
-
-				if (funcs.second(states))
-				{
-					ImGui_Implementation::action = Getname(ID);
-					return std::make_pair(&funcs.first, InProgress);
-				}
-			}
-
-			//no actions available and not complete
-			return std::pair(nullptr, Impossible);
-		}
-
-		return std::pair(nullptr, Complete);
-	}
-
-private:
-	IsGoalComplete isGoalComplete;
-	std::vector<Action> actions;
-};
-
 class Goals
 {
 public:
@@ -130,5 +60,5 @@ public:
 
 	//decide goal
 
-	static std::pair<std::pair<IsGoalComplete, std::vector<Action>>, DAG*> PickGoal(States& states);
+	static std::pair<IsGoalComplete, std::vector<Action>*> PickGoal(States& states);
 };

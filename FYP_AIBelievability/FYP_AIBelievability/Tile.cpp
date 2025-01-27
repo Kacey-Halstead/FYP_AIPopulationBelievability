@@ -1,12 +1,7 @@
 #include "Tile.h"
 #include "iostream"
 
-Tile::Tile()
-{
-
-}
-
-Tile::Tile(glm::ivec2 gPos, int intIndex)
+Tile::Tile(glm::ivec2 gPos, glm::ivec2 tileSize, int intIndex)
 {
 	for (int i = 0; i < allTypes.size(); i++)
 	{
@@ -15,6 +10,7 @@ Tile::Tile(glm::ivec2 gPos, int intIndex)
 	}
 
 	gridPos = gPos;
+	worldPos = glm::vec2{ gPos.x * tileSize.x, gPos.x * tileSize.x };
 	index = intIndex;
 }
 

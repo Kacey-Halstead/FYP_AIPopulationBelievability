@@ -1,4 +1,5 @@
 #include "WFC.h"
+#include "Tile.h"
 
 namespace WFC
 {
@@ -85,7 +86,7 @@ namespace WFC
 	{
 		SDL_Point newPos = { pos.x + offset.x, pos.y + offset.y };
 
-		if (newPos.x < 0 || newPos.x >= gridRef->GetGridSize().x || newPos.y < 0 || newPos.y >= gridRef->GetGridSize().y)
+		if (newPos.x < 0 || newPos.x >= gridSizeX || newPos.y < 0 || newPos.y >= gridSizeY)
 		{
 			return false;
 		}
@@ -100,9 +101,7 @@ namespace WFC
 
 		if (!IsInGrid(tilePos, offset)) return; //if not valid pos in grid
 
-		Tile* neighbour = gridRef->Tiles[tilePos.x + offset.x][tilePos.y + offset.y];
-
-		if (neighbour == nullptr) return;
+		Tile* neighbour = &gridRef->Tiles[tilePos.x + offset.x][tilePos.y + offset.y];
 
 		std::vector<char> typesToRemove = GetTypeAndRules(tile->GetType(), dir);
 
@@ -114,19 +113,15 @@ namespace WFC
 		CheckForEmptyTiles(neighbour);
 	}
 
-	void ResetTiles(vector<Tile*> tiles)
-	{
-		for (Tile* t : tiles)
-		{
-			t->Reset();
-		}
-	}
 
 	void WFCReset()
 	{
-		for (std::vector<Tile*> v : gridRef->Tiles)
+		for (std::vector<Tile> tiles : gridRef->Tiles)
 		{
-			ResetTiles(v);
+			for (Tile& t : tiles)
+			{
+				t.Reset();
+			}
 		}
 		typeCounter = { 0, 0, 0 }; //reset
 
@@ -157,7 +152,7 @@ namespace WFC
 		{
 			if (!IsInGrid(tile->GetGridPos(), offsets[i])) continue;
 
-			neighbour = gridRef->Tiles[tile->GetGridPos().x + offsets[i].x][tile->GetGridPos().y + offsets[i].y];
+			neighbour = &gridRef->Tiles[tile->GetGridPos().x + offsets[i].x][tile->GetGridPos().y + offsets[i].y];
 			char type = neighbour->GetType();
 			if (type == '0') continue;
 
@@ -190,15 +185,13 @@ namespace WFC
 		//if neighbour has no options left, clear that tile and its neighbours
 		if (tile->typesAndWeights.size() == 0 && tile->GetType() == '0')
 		{
-			vector<Tile*> toReset;
-			toReset.push_back(tile);
+			tile->Reset();
 
 			for (int i = 0; i < 4; i++)
 			{
 				if (!IsInGrid(tile->GetGridPos(), offsets[i])) continue;
-				toReset.push_back(gridRef->Tiles[tile->GetGridPos().x + offsets[i].x][tile->GetGridPos().y + offsets[i].y]);
+				gridRef->Tiles[tile->GetGridPos().x + offsets[i].x][tile->GetGridPos().y + offsets[i].y].Reset();
 			}
-			ResetTiles(toReset);
 		}
 	}
 
@@ -222,11 +215,11 @@ namespace WFC
 
 	bool EveryTileHasType()
 	{
-		for (int x = 0; x < gridRef->GetGridSize().x; x++)
+		for (int x = 0; x < gridSizeX; x++)
 		{
-			for (int y = 0; y < gridRef->GetGridSize().y; y++)
+			for (int y = 0; y < gridSizeY; y++)
 			{
-				if (gridRef->Tiles[x][y]->GetType() == '0')
+				if (gridRef->Tiles[x][y].GetType() == '0')
 				{
 					return false;
 				}

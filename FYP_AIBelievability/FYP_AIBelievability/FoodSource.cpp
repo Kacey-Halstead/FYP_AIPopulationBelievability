@@ -1,4 +1,5 @@
 #include "FoodSource.h"
+#include "Tile.h"
 
 FoodSource::FoodSource()
 {
@@ -10,30 +11,19 @@ FoodSource::FoodSource(Grid* grid)
 	foodAmount = maxfoodAmount;
 	gridRef = grid;
 
-	std::uniform_int_distribution<> distrib(1, gridSizeX-1);
+	auto landTiles = gridRef->GetLandTiles();
+	std::uniform_int_distribution<> distrib(0, landTiles.size()-1);
 
-	float triedPosX;
-	float triedPosY;
-	while (true)
-	{
-		triedPosX = distrib(RandomGenerator::gen);
-		triedPosY = distrib(RandomGenerator::gen);
-
-		if (gridRef->GetTileFromPos(glm::vec2(triedPosX, triedPosY))->GetType() == 'L') // if type land
-		{
-			break;
-		}
-	}
-	position.x = triedPosX * grid->tileSize.x;
-	position.y = triedPosY * grid->tileSize.y;
+	// need to make sure can't gen on same tile
+	position = landTiles[distrib(RandomGenerator::gen)];
 
 	rect = { (int)position.x, (int)position.y, size.x, size.y };
 	detectRect = { rect.x - ((rect.w * 5)/2), rect.y - ((rect.h * 5)/2), rect.w * 5, rect.h * 5};
 }
 
-void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window)
+void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
-	canEat ? indexForTexture = BUSHF : indexForTexture = BUSHE;
+	TextureIndexes indexForTexture = canEat ?  BUSHF : BUSHE;
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(indexForTexture), NULL, &rect);
 	SDL_RenderDrawRect(renderer, &rect);
 	SDL_RenderDrawRect(renderer, &detectRect);
@@ -70,7 +60,7 @@ void FoodSource::Replenish(float deltaTime)
 	}
 }
 
-bool FoodSource::isInRect(glm::vec2 point)
+bool FoodSource::IsInRect(glm::vec2 point)
 {
 	SDL_Point pos = { point.x, point.y };
 	return SDL_PointInRect(&pos, &detectRect);

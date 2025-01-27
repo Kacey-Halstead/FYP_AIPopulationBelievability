@@ -3,102 +3,85 @@
 
 struct node
 {
-	Action action;
+	Action* action;
 
-	std::vector<node> children;
+	std::vector<node*> children;
+
+	node(Action* a)
+	{
+		action = a;
+	}
 };
 
 class DAG
 {
 public:
 
-	DAG(std::vector<Action> allActionsOfType)
+	DAG()
 	{
-		for (auto a : allActionsOfType)
+
+	}
+
+	~DAG()
+	{
+		for (int i = 0; i < allActions.size(); i++)
 		{
-			node n{};
-			n.action = a;
-			allActions.push_back(n);
+			delete allActions[i];
 		}
 	}
 
-	void AddRelation(Action* parent, Action* child)
+	void CreateNode(std::vector<Action>* actions)
 	{
-		node* parentNode = FindNode(parent);
-		if (parentNode != nullptr)
-		{
-			node* childNode = FindNode(child);
-
-			if (childNode != nullptr)
-			{
-				parentNode->children.push_back(*childNode);
-			}
+		for (Action& a : *actions)
+		{			
+			allActions.emplace_back(new node(&a));
 		}
 	}
 
-	bool FindPlan(Action* action, States& states)
+	node* FindPlan(ActionIDs action, States& states)
 	{
-		node* parentNode = FindNode(action);
-		if (parentNode == nullptr) return false;
+		node* current = FindNode(action);
+		if (current == nullptr) return nullptr;
 
-		//if node is valid, return
-
-		if (parentNode->action.first.second(states))
+		//if current valid then return
+		if (current->action->first.second(states))
 		{
-			comprisedPlan.push_back(*parentNode);
-			return true;
+			return nullptr;
 		}
-		else
-		{
-			if (parentNode->children.empty()) return false;
 
-			//try all children until valid action found
-			for (node& child : parentNode->children)
+		while (!current->children.empty())
+		{
+			//if any children valid, return
+			bool complete = true;
+			for (auto child : current->children)
 			{
-				if (FindPlan(&child.action, states))
+				if (!child->action->first.second(states))
 				{
-					comprisedPlan.push_back(*parentNode);
-					return true;
+					complete = false;
+					current = child;
+					break;
 				}
 			}
-			return false;
+
+			if (complete)
+				break;
 		}
-		return false;
+		return current;
 	}
 
-	node* FindNode(Action* toFind)
+	node* FindNode(ActionIDs action)
 	{
-		for (node& n : allActions)
+		for (node* n : allActions)
 		{
-			if (n.action.second == toFind->second)
+			if (n->action->second == action)
 			{
-				return &n;
+				return n;
 			}
 		}
 		return nullptr;
 	}
 
-	std::vector<Action> GetAction()
-	{
-		std::vector<Action> actions;
-
-		for (node vecNode : comprisedPlan)
-		{
-			actions.push_back(vecNode.action);
-		}
-
-		return actions;
-	}
-
-	void ClearPlan()
-	{
-		comprisedPlan.clear();
-	}
-
-private:
-	std::vector<node> allActions;
-	std::vector<node> comprisedPlan;
-
+	std::vector<node*> allActions;
 };
 
 
