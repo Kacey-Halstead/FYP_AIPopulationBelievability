@@ -18,14 +18,12 @@ public:
 	void Update(float deltaTime);
 	bool EatFrom(float amount);
 	void Replenish(float deltaTime);
-	bool IsInRect(glm::vec2 point);
 
 	bool canEat = true;
 	glm::vec2 position;
 
 private:
 	SDL_Rect rect;
-	SDL_Rect detectRect;
 	float foodAmount;
 
 	glm::ivec2 size = { 30, 30 };

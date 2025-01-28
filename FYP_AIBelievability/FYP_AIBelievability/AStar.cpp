@@ -148,6 +148,12 @@ namespace AStar
     {
         path.clear();
         Node* curNode = end;
+
+        if (curNode->tile->GetType() == 'S')
+        {
+            curNode = curNode->parent;
+        }
+
         while (curNode != nullptr)
         {
             Node* next = curNode->parent;

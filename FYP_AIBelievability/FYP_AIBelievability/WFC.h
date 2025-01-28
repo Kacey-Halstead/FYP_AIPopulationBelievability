@@ -22,7 +22,7 @@ namespace WFC
 
 	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset);
 	bool EveryTileHasType();
-	bool IsInTile(SDL_Point p, Tile t);
+
 
 	void WFCReset();
 	void WFCBody(Grid* grid);

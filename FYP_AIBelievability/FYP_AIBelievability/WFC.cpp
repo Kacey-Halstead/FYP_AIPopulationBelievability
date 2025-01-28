@@ -228,10 +228,6 @@ namespace WFC
 		return true;
 	}
 
-	bool IsInTile(SDL_Point p, Tile t)
-	{
-		return SDL_PointInRect(&p, &gridRef->rects[t.index]);
-	}
 
 	SDL_Point operator*(const SDL_Point& a, const int& b)
 	{

@@ -39,7 +39,7 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	}
 	//Agent init
 	mAgents.reserve(10);
-	for (int i = 1; i < 11; i++)
+	for (int i = 1; i < 2; i++)
 	{
 		ImGui_Implementation::agentCount = i;
 		mAgents.emplace_back(mGrid.get(), nullptr, nullptr);
@@ -49,15 +49,19 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	mDAG->CreateNode(Actions::GetActions(Actions::FOOD));
 	mDAG->CreateNode(Actions::GetActions(Actions::WANDER));
 
+	const std::vector<Action>* wanderVec = Actions::GetActions(Actions::WANDER);
 	const std::vector<Action>* waterVec = Actions::GetActions(Actions::WATER);
 
 	node* waterNode = mDAG->FindNode(waterVec->at(0).second);
 	waterNode->children.push_back(mDAG->FindNode(waterVec->at(1).second));
+	waterNode->children.push_back(mDAG->FindNode(wanderVec->at(0).second));
 
 	const std::vector<Action>* foodVec = Actions::GetActions(Actions::FOOD);
 
 	node* foodNode = mDAG->FindNode(foodVec->at(0).second);
 	foodNode->children.push_back(mDAG->FindNode(foodVec->at(1).second));
+	foodNode->children.push_back(mDAG->FindNode(wanderVec->at(0).second));
+
 }
 
 FYP_AIBelievability::~FYP_AIBelievability()
@@ -119,6 +123,7 @@ void FYP_AIBelievability::Update()
 	if (deltaTime > 1.0f)
 		deltaTime = 0.0f;
 
+	deltaTime *= 3;
 	mAccumulatedTime += deltaTime; //total accumulated
 	mCounter += deltaTime; //counter for not executing every frame
 
@@ -131,33 +136,39 @@ void FYP_AIBelievability::Update()
 	for (Agent& agent : mAgents) //update agents
 	{
 		//movement
-		if (agent.GetStates().moveState.isMoveToSet)
+		if (agent.states.moveState.isMoveToSet)
 		{
-			if (!agent.GetStates().moveState.path.empty())
+			if (!agent.states.moveState.path.empty())
 			{
-				glm::vec2 toGo = agent.GetStates().moveState.path[0].tile->GetWorldPos();
+				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
 
-				agent.GetStates().moveState.agent->Move(toGo);
+				agent.states.moveState.agent->Move(toGo);
 
-				if (ComparePositions(agent.position, toGo, 30))
+				if (ComparePositions(agent.position, toGo, 1.0f))
 				{
-					agent.GetStates().moveState.path.erase(agent.GetStates().moveState.path.begin());
+					agent.states.moveState.path.erase(agent.states.moveState.path.begin());
 				}
 			}
-
-			if (ComparePositions(agent.GetStates().moveState.agent->position, agent.GetStates().moveState.to, 30) || agent.GetStates().moveState.path.empty())
+			else
 			{
-				agent.GetStates().moveState.isMoveToSet = false;
+				if (ComparePositions(agent.position, agent.states.moveState.to, 0.5f))
+				{
+					agent.states.moveState.isMoveToSet = false;
+				}
+				else
+				{
+					agent.states.moveState.agent->Move(agent.states.moveState.to);
+				}
 			}
 		}
 		else
 		{
-			auto [GoalComplete, actions] = Goals::PickGoal(agent.GetStates());
-			node* currentNode = mDAG->FindPlan(actions->front().second, agent.GetStates());
+			auto [GoalComplete, actions] = Goals::PickGoal(agent.states);
+			node* currentNode = mDAG->FindPlan(actions->front().second, agent.states);
 
 			if (currentNode != nullptr)
 			{
-				currentNode->action->first.first(agent.GetStates());
+				currentNode->action->first.first(agent.states);
 				ImGui_Implementation::action = Actions::Getname(currentNode->action->second);
 			}
 		}
@@ -175,25 +186,19 @@ void FYP_AIBelievability::Update()
 		//detect food sources
 		for (FoodSource& foodSource : mFoodSources)
 		{
-			if (foodSource.IsInRect(agent.position))
+			if (foodSource.canEat && ComparePositions(agent.position, foodSource.position, 4.0f))
 			{
-				agent.DetectFood(foodSource.position);
-
-				if (ComparePositions(agent.position, foodSource.position, 20.0f))
-				{
-					agent.GetStates().foodState.foundFoodRef = &foodSource;
-				}
+				agent.DetectFood(make_pair(foodSource.position, &foodSource));
 			}
 		}
 
 		for (glm::ivec2 pos : mGrid->waterPositions)
 		{
 			//detect water
-			glm::vec2 worldPos = mGrid->GridToWorldPos(pos);
 
-			if (ComparePositions(agent.position, worldPos, 3 * mGrid->tileSize.x))
+			if (ComparePositions(agent.position, pos, 4.0f))
 			{
-				agent.DetectWater(worldPos);
+				agent.DetectWater(pos);
 			}
 		}
 

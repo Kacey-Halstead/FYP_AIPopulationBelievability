@@ -43,8 +43,8 @@ public:
 		node* current = FindNode(action);
 		if (current == nullptr) return nullptr;
 
-		//if current valid then return
-		if (current->action->first.second(states))
+		//if current complete then return
+		if (current->action->first.second(states).first == Complete)
 		{
 			return nullptr;
 		}
@@ -53,18 +53,34 @@ public:
 		{
 			//if any children valid, return
 			bool complete = true;
+			bool impossible = true;
+			int highestPriority = -1;
+			node* highest = current;
 			for (auto child : current->children)
 			{
-				if (!child->action->first.second(states))
+				auto [state, prio] = child->action->first.second(states);
+				if (state == Impossible)
 				{
 					complete = false;
-					current = child;
-					break;
+					continue;
+				}
+
+				impossible = false;
+
+				if (state == InProgress && prio > highestPriority)
+				{
+					if(prio != 0)
+						complete = false;
+					highest = child;
+					highestPriority = prio;
 				}
 			}
+			if (impossible) return nullptr;
 
 			if (complete)
 				break;
+
+			current = highest;
 		}
 		return current;
 	}

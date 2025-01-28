@@ -4,7 +4,7 @@
 Grid::Grid(std::array<char, numberOfTypes> types)
 {
 	allTypes = types;
-	tileSize = { windowSize.x / gridSizeX, windowSize.y / gridSizeY };
+	tileSizeOnScreen = { windowSize.x / gridSizeX, windowSize.y / gridSizeY };
 
 	//for every cell, define possible tiles
 	int index = 0;
@@ -15,19 +15,10 @@ Grid::Grid(std::array<char, numberOfTypes> types)
 		newTiles.reserve(gridSizeY);
 		for (int y = 0; y < gridSizeY; y++)
 		{
-			newTiles.emplace_back(glm::ivec2(x, y),tileSize, index);
+			newTiles.emplace_back(glm::ivec2(x, y),tileSizeOnScreen, index);
 			index++;
 		}
 		Tiles.push_back(newTiles);
-	}
-
-	for (int x = 0; x < gridSizeX; x++)
-	{
-		for (int y = 0; y < gridSizeY; y++)
-		{
-			SDL_Rect newRec{ x * tileSize.x, y * tileSize.y, tileSize.x, tileSize.y };
-			rects.emplace_back(newRec);
-		}
 	}
 }
 
@@ -101,9 +92,11 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 	{
 		for (int y = 0; y < gridSizeY; y++)
 		{
+			SDL_Rect destRect{ x * tileSizeOnScreen.x, y * tileSizeOnScreen.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
+
 			if (Tiles[x][y].isInPath)
 			{
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &destRect);
 				//SDL_RenderDrawRect(renderer, &rects[counter]);
 				counter++;
 				continue;
@@ -112,13 +105,13 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &destRect);
 				break;
 			case 'L':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &destRect);
 				break;
 			case 'C':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &rects[counter]);
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &destRect);
 				break;
 			default:
 				break;
@@ -147,18 +140,29 @@ std::vector<glm::vec2> Grid::GetLandTiles() const
 
 Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
-	glm::vec2 tilePos = { floor(pos.x / tileSize.x), floor(pos.y / tileSize.y) };
+	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
 	return &Tiles[tilePos.x][tilePos.y];
 }
 
 glm::vec2 Grid::GridToWorldPos(glm::ivec2 pos) const
 {
-	return glm::vec2{ pos.x * tileSize.x, pos.y * tileSize.y };
+	return glm::vec2{ pos.x + .5f, pos.y +.5f };
+}
+
+SDL_Rect Grid::GetRenderRect(glm::vec2 worldPos, glm::ivec2 size)
+{
+	glm::ivec2 screenPos = worldPos * glm::vec2(tileSizeOnScreen);
+
+	SDL_Rect rect{
+		screenPos.x - size.x/2, screenPos.y - size.y/2,
+		size.x, size.y
+	};
+	return rect;
 }
 
 glm::vec2 Grid::GetWorldPosFromTile(Tile* tile) const
 {
-	glm::vec2 pos = {tile->GetGridPos().x * tileSize.x, tile->GetGridPos().y * tileSize.y};
+	glm::vec2 pos = {tile->GetGridPos().x * tileSizeOnScreen.x, tile->GetGridPos().y * tileSizeOnScreen.y};
 	return pos;
 }

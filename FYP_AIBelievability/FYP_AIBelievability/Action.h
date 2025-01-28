@@ -12,12 +12,7 @@
 
 class DAG;
 
-enum ActionProgress
-{
-	InProgress,
-	Complete,
-	Impossible
-};
+
 
 //Goal Completion function (IsGoalComplete)
 using IsGoalComplete = std::function<bool(States&)>;

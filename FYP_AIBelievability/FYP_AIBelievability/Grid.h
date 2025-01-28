@@ -22,14 +22,14 @@ public:
 	Tile* GetTileFromPos(glm::vec2 pos);
 	glm::vec2 GetWorldPosFromTile(Tile* tile) const;
 	glm::vec2 GridToWorldPos(glm::ivec2 pos) const;
+	SDL_Rect GetRenderRect(glm::vec2 worldPos, glm::ivec2 size);
 
 	bool IsInGrid(glm::ivec2 point, glm::ivec2 dir);
 
 	Tile* SmallestEntropy();
 
-	glm::ivec2 tileSize;
+	glm::ivec2 tileSizeOnScreen;
 	std::vector<std::vector<Tile>> Tiles;
-	std::vector<SDL_Rect> rects;
 
 	std::vector<glm::ivec2> waterPositions{};
 

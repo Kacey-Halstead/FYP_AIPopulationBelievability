@@ -33,3 +33,11 @@ void PersonalityComponent::GenerateFromParents(Agent* parent1, Agent* parent2)
 {
 
 }
+
+void PersonalityComponent::SetMultipliers()
+{
+	for (Trait& trait : traits)
+	{
+		
+	}
+}

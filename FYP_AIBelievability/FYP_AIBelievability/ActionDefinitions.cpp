@@ -11,25 +11,28 @@ struct FindFood
 		//can check previous positions?
 		if (!states.foodState.prevFoodPositions.empty())
 		{
-			states.findState.nextToCheck = states.foodState.prevFoodPositions[0];
+			states.moveState.to = states.foodState.prevFoodPositions[0].first;
+			states.foodState.foundFoodRef = states.foodState.prevFoodPositions[0].second;
 			setNextCheck(states);
-			return;
 		}
-
-		states.moveState.patrolIndex = (states.moveState.patrolIndex + 1) % states.findState.patrolPoints.size();
-		states.findState.nextToCheck = states.findState.patrolPoints[states.moveState.patrolIndex];
-		setNextCheck(states);
-
 	}
 
-	static bool IsValid(States& states)
+	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return states.moveState.isMoveToSet && ComparePositions(states.moveState.agent->position, states.foodState.foundFoodRef->position, 20.0f);
+		if (states.foodState.prevFoodPositions.empty())
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+		else if(states.foodState.foundFoodRef != nullptr && ComparePositions(states.moveState.agent->position, states.foodState.foundFoodRef->position, 1.0f))
+		{
+			return { ActionProgress::Complete, 1 };
+		}
+
+		return { ActionProgress::InProgress, 1 };
 	}
 
 	static void setNextCheck(States& states)
 	{
-		states.moveState.to = states.findState.nextToCheck;
 		states.moveState.isMoveToSet = true;
 		states.moveState.from = states.moveState.agent->position;
 		states.moveState.path = AStar::toFindPath(states.moveState.agent->position, states.moveState.to);
@@ -44,14 +47,22 @@ struct EatFood
 	{
 		if (states.foodState.foundFoodRef->EatFrom(100 - states.moveState.agent->needs.hungerVal))
 		{
-			states.moveState.agent->needs.hungerVal += (100 - states.moveState.agent->needs.hungerVal);
+			states.moveState.agent->needs.hungerVal = 100;
 		}
+		else
+		{
+			states.foodState.prevFoodPositions.erase(states.foodState.prevFoodPositions.begin());
+		}
+
 		states.foodState.foundFoodRef = nullptr;
 	}
 
-	static bool IsValid(States& states)
+	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return states.moveState.agent->needs.hungerVal > 90;
+		if (states.moveState.agent->needs.hungerVal > 60)
+			return { ActionProgress::Complete, 1 };
+		else
+			return { ActionProgress::InProgress, 1 };
 	}
 };
 
@@ -67,27 +78,32 @@ struct FindWater
 		//can check previous positions?
 		if (!states.waterState.prevWaterPositions.empty())
 		{
-			states.findState.nextToCheck = states.waterState.prevWaterPositions[0];
-
+			states.waterState.foundWaterRef = states.waterState.prevWaterPositions[0];
+			states.moveState.to = states.waterState.prevWaterPositions[0];
+			states.waterState.waterRefSet = true;
 			setNextCheck(states);
-			return;
 		}		
-
-		states.moveState.patrolIndex = (states.moveState.patrolIndex + 1) % states.findState.patrolPoints.size();
-		states.findState.nextToCheck = states.findState.patrolPoints[states.moveState.patrolIndex];		
-		setNextCheck(states);
 	}
 
 	static void setNextCheck(States& states)
 	{
-		states.moveState.to = states.findState.nextToCheck;
 		states.moveState.isMoveToSet = true;
 		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
+
 	}
 
-	static bool IsValid(States& states)
+	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return ComparePositions(states.moveState.agent->position, states.waterState.foundWaterRef, 20.0f);
+		if (states.waterState.prevWaterPositions.empty())
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+		else if (states.waterState.waterRefSet && ComparePositions(states.moveState.agent->position, states.waterState.foundWaterRef, 1.0f))
+		{
+			return { ActionProgress::Complete, 1 };
+		}
+
+		return { ActionProgress::InProgress, 1 };
 	}
 };
 
@@ -98,11 +114,15 @@ struct DrinkWater
 	static void Execute(States& states)
 	{
 		states.moveState.agent->DrinkWater((100-states.moveState.agent->needs.thirstVal));
+		states.waterState.waterRefSet = false;
 	}
 
-	static bool IsValid(States& states)
+	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return states.moveState.agent->needs.thirstVal > 90;
+		if(states.moveState.agent->needs.thirstVal > 60)
+			return { ActionProgress::Complete, 1 };
+		else
+			return { ActionProgress::InProgress, 1 };
 	}
 };
 
@@ -112,12 +132,12 @@ struct Wander
 {
 	static void Execute(States& states)
 	{
-		std::uniform_int_distribution<> distrib(1, gridSizeX - 1);
+		std::uniform_int_distribution<> distrib(0, gridSizeX - 1);
 
 		states.moveState.from = states.moveState.agent->position;
 
-		states.moveState.to.x = distrib(RandomGenerator::gen) * states.moveState.agent->GetGridRef()->tileSize.x;
-		states.moveState.to.y = distrib(RandomGenerator::gen) * states.moveState.agent->GetGridRef()->tileSize.y;
+		states.moveState.to.x = distrib(RandomGenerator::gen);
+		states.moveState.to.y = distrib(RandomGenerator::gen);
 
 		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 		if (!states.moveState.path.empty())
@@ -126,13 +146,54 @@ struct Wander
 		}
 	}
 
-	static bool IsValid(States& states)
+	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return states.moveState.isMoveToSet;
+		return { ActionProgress::InProgress, 0 };
 	}
 };
 
 // -------------------------------------------------------------------------------------------------------------------
+
+struct Socialise
+{
+	static void Execute(States& states)
+	{
+
+	}
+
+	static void setNextCheck(States& states)
+	{
+
+	}
+
+	static std::pair<ActionProgress,int> IsValid(States& states)
+	{
+		return { ActionProgress::Impossible, 0 };
+	}
+};
+
+// -------------------------------------------------------------------------------------------------------------------
+
+struct Fight
+{
+	static void Execute(States& states)
+	{
+
+	}
+
+	static void setNextCheck(States& states)
+	{
+
+	}
+
+	static std::pair<ActionProgress,int> IsValid(States& states)
+	{
+		return { ActionProgress::Impossible, 0 };
+	}
+};
+
+// -------------------------------------------------------------------------------------------------------------------
+
 
 namespace Actions
 {

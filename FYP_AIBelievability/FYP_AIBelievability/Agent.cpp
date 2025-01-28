@@ -16,28 +16,18 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 		personalityComponent = PersonalityComponent();
 
 		//random positions
-		position.x = rand() % 200 + 1;
-		position.y = rand() % 200 + 1;
-
-		agentRect = { (int)position.x, (int)position.y, size.x, size.y };
-		detectRect = { agentRect.x - ((agentRect.w * 5) / 2), agentRect.y - ((agentRect.h * 5) / 2), agentRect.w * 5, agentRect.h * 5 };
-
-		if (grid != nullptr)
-		{
-			gridRef = grid;
-		}
+		position.x = 30 * ((float)rand() / RAND_MAX);
+		position.y = 30* ((float)rand() / RAND_MAX);
 	}
 	else
 	{
-		gridRef = P1->gridRef;
-
-		agentRect = { (int)P1->position.x, (int)P1->position.y, size.x, size.y };
-
 		//generates personality from parents
 		personalityComponent = PersonalityComponent(P1, P2);
 		parents[0] = P1;
 		parents[1] = P2;
 	}
+
+	gridRef = grid;
 
 	//sets extern variables
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
@@ -46,7 +36,7 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 
 	for (int i = 0; i < 5; i++)
 	{
-		states.findState.patrolPoints[i] = patrolPositions[i] * gridRef->tileSize;
+		states.findState.patrolPoints[i] = patrolPositions[i];
 	}
 }
 
@@ -57,23 +47,18 @@ Agent::~Agent()
 
 void Agent::Update(float deltaTime)
 {
-
-	agentRect.x = position.x - agentRect.w/2;
-	agentRect.y = position.y - agentRect.h/2;
-	detectRect.x = position.x - detectRect.w / 2;
-	detectRect.y = position.y - detectRect.h / 2;
-
 	position.x += velocity.x * deltaTime;
 	position.y += velocity.y * deltaTime;
-	velocity = { 0.0f, 0.0f };
+	velocity = glm::vec2(0.0f);
 
 	DecreaseNeeds(deltaTime);
 }
 
 void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
-	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &agentRect);
-	SDL_RenderDrawRect(renderer, &agentRect);
+	SDL_Rect destRect = gridRef->GetRenderRect(position, size);
+	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &destRect);
+	SDL_RenderDrawRect(renderer, &destRect);
 }
 
 bool Agent::IsPointInAgent(SDL_Point point)
@@ -81,12 +66,12 @@ bool Agent::IsPointInAgent(SDL_Point point)
 	return SDL_PointInRect(&point, &agentRect);
 }
 
-void Agent::DetectFood(glm::vec2 pos)
+void Agent::DetectFood(std::pair<glm::vec2, FoodSource*> foodPair)
 {
-	auto it = std::find(states.foodState.prevFoodPositions.begin(), states.foodState.prevFoodPositions.end(), pos);
+	auto it = std::find(states.foodState.prevFoodPositions.begin(), states.foodState.prevFoodPositions.end(), foodPair);
 	if (it == states.foodState.prevFoodPositions.end())
 	{
-		states.foodState.prevFoodPositions.push_back(pos);
+		states.foodState.prevFoodPositions.push_back(foodPair);
 	}
 }
 
@@ -101,9 +86,10 @@ void Agent::DetectWater(glm::vec2 pos)
 
 void Agent::DrinkWater(float amount)
 {
-	if (needs.thirstVal < (100 - amount))
+	needs.thirstVal += amount;
+	if (needs.thirstVal > 100.0f)
 	{
-		needs.thirstVal += amount;
+		needs.thirstVal = 100.0f;
 	}
 }
 
@@ -112,11 +98,11 @@ int Agent::DecideOnGoal()
 	float hungerUtility = sqrt((100 - needs.hungerVal) / 100);
 	float thirstUtility = sqrt((100 - needs.thirstVal) / 100);
 
-	if (hungerUtility > thirstUtility && hungerUtility < 40)
+	if (hungerUtility > thirstUtility && needs.hungerVal < 40)
 	{
 		return 0; 
 	}
-	else if (thirstUtility <= hungerUtility && thirstUtility < 40 )
+	else if (thirstUtility >= hungerUtility && needs.thirstVal < 40 )
 	{
 		return 1;
 	}

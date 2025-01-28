@@ -16,6 +16,18 @@ struct Needs
 	float thirstVal = 100;
 };
 
+struct Emotions
+{
+	float Surprise = 0;
+	float Trust = 0;
+	float Joy = 0;
+	float Fear = 0;
+	float Anticipation = 0;
+	float Sadness = 0;
+	float Disgust = 0;
+	float Anger = 0;
+};
+
 constexpr int gridSizeX = 30;
 constexpr int gridSizeY = 30;
 constexpr glm::ivec2 windowSize{ 900, 900 };

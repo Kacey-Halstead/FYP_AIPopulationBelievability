@@ -6,6 +6,13 @@
 
 class DAG;
 
+enum ActionProgress
+{
+	InProgress,
+	Complete,
+	Impossible
+};
+
 enum ActionIDs
 {
 	FOODACTION,
@@ -18,7 +25,7 @@ enum ActionIDs
 //Action - 2 functions (Execute and IsValid) 
 using ExecuteFunc = std::function<void(States&)>;
 
-using IsValidReturnType = bool; // TODO: change from bool to weighting to compare action desirability
+using IsValidReturnType = std::pair<ActionProgress, int>; // TODO: change from bool to weighting to compare action desirability
 
 using IsValidFunc = IsValidReturnType(*)(States&); //function pointer - smaller memory than using std::function
 

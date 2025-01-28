@@ -18,10 +18,11 @@ public:
 	std::array<int, 5> OCEANValues{};
 	std::array<Trait, 6> traits{};
 
-
 private:
 	void RandomGeneration();
 	void GenerateFromParents(Agent* parent1, Agent* parent2);
+	void SetMultipliers();
 		
+	std::array<float, 8> emotionMultipliers{};
 };
 

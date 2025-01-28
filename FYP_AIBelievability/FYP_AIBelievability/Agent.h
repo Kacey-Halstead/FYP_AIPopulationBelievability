@@ -35,14 +35,12 @@ public:
 
 	bool IsPointInAgent(SDL_Point point);
 
-	void DetectFood(glm::vec2 pos);
+	void DetectFood(std::pair<glm::vec2, FoodSource*> foodPair);
 	void DetectWater(glm::vec2 pos);
 
 	void DrinkWater(float amount);
 
 	int DecideOnGoal();
-
-	States& GetStates() { return states; }
 
 	inline Grid* GetGridRef() { return gridRef; }
 
@@ -53,12 +51,13 @@ public:
 	PersonalityComponent personalityComponent;
 
 	int agentCount = 0;
-	SDL_Point size = { 50, 50 };
+	glm::ivec2 size = { 50, 50 };
 
-private:
+	Emotions emotions = {};
+
 	States states;
+private:
 
-	SDL_Rect detectRect;
 	SDL_Rect agentRect;	
 
 	std::array<Agent*, 2> parents = {};
@@ -67,9 +66,8 @@ private:
 
 	std::vector<glm::ivec2> patrolPositions = { {2, 2}, {gridSizeX-2, 2}, {2, gridSizeY - 2}, {25, 25}, {(gridSizeX - 2 )/2, (gridSizeY - 2 )/2} };
 
-
 	glm::vec2 velocity = { 0, 0 };
-	float speed = 100.0f;
+	float speed = 1.0f;
 
 };
 

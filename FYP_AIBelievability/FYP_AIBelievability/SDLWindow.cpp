@@ -64,14 +64,6 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 		{
 			return false;
 		}
-		if (e.type == SDL_MOUSEWHEEL)
-		{
-			for (Agent& a : agents)
-			{
-				a.needs.hungerVal += 10;
-				a.needs.thirstVal += 10;
-			}
-		}
 		if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE && e.window.windowID == SDL_GetWindowID(window))
 		{
 			return false;
@@ -81,13 +73,15 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			int x = e.button.x;
 			int y = e.button.y;
 
-			SDL_Point mousePos = { x,y };
+			glm::ivec2 mousePos = { x,y };
+			mousePos /= grid->tileSizeOnScreen;
+			glm::vec2 mouseWorldPos = grid->GridToWorldPos(mousePos);
 
 			//CLICKING AGENTS
 			for (Agent& a : agents)
 			{
-
-				if (a.IsPointInAgent(mousePos))
+				float agentSize = (float)a.size.x / grid->tileSizeOnScreen.x;
+				if(ComparePositions(a.position, mouseWorldPos, agentSize))
 				{
 					ImGui_Implementation::isAgentPressed = true;
 					ImGui_Implementation::agentCount = a.agentCount;
@@ -104,15 +98,15 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			{
 				for (Tile& t : v) // tiles in vector
 				{
-					if (WFC::IsInTile(mousePos, t)) //if tile is clicked
+					if (grid->GetTileFromPos(glm::vec2(mousePos.x, mousePos.y))->GetGridPos() == t.GetGridPos()) //if tile is clicked
 					{
 						for (Agent& a : agents)
 						{
 							if (ImGui_Implementation::toSelectDest && ImGui_Implementation::agentCount == a.agentCount)
 							{
-								a.GetStates().moveState.from = a.position;
-								a.GetStates().moveState.to = t.GetGridPos();
-								a.GetStates().moveState.isMoveToSet = true;
+								a.states.moveState.from = a.position;
+								a.states.moveState.to = t.GetGridPos();
+								a.states.moveState.isMoveToSet = true;
 
 								ImGui_Implementation::toSelectDest = false;
 							}
