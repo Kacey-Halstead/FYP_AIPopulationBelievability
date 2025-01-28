@@ -31,7 +31,7 @@ public:
 	//Goal Completion Functions
 	static bool GoalComplete(States& state)
 	{
-		if (ComparePositions(state.moveState.agent->position, state.moveState.to, 5))
+		if (ComparePositions(state.moveState.agent->position, state.moveState.to, 2))
 		{
 			return true;
 		}

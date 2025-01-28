@@ -17,7 +17,7 @@ FoodSource::FoodSource(Grid* grid)
 	// need to make sure can't gen on same tile
 	position = landTiles[distrib(RandomGenerator::gen)];
 
-	rect = { (int)position.x, (int)position.y, size.x, size.y };
+	rect = { (int)(position.x * gridRef->tileSize.x), (int)(position.y * gridRef->tileSize.y), size.x, size.y };
 	detectRect = { rect.x - ((rect.w * 5)/2), rect.y - ((rect.h * 5)/2), rect.w * 5, rect.h * 5};
 }
 

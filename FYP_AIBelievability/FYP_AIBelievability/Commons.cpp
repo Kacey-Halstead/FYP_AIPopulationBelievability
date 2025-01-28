@@ -1,9 +1,8 @@
 #include "Commons.h"
 #include <SDL.h>
 
-bool ComparePositions(glm::vec2 a, glm::vec2 b, float acceptanceRadius)
+bool ComparePositions(glm::ivec2 a, glm::ivec2 b, int acceptanceRadius)
 {
-	glm::vec2 diff = b - a;
-	float mag = glm::length(diff);
-	return mag < acceptanceRadius;
+	glm::ivec2 diff = b - a;
+	return diff.x < acceptanceRadius && diff.y < acceptanceRadius;
 }

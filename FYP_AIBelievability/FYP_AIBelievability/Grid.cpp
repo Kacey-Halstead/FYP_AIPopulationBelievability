@@ -138,7 +138,7 @@ std::vector<glm::vec2> Grid::GetLandTiles() const
 		{
 			if (Tiles[x][y].GetType() == 'L')
 			{
-				landTileWorldPositions.emplace_back(Tiles[x][y].GetWorldPos());
+				landTileWorldPositions.emplace_back(Tiles[x][y].GetGridPos());
 			}
 		}
 	}

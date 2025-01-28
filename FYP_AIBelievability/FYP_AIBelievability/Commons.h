@@ -23,6 +23,6 @@ constexpr glm::ivec2 windowSize{ 900, 900 };
 constexpr std::array<char, 3> allTypes = { 'L', 'C', 'S' };
 constexpr int numberOfTypes = allTypes.size();
 
-bool ComparePositions(glm::vec2 a, glm::vec2 b, float acceptanceRadius);
+bool ComparePositions(glm::ivec2 a, glm::ivec2 b, int acceptanceRadius);
 
 
