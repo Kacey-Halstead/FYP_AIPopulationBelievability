@@ -30,15 +30,13 @@ public:
 	void Update(float deltaTime);
 	void Render(SDL_Renderer* renderer, SDL_Window* window) const;
 	void DecreaseNeeds(float deltaTime);
-	void Move(glm::ivec2 destination);
+	void Move(glm::vec2 destination);
 	void UpdateImGui();
 
 	bool IsPointInAgent(SDL_Point point);
 
-	glm::vec2 ScreenPos();
-
-	void DetectFood(glm::ivec2 pos);
-	void DetectWater(glm::ivec2 pos);
+	void DetectFood(glm::vec2 pos);
+	void DetectWater(glm::vec2 pos);
 
 	void DrinkWater(float amount);
 
@@ -48,7 +46,7 @@ public:
 
 	inline Grid* GetGridRef() { return gridRef; }
 
-	glm::ivec2 position = {};
+	glm::vec2 position = {};
 
 	Needs needs = {};
 
@@ -60,17 +58,18 @@ public:
 private:
 	States states;
 
+	SDL_Rect detectRect;
 	SDL_Rect agentRect;	
 
 	std::array<Agent*, 2> parents = {};
 
 	Grid* gridRef;
 
-	std::vector<glm::ivec2> patrolPositions = { {2, 2}, {gridSizeX-2, 2}, {2, gridSizeY - 2}, {gridSizeX-2, gridSizeY-2}, {(gridSizeX - 2 )/2, (gridSizeY - 2 )/2} };
+	std::vector<glm::ivec2> patrolPositions = { {2, 2}, {gridSizeX-2, 2}, {2, gridSizeY - 2}, {25, 25}, {(gridSizeX - 2 )/2, (gridSizeY - 2 )/2} };
 
 
 	glm::vec2 velocity = { 0, 0 };
-	int speed = 100;
+	float speed = 100.0f;
 
 };
 

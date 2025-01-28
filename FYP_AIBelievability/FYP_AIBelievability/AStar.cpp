@@ -165,11 +165,11 @@ namespace AStar
         }
     }
 
-    std::vector<Node> toFindPath(glm::ivec2 start, glm::ivec2 end)
+    std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end)
     {
         ResetTiles(gridRef->Tiles);
-        Tile* tile = &gridRef->Tiles[start.x][start.y];
-        Tile* endTile = &gridRef->Tiles[end.x][end.y];
+        Tile* tile = gridRef->GetTileFromPos(start);
+        Tile* endTile = gridRef->GetTileFromPos(end);
         return Findpath(tile, endTile);
     }
 

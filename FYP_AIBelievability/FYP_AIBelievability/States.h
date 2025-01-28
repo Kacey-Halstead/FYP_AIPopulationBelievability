@@ -5,10 +5,15 @@
 
 class Agent;
 
-struct MoveToState
+struct State
 {
-	glm::ivec2 to = {1, 1};
-	glm::ivec2 from;
+
+};
+
+struct MoveToState : State
+{
+	glm::vec2 to = {1, 1};
+	glm::vec2 from;
 
 	Agent* agent = nullptr;
 
@@ -16,27 +21,27 @@ struct MoveToState
 
 	std::vector<Node> path;
 
-	glm::ivec2 nextInPatrol;
+	glm::vec2 nextInPatrol;
 
 	int patrolIndex = 0;
 
 	bool IsComplete();
 };
 
-struct FindState
+struct FindState : State
 {
-	std::array<glm::ivec2, 5> patrolPoints;  //vec of pairs: pos and bool (if checked)
+	std::array<glm::vec2, 5> patrolPoints;  //vec of pairs: pos and bool (if checked)
 
-	glm::ivec2 nextToCheck;
+	glm::vec2 nextToCheck;
 
 	bool isFound = false;
 
 	bool IsComplete();
 };
 
-struct FindFoodState
+struct FindFoodState : State
 {
-	std::vector<glm::ivec2> prevFoodPositions;
+	std::vector<glm::vec2> prevFoodPositions;
 
 	FoodSource* foundFoodRef = nullptr;
 
@@ -45,11 +50,11 @@ struct FindFoodState
 	bool IsComplete();
 };
 
-struct FindWaterState
+struct FindWaterState : State
 {
-	std::vector<glm::ivec2> prevWaterPositions;
+	std::vector<glm::vec2> prevWaterPositions;
 
-	glm::ivec2 foundWaterRef = {-1, -1};
+	glm::vec2 foundWaterRef = {-1, -1};
 
 	bool waterRefSet = false;
 

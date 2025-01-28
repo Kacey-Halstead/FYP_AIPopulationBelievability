@@ -21,7 +21,7 @@ public:
 	bool IsInRect(glm::vec2 point);
 
 	bool canEat = true;
-	glm::ivec2 position;
+	glm::vec2 position;
 
 private:
 	SDL_Rect rect;

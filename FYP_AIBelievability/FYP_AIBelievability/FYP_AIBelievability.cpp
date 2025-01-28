@@ -135,17 +135,17 @@ void FYP_AIBelievability::Update()
 		{
 			if (!agent.GetStates().moveState.path.empty())
 			{
-				glm::ivec2 toGo = agent.GetStates().moveState.path[0].tile->GetGridPos();
+				glm::vec2 toGo = agent.GetStates().moveState.path[0].tile->GetWorldPos();
 
 				agent.GetStates().moveState.agent->Move(toGo);
 
-				if (ComparePositions(agent.position, toGo, 3))
+				if (ComparePositions(agent.position, toGo, 30))
 				{
 					agent.GetStates().moveState.path.erase(agent.GetStates().moveState.path.begin());
 				}
 			}
 
-			if (ComparePositions(agent.GetStates().moveState.agent->position, agent.GetStates().moveState.to, 3) || agent.GetStates().moveState.path.empty())
+			if (ComparePositions(agent.GetStates().moveState.agent->position, agent.GetStates().moveState.to, 30) || agent.GetStates().moveState.path.empty())
 			{
 				agent.GetStates().moveState.isMoveToSet = false;
 			}
@@ -175,11 +175,11 @@ void FYP_AIBelievability::Update()
 		//detect food sources
 		for (FoodSource& foodSource : mFoodSources)
 		{
-			if (foodSource.IsInRect(agent.ScreenPos()))
+			if (foodSource.IsInRect(agent.position))
 			{
 				agent.DetectFood(foodSource.position);
 
-				if (ComparePositions(agent.position, foodSource.position, 2))
+				if (ComparePositions(agent.position, foodSource.position, 20.0f))
 				{
 					agent.GetStates().foodState.foundFoodRef = &foodSource;
 				}
@@ -189,10 +189,11 @@ void FYP_AIBelievability::Update()
 		for (glm::ivec2 pos : mGrid->waterPositions)
 		{
 			//detect water
+			glm::vec2 worldPos = mGrid->GridToWorldPos(pos);
 
-			if (ComparePositions(agent.position, pos, 2))
+			if (ComparePositions(agent.position, worldPos, 3 * mGrid->tileSize.x))
 			{
-				agent.DetectWater(pos);
+				agent.DetectWater(worldPos);
 			}
 		}
 

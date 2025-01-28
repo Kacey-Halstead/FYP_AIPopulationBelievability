@@ -24,7 +24,7 @@ struct FindFood
 
 	static bool IsValid(States& states)
 	{
-		return states.moveState.isMoveToSet && ComparePositions(states.moveState.agent->position, states.foodState.foundFoodRef->position, 2);
+		return states.moveState.isMoveToSet && ComparePositions(states.moveState.agent->position, states.foodState.foundFoodRef->position, 20.0f);
 	}
 
 	static void setNextCheck(States& states)
@@ -87,7 +87,7 @@ struct FindWater
 
 	static bool IsValid(States& states)
 	{
-		return ComparePositions(states.moveState.agent->position, states.waterState.foundWaterRef, 2);
+		return ComparePositions(states.moveState.agent->position, states.waterState.foundWaterRef, 20.0f);
 	}
 };
 
@@ -116,8 +116,8 @@ struct Wander
 
 		states.moveState.from = states.moveState.agent->position;
 
-		states.moveState.to.x = distrib(RandomGenerator::gen);
-		states.moveState.to.y = distrib(RandomGenerator::gen);
+		states.moveState.to.x = distrib(RandomGenerator::gen) * states.moveState.agent->GetGridRef()->tileSize.x;
+		states.moveState.to.y = distrib(RandomGenerator::gen) * states.moveState.agent->GetGridRef()->tileSize.y;
 
 		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 		if (!states.moveState.path.empty())

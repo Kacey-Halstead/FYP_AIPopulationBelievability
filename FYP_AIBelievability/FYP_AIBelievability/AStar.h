@@ -42,7 +42,7 @@ namespace AStar
 	void SetPath(Node* end);
 	void DrawPath();
 
-	std::vector<Node> toFindPath(glm::ivec2 start, glm::ivec2 end);
+	std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end);
 
 	bool DoesContainNode(const std::vector<Node*>& list, Tile* tile);
 

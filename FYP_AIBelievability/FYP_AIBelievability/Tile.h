@@ -18,6 +18,7 @@ public:
 	inline void SetType(char toSet) { type = toSet; };
 
 	inline glm::ivec2 GetGridPos() const { return gridPos; };
+	inline glm::vec2 GetWorldPos() const { return worldPos; };
 
 	std::vector<std::pair<char, float>> typesAndWeights;
 	std::array<char, numberOfTypes> availableTypes; //currently available types
@@ -30,6 +31,7 @@ public:
 private:
 	char type = '0';
 
+	glm::vec2 worldPos;
 	glm::ivec2 gridPos;
 };
 

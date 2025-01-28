@@ -10,6 +10,7 @@ Tile::Tile(glm::ivec2 gPos, glm::ivec2 tileSize, int intIndex)
 	}
 
 	gridPos = gPos;
+	worldPos = glm::vec2{ gPos.x * tileSize.x, gPos.x * tileSize.x };
 	index = intIndex;
 }
 

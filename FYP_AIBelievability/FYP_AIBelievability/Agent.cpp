@@ -16,10 +16,11 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 		personalityComponent = PersonalityComponent();
 
 		//random positions
-		position.x = floor(rand() % gridSizeX + 1);
-		position.y = floor(rand() % gridSizeY + 1);
+		position.x = rand() % 200 + 1;
+		position.y = rand() % 200 + 1;
 
-		agentRect = { (int)(position.x * gridRef->tileSize.x), (int)(position.y * gridRef->tileSize.y), size.x, size.y };
+		agentRect = { (int)position.x, (int)position.y, size.x, size.y };
+		detectRect = { agentRect.x - ((agentRect.w * 5) / 2), agentRect.y - ((agentRect.h * 5) / 2), agentRect.w * 5, agentRect.h * 5 };
 
 		if (grid != nullptr)
 		{
@@ -42,6 +43,11 @@ Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
 	ImGui_Implementation::Traits = personalityComponent.traits;
 	ImGui_Implementation::needStruct = needs;
+
+	for (int i = 0; i < 5; i++)
+	{
+		states.findState.patrolPoints[i] = patrolPositions[i] * gridRef->tileSize;
+	}
 }
 
 Agent::~Agent()
@@ -51,11 +57,14 @@ Agent::~Agent()
 
 void Agent::Update(float deltaTime)
 {
-	agentRect.x = (position.x * gridRef->tileSize.x) - agentRect.w/2;
-	agentRect.y = (position.y * gridRef->tileSize.y) - agentRect.h / 2;
 
-	position.x += floor(velocity.x * deltaTime);
-	position.y += floor(velocity.y * deltaTime);
+	agentRect.x = position.x - agentRect.w/2;
+	agentRect.y = position.y - agentRect.h/2;
+	detectRect.x = position.x - detectRect.w / 2;
+	detectRect.y = position.y - detectRect.h / 2;
+
+	position.x += velocity.x * deltaTime;
+	position.y += velocity.y * deltaTime;
 	velocity = { 0.0f, 0.0f };
 
 	DecreaseNeeds(deltaTime);
@@ -72,14 +81,7 @@ bool Agent::IsPointInAgent(SDL_Point point)
 	return SDL_PointInRect(&point, &agentRect);
 }
 
-glm::vec2 Agent::ScreenPos()
-{
-	glm::vec2 screenPos = glm::vec2(position.x * gridSizeX, position.y * gridSizeY);
-
-	return screenPos;
-}
-
-void Agent::DetectFood(glm::ivec2 pos)
+void Agent::DetectFood(glm::vec2 pos)
 {
 	auto it = std::find(states.foodState.prevFoodPositions.begin(), states.foodState.prevFoodPositions.end(), pos);
 	if (it == states.foodState.prevFoodPositions.end())
@@ -88,7 +90,7 @@ void Agent::DetectFood(glm::ivec2 pos)
 	}
 }
 
-void Agent::DetectWater(glm::ivec2 pos)
+void Agent::DetectWater(glm::vec2 pos)
 {
 	auto it = std::find(states.waterState.prevWaterPositions.begin(), states.waterState.prevWaterPositions.end(), pos);
 	if (it == states.waterState.prevWaterPositions.end())
@@ -146,12 +148,12 @@ void Agent::DecreaseNeeds(float deltaTime)
 	}
 }
 
-void Agent::Move(glm::ivec2 destination)
+void Agent::Move(glm::vec2 destination)
 {
-	glm::ivec2 toDest = destination - position;
-	if (toDest == glm::ivec2(0, 0))
+	glm::vec2 toDest = destination - position;
+	if (toDest == glm::vec2(0.0f))
 		return;
-	velocity = toDest * speed;
+	velocity = glm::normalize(toDest) * speed;
 }
 
 void Agent::UpdateImGui()
