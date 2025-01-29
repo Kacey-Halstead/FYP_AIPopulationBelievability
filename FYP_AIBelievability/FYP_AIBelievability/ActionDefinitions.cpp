@@ -154,21 +154,79 @@ struct Wander
 
 // -------------------------------------------------------------------------------------------------------------------
 
-struct Socialise
+struct FindAgentToSocialise
 {
 	static void Execute(States& states)
 	{
+		//choose random agent
+		//go to them, transfer info
 
-	}
+		std::uniform_int_distribution<> distrib(0, states.socialState.otherAgents.size() - 1);
 
-	static void setNextCheck(States& states)
-	{
+		states.moveState.from = states.moveState.agent->position;
 
+		int index = distrib(RandomGenerator::gen);
+
+		states.socialState.agentRef = states.socialState.otherAgents[index];
+		
+		states.moveState.to = states.socialState.agentRef->position;
+		states.moveState.isMoveToSet = true;
+		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return { ActionProgress::Impossible, 0 };
+		if (ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f))
+		{
+			return { ActionProgress::Complete, 1 };
+		}
+		else if(states.foodState.prevFoodPositions.empty() || !states.socialState.agentRef)
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+		else
+		{
+			return { ActionProgress::InProgress, 1 };
+		}
+	}
+};
+
+// -------------------------------------------------------------------------------------------------------------------
+
+struct TransferKnowledge
+{
+	static void Execute(States& states)
+	{
+		//look through selected agent's food/water positions, if different, transfer
+
+		for (std::pair<glm::vec2, FoodSource*> positions : states.foodState.prevFoodPositions)
+		{
+			auto it = std::find(states.socialState.agentRef->states.foodState.prevFoodPositions.begin(), states.socialState.agentRef->states.foodState.prevFoodPositions.end(), positions);
+
+			if (it == states.foodState.prevFoodPositions.end())
+			{
+				states.socialState.numPrevPositions = states.foodState.prevFoodPositions.size();
+				states.socialState.numPrevPositionsOther = states.socialState.agentRef->states.foodState.prevFoodPositions.size();
+
+				states.socialState.agentRef->states.foodState.prevFoodPositions.push_back(positions);
+				break;
+			}
+		}
+	}
+
+	static std::pair<ActionProgress, int> IsValid(States& states)
+	{
+		if (states.socialState.numPrevPositions > states.foodState.prevFoodPositions.size() || 
+			states.socialState.numPrevPositionsOther > states.socialState.agentRef->states.foodState.prevFoodPositions.size())
+		{
+			states.socialState.agentRef = nullptr;
+			states.socialState.numPrevPositions = 0;
+			states.socialState.numPrevPositionsOther = 0;
+
+			return { ActionProgress::Complete, 1 };
+		}
+
+		return { ActionProgress::Impossible, 1 };
 	}
 };
 

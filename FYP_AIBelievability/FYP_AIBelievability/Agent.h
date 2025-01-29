@@ -16,6 +16,7 @@ struct States
 	FindFoodState foodState{};
 	FindState findState{};
 	FindWaterState waterState{};
+	SocialiseState socialState{};
 };
 
 class Agent

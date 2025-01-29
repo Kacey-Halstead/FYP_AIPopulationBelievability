@@ -29,8 +29,8 @@ void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
 void FoodSource::Update(float deltaTime)
 {
 	Replenish(deltaTime);
-	foodAmount > 10 ? canEat = true : canEat = false;
-;}
+	foodAmount > 20 ? canEat = true : canEat = false;
+}
 
 bool FoodSource::EatFrom(float amount)
 {
@@ -44,15 +44,12 @@ bool FoodSource::EatFrom(float amount)
 
 void FoodSource::Replenish(float deltaTime)
 {
-	if (foodAmount < maxfoodAmount)
-	{
-		counter += deltaTime * 10;
+	counter += deltaTime * 1000;
 
-		//only replishes every timestamp
-		if (counter > 5)
-		{
-			counter = 0;
-			foodAmount++;
-		}
+	//only replishes every timestamp
+	if (counter > 1 && foodAmount < maxfoodAmount)
+	{
+		foodAmount += 0.01;
+		counter = 0;
 	}
 }
