@@ -38,25 +38,24 @@ public:
 
 	void DetectFood(std::pair<glm::vec2, FoodSource*> foodPair);
 	void DetectWater(glm::vec2 pos);
+	void DetectOtherAgents(Agent* agent);
 
 	void DrinkWater(float amount);
 
-	int DecideOnGoal();
+	char DecideOnGoal();
 
 	inline Grid* GetGridRef() { return gridRef; }
 
 	glm::vec2 position = {};
 
+	Emotions emotions = {};
 	Needs needs = {};
-
-	PersonalityComponent personalityComponent;
+	States states = {};
+	PersonalityComponent personalityComponent = {};
 
 	int agentCount = 0;
 	glm::ivec2 size = { 50, 50 };
 
-	Emotions emotions = {};
-
-	States states;
 private:
 
 	SDL_Rect agentRect;	
@@ -68,7 +67,10 @@ private:
 	std::vector<glm::ivec2> patrolPositions = { {2, 2}, {gridSizeX-2, 2}, {2, gridSizeY - 2}, {25, 25}, {(gridSizeX - 2 )/2, (gridSizeY - 2 )/2} };
 
 	glm::vec2 velocity = { 0, 0 };
+
 	float speed = 1.0f;
+
+
 
 };
 

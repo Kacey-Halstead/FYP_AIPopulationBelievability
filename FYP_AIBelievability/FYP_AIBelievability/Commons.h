@@ -14,8 +14,8 @@ struct Needs
 {
 	float hungerVal = 100;
 	float thirstVal = 100;
-	float health = 100;
-	float social = 100;
+	float healthVal = 100;
+	float socialVal = 100;
 };
 
 struct Emotions

@@ -38,9 +38,9 @@ public:
 		}
 	}
 
-	node* FindPlan(ActionIDs action, States& states)
+	node* FindPlan(int actionIndex, States& states)
 	{
-		node* current = FindNode(action);
+		node* current = FindNode(actionIndex);
 		if (current == nullptr) return nullptr;
 
 		//if current complete then return
@@ -85,11 +85,11 @@ public:
 		return current;
 	}
 
-	node* FindNode(ActionIDs action)
+	node* FindNode(int actionIndex)
 	{
 		for (node* n : allActions)
 		{
-			if (n->action->second == action)
+			if (n->action->second == actionIndex)
 			{
 				return n;
 			}

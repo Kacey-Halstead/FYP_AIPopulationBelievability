@@ -64,9 +64,9 @@ struct SocialiseState
 
 	Agent* agentRef = nullptr;
 
-	int numPrevPositions = 0;
+	//is agent being spoken to?
+	bool isTalkingTo = false;
 
-	int numPrevPositionsOther = 0;
-
-	bool IsComplete();
+	//is agent currently seeking another agent? (so agents cannot interrupt eachother)
+	bool isSeekingOtherAgent = false;
 };

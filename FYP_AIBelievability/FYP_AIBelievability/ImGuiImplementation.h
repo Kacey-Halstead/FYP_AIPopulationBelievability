@@ -31,6 +31,7 @@ namespace ImGui_Implementation
 
 	extern std::vector<float> hungerValues;
 	extern std::vector<float> thirstValues;
+	extern std::vector<float> socialValues;
 	extern std::vector<float> time;
 
 	extern bool pause;

@@ -55,5 +55,5 @@ public:
 
 	//decide goal
 
-	static std::pair<IsGoalComplete, std::vector<Action>*> PickGoal(States& states);
+	static std::vector<Action>* PickGoal(States& states);
 };

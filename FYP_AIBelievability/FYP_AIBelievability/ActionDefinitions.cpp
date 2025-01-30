@@ -159,16 +159,32 @@ struct FindAgentToSocialise
 	static void Execute(States& states)
 	{
 		//choose random agent
-		//go to them, transfer info
-
-		std::uniform_int_distribution<> distrib(0, states.socialState.otherAgents.size() - 1);
+		//go to them
 
 		states.moveState.from = states.moveState.agent->position;
 
-		int index = distrib(RandomGenerator::gen);
+		bool validAgent = false;
+		int index = 0;
 
-		states.socialState.agentRef = states.socialState.otherAgents[index];
-		
+		while (!validAgent)
+		{
+			if (index == states.socialState.otherAgents.size() - 1)
+			{
+				return;
+			}
+
+			states.socialState.agentRef = states.socialState.otherAgents[index];
+
+			if (!states.socialState.agentRef->states.socialState.isSeekingOtherAgent && !states.socialState.agentRef->states.socialState.isTalkingTo)
+			{
+				validAgent = true;
+			}
+
+			index++;
+		}
+
+		states.socialState.agentRef->states.socialState.isTalkingTo = true;
+		states.socialState.isSeekingOtherAgent = true;
 		states.moveState.to = states.socialState.agentRef->position;
 		states.moveState.isMoveToSet = true;
 		states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
@@ -176,11 +192,11 @@ struct FindAgentToSocialise
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f))
+		if (states.socialState.agentRef && ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f))
 		{
 			return { ActionProgress::Complete, 1 };
 		}
-		else if(states.foodState.prevFoodPositions.empty() || !states.socialState.agentRef)
+		else if(states.socialState.otherAgents.empty() || states.foodState.prevFoodPositions.empty())
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
@@ -199,34 +215,50 @@ struct TransferKnowledge
 	{
 		//look through selected agent's food/water positions, if different, transfer
 
-		for (std::pair<glm::vec2, FoodSource*> positions : states.foodState.prevFoodPositions)
+
+
+		for ( const std::pair<glm::vec2, FoodSource*>& positions : states.foodState.prevFoodPositions)
 		{
-			auto it = std::find(states.socialState.agentRef->states.foodState.prevFoodPositions.begin(), states.socialState.agentRef->states.foodState.prevFoodPositions.end(), positions);
-
-			if (it == states.foodState.prevFoodPositions.end())
+			if (std::none_of(states.socialState.agentRef->states.foodState.prevFoodPositions.begin(), states.socialState.agentRef->states.foodState.prevFoodPositions.end(), [positions](const std::pair<glm::vec2, FoodSource*>& other) {
+				return positions.first == other.first;
+				}))
 			{
-				states.socialState.numPrevPositions = states.foodState.prevFoodPositions.size();
-				states.socialState.numPrevPositionsOther = states.socialState.agentRef->states.foodState.prevFoodPositions.size();
-
 				states.socialState.agentRef->states.foodState.prevFoodPositions.push_back(positions);
+
 				break;
 			}
 		}
+
+		for (const glm::vec2& positions : states.waterState.prevWaterPositions)
+		{
+			if (std::none_of(states.socialState.agentRef->states.waterState.prevWaterPositions.begin(), states.socialState.agentRef->states.waterState.prevWaterPositions.end(), [positions](const glm::vec2& other) {
+				return positions == other;
+				}))
+			{
+				states.socialState.agentRef->states.waterState.prevWaterPositions.push_back(positions);
+				break;
+			}
+		}
+
+		states.moveState.agent->needs.socialVal = 100;
+		states.socialState.agentRef->needs.socialVal = 100;
+		states.socialState.agentRef->states.socialState.isTalkingTo = false;
+		states.socialState.isSeekingOtherAgent = false;
+		states.socialState.agentRef = nullptr;
 	}
 
 	static std::pair<ActionProgress, int> IsValid(States& states)
 	{
-		if (states.socialState.numPrevPositions > states.foodState.prevFoodPositions.size() || 
-			states.socialState.numPrevPositionsOther > states.socialState.agentRef->states.foodState.prevFoodPositions.size())
+		if (states.moveState.agent->needs.socialVal > 80)
 		{
-			states.socialState.agentRef = nullptr;
-			states.socialState.numPrevPositions = 0;
-			states.socialState.numPrevPositionsOther = 0;
-
 			return { ActionProgress::Complete, 1 };
 		}
-
-		return { ActionProgress::Impossible, 1 };
+		else if (!states.socialState.agentRef)
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+		
+		return { ActionProgress::InProgress, 1 };
 	}
 };
 
@@ -255,19 +287,27 @@ struct Fight
 
 namespace Actions
 {
+	int counter = 0;
+
+	std::vector<std::string> names{};
 
 	std::vector<Action> foodActions = {
-	std::make_pair(std::make_pair(EatFood::Execute, EatFood::IsValid), FOODACTION2),
-	std::make_pair(std::make_pair(FindFood::Execute, FindFood::IsValid), FOODACTION)
+		MakeAction(EatFood::Execute, EatFood::IsValid, Counter("Eat Food")),
+		MakeAction(FindFood::Execute, FindFood::IsValid, Counter("Find Food"))
 	};
 
 	std::vector<Action> waterActions = {
-	std::make_pair(std::make_pair(DrinkWater::Execute, DrinkWater::IsValid), WATERACTION2),
-	std::make_pair(std::make_pair(FindWater::Execute, FindWater::IsValid), WATERACTION)
+		MakeAction(DrinkWater::Execute, DrinkWater::IsValid, Counter("Drink Water")),
+		MakeAction(FindWater::Execute, FindWater::IsValid, Counter("Find Water")),
 	};
 
 	std::vector<Action> wanderActions = {
-	std::make_pair(std::make_pair(Wander::Execute, Wander::IsValid), WANDER1)
+		MakeAction(Wander::Execute, Wander::IsValid, Counter("Wander"))
+	};
+
+	std::vector<Action> socialActions = {
+		MakeAction(TransferKnowledge::Execute, TransferKnowledge::IsValid, Counter("Tell Other Agents About Food")),
+		MakeAction(FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, Counter("Find Other Agent"))
 	};
 
 	std::vector<Action>* GetActions(ActionIndexes index)
@@ -280,29 +320,26 @@ namespace Actions
 			return &waterActions;
 		case WANDER:
 			return &wanderActions;
+		case SOCIAL:
+			return &socialActions;
 		}
 
-		return &foodActions;
+		return nullptr;
 	}
 
-	std::string Getname(ActionIDs IDs)
+	std::string Getname(int IDs)
 	{
-		{
-			switch (IDs)
-			{
-			case FOODACTION:
-				return "Find Food";
-			case FOODACTION2:
-				return "Eat Food";
-			case WATERACTION:
-				return "Find Water";
-			case WATERACTION2:
-				return "Drink Water";
-			case WANDER1:
-				return "Wander";
-			}
+		return names[IDs];
+	}
 
-			return " ";
-		}
+	int Counter(std::string nameOfAction)
+	{
+		names.push_back(nameOfAction);
+		return counter++;
+	}
+
+	Action MakeAction(ExecuteFunc executeFunc, IsValidFunc isValidFunc, int ID)
+	{
+		return std::make_pair(std::make_pair(executeFunc, isValidFunc), ID);
 	}
 }

@@ -21,6 +21,7 @@ namespace ImGui_Implementation
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
+	std::vector<float> socialValues = std::vector<float>(400, 100);
 	std::vector<float> time = std::vector<float>(400, 0);
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
@@ -72,6 +73,7 @@ namespace ImGui_Implementation
 
 				ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 400);
 				ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 400);
+				ImPlot::PlotLine("Social", time.data(), socialValues.data(), 400);
 
 				ImPlot::EndPlot();
 			}

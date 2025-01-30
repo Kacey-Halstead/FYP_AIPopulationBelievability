@@ -13,15 +13,6 @@ enum ActionProgress
 	Impossible
 };
 
-enum ActionIDs
-{
-	FOODACTION,
-	FOODACTION2,
-	WATERACTION,
-	WATERACTION2,
-	WANDER1
-};
-
 //Action - 2 functions (Execute and IsValid) 
 using ExecuteFunc = std::function<void(States&)>;
 
@@ -30,7 +21,7 @@ using IsValidReturnType = std::pair<ActionProgress, int>; // TODO: change from b
 using IsValidFunc = IsValidReturnType(*)(States&); //function pointer - smaller memory than using std::function
 
 //action definition 
-using Action = std::pair<std::pair<ExecuteFunc, IsValidFunc>, ActionIDs>;
+using Action = std::pair<std::pair<ExecuteFunc, IsValidFunc>, int>;
 
 
 namespace Actions
@@ -39,7 +30,8 @@ namespace Actions
 	{
 		FOOD,
 		WATER,
-		WANDER
+		WANDER,
+		SOCIAL
 	};
 
 	extern std::vector<Action> foodActions;
@@ -48,6 +40,9 @@ namespace Actions
 
 	std::vector<Action>* GetActions(ActionIndexes index);
 
-	std::string Getname(ActionIDs IDs);
+	std::string Getname(int IDs);
 
+	int Counter(std::string nameOfAction);
+
+	Action MakeAction(ExecuteFunc executeFunc, IsValidFunc isValidFunc, int ID);
 }

@@ -84,6 +84,15 @@ void Agent::DetectWater(glm::vec2 pos)
 	}
 }
 
+void Agent::DetectOtherAgents(Agent* agent)
+{
+	auto it = std::find(states.socialState.otherAgents.begin(), states.socialState.otherAgents.end(), agent);
+	if (it == states.socialState.otherAgents.end())
+	{
+		states.socialState.otherAgents.push_back(agent);
+	}
+}
+
 void Agent::DrinkWater(float amount)
 {
 	needs.thirstVal += amount;
@@ -93,23 +102,24 @@ void Agent::DrinkWater(float amount)
 	}
 }
 
-int Agent::DecideOnGoal()
+char Agent::DecideOnGoal()
 {
-	float hungerUtility = sqrt((100 - needs.hungerVal) / 100);
-	float thirstUtility = sqrt((100 - needs.thirstVal) / 100);
+	std::vector<std::pair<char, float>> utilities{};
 
-	if (hungerUtility > thirstUtility && needs.hungerVal < 40)
-	{
-		return 0; 
-	}
-	else if (thirstUtility >= hungerUtility && needs.thirstVal < 40 )
-	{
-		return 1;
-	}
-	else
-	{
-		return 2;
-	}
+	utilities.push_back(make_pair('H', sqrt((100 - needs.hungerVal) / 100)));
+	utilities.push_back(make_pair('T', sqrt((100 - needs.thirstVal) / 100)));
+	utilities.push_back(make_pair('S', sqrt((100 - needs.socialVal) / 100)));
+
+	std::sort(utilities.begin(), utilities.end(), [](std::pair<char, float> a, std::pair<char, float> b) {
+		return a.second > b.second;
+		});
+	
+	std::pair<char, float> highestUrgency = utilities[0];
+
+	//if no needs are very low
+	if (highestUrgency.second < 0.4) return 'W';
+
+	return highestUrgency.first;
 }
 
 void Agent::DecreaseNeeds(float deltaTime)
@@ -117,20 +127,16 @@ void Agent::DecreaseNeeds(float deltaTime)
 	if (needs.hungerVal > 0)
 	{
 		needs.hungerVal -= 2 * deltaTime;
-
-		if (needs.hungerVal < 80)
-		{
-			states.foodState.complete = false;
-		}
-		else
-		{
-			states.foodState.complete = true;
-		}
 	}
 
 	if (needs.thirstVal > 0)
 	{
-		needs.thirstVal -= 2 * deltaTime;
+		needs.thirstVal -= 3 * deltaTime;
+	}
+
+	if (needs.socialVal > 0)
+	{
+		needs.socialVal -= 1 * deltaTime;
 	}
 }
 
@@ -153,10 +159,12 @@ void Agent::UpdateImGui()
 	{
 		ImGui_Implementation::hungerValues.erase(ImGui_Implementation::hungerValues.begin());
 		ImGui_Implementation::thirstValues.erase(ImGui_Implementation::thirstValues.begin());
+		ImGui_Implementation::socialValues.erase(ImGui_Implementation::socialValues.begin());
 	}
 
 	ImGui_Implementation::hungerValues.push_back(needs.hungerVal);
 	ImGui_Implementation::thirstValues.push_back(needs.thirstVal);
+	ImGui_Implementation::socialValues.push_back(needs.socialVal);
 }
 
 

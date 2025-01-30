@@ -37,31 +37,34 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	{
 		mFoodSources.emplace_back(mGrid.get());
 	}
+
 	//Agent init
 	mAgents.reserve(10);
-	for (int i = 1; i < 2; i++)
+	for (int i = 1; i < 6; i++)
 	{
 		ImGui_Implementation::agentCount = i;
 		mAgents.emplace_back(mGrid.get(), nullptr, nullptr);
 	}
 
+	//Create all nodes for all actions
 	mDAG->CreateNode(Actions::GetActions(Actions::WATER));
 	mDAG->CreateNode(Actions::GetActions(Actions::FOOD));
 	mDAG->CreateNode(Actions::GetActions(Actions::WANDER));
+	mDAG->CreateNode(Actions::GetActions(Actions::SOCIAL));
 
-	const std::vector<Action>* wanderVec = Actions::GetActions(Actions::WANDER);
-	const std::vector<Action>* waterVec = Actions::GetActions(Actions::WATER);
+	//Drink Water - dependencies: Find Water, Wander
+	node* waterNode = mDAG->FindNode((Actions::GetActions(Actions::WATER)->at(0).second));
+	waterNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::WATER)->at(1).second)));
+	waterNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::WANDER)->at(0).second)));
 
-	node* waterNode = mDAG->FindNode(waterVec->at(0).second);
-	waterNode->children.push_back(mDAG->FindNode(waterVec->at(1).second));
-	waterNode->children.push_back(mDAG->FindNode(wanderVec->at(0).second));
+	//Eat Food - dependencies: Find Food, Wander
+	node* foodNode = mDAG->FindNode((Actions::GetActions(Actions::FOOD)->at(0).second));
+	foodNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::FOOD)->at(1).second)));
+	foodNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::WANDER)->at(0).second)));
 
-	const std::vector<Action>* foodVec = Actions::GetActions(Actions::FOOD);
-
-	node* foodNode = mDAG->FindNode(foodVec->at(0).second);
-	foodNode->children.push_back(mDAG->FindNode(foodVec->at(1).second));
-	foodNode->children.push_back(mDAG->FindNode(wanderVec->at(0).second));
-
+	//Transfer knowledge - dependencies: FindOtherAgent
+	node* socialNode = mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(0).second));
+	socialNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(1).second)));
 }
 
 FYP_AIBelievability::~FYP_AIBelievability()
@@ -135,8 +138,9 @@ void FYP_AIBelievability::Update()
 
 	for (Agent& agent : mAgents) //update agents
 	{
+
 		//movement
-		if (agent.states.moveState.isMoveToSet)
+		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
 			if (!agent.states.moveState.path.empty())
 			{
@@ -163,10 +167,10 @@ void FYP_AIBelievability::Update()
 		}
 		else
 		{
-			auto [GoalComplete, actions] = Goals::PickGoal(agent.states);
+			std::vector<Action>* actions = Goals::PickGoal(agent.states);
 			node* currentNode = mDAG->FindPlan(actions->front().second, agent.states);
 
-			if (currentNode != nullptr)
+			if (currentNode != nullptr && !agent.states.socialState.isTalkingTo)
 			{
 				currentNode->action->first.first(agent.states);
 				ImGui_Implementation::action = Actions::Getname(currentNode->action->second);
@@ -174,6 +178,7 @@ void FYP_AIBelievability::Update()
 		}
 
 		agent.Update(deltaTime);
+
 
 		//update ImGui
 		if (mCounter > 0.1 && ImGui_Implementation::agentCount == agent.agentCount)
@@ -192,15 +197,25 @@ void FYP_AIBelievability::Update()
 			}
 		}
 
+		//detect water
 		for (glm::ivec2 pos : mGrid->waterPositions)
 		{
-			//detect water
-
 			if (ComparePositions(agent.position, pos, 4.0f))
 			{
 				agent.DetectWater(pos);
 			}
 		}
 
+		//detect other agents
+		for (Agent& otherAgent : mAgents)
+		{
+			if (otherAgent.agentCount == agent.agentCount) continue;
+
+			//if close enough to other agent, add
+			if (ComparePositions(agent.position, otherAgent.position, 4.0f))
+			{
+				agent.DetectOtherAgents(&otherAgent);
+			}
+		}
 	}
 }
