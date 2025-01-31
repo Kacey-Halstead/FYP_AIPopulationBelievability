@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
 #include <functional>
-
 #include "Agent.h"
 
+
 class DAG;
+
 
 enum ActionProgress
 {
@@ -23,9 +24,9 @@ using IsValidFunc = IsValidReturnType(*)(States&); //function pointer - smaller 
 //action definition 
 using Action = std::pair<std::pair<ExecuteFunc, IsValidFunc>, int>;
 
-
 namespace Actions
 {
+
 	enum ActionIndexes
 	{
 		FOOD,
@@ -41,6 +42,8 @@ namespace Actions
 	std::vector<Action>* GetActions(ActionIndexes index);
 
 	std::string Getname(int IDs);
+
+	int FindID(std::string nameToSearch);
 
 	int Counter(std::string nameOfAction);
 

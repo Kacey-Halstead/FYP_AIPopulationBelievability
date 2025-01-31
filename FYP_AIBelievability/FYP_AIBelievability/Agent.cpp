@@ -52,6 +52,7 @@ void Agent::Update(float deltaTime)
 	velocity = glm::vec2(0.0f);
 
 	DecreaseNeeds(deltaTime);
+	SettleEmotions(deltaTime);
 }
 
 void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
@@ -102,6 +103,18 @@ void Agent::DrinkWater(float amount)
 	}
 }
 
+std::vector<float> Agent::GetValuesForImGui(int index)
+{
+	switch (index)
+	{
+	case 0: return hungerValues;
+	case 1: return thirstValues;
+	case 2: return socialValues;
+	}
+
+	return std::vector<float>();
+}
+
 char Agent::DecideOnGoal()
 {
 	std::vector<std::pair<char, float>> utilities{};
@@ -122,6 +135,50 @@ char Agent::DecideOnGoal()
 	return highestUrgency.first;
 }
 
+std::pair<std::string, float> Agent::GetDominantEmotion()
+{
+	std::pair<std::string, float> highest;
+	highest.second = 0;
+
+	for (std::pair<std::string, float> emotion : emotions)
+	{
+		if (emotion.second > highest.second)
+		{
+			highest = emotion;
+		}
+	}
+
+	return highest;
+}
+
+void Agent::ChangeEmotionValue(std::string emotion, float value)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		if (emotion == emotions[i].first)
+		{
+			emotions[i].second += (value * personalityComponent.emotionMultipliers[i]);
+			break;
+		}
+	}
+}
+
+bool Agent::QueryDominantEmotions(std::string query) //must be top 3
+{
+	std::array<std::pair<std::string, float>, 8> toSort = emotions;
+
+	std::sort(toSort.begin(), toSort.end(), [](std::pair<std::string, float> a, std::pair<std::string, float> b) {
+		return a.second > b.second;
+		});
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (toSort[i].first == query) return true;
+	}
+
+	return false;
+}
+
 void Agent::DecreaseNeeds(float deltaTime)
 {
 	if (needs.hungerVal > 0)
@@ -137,6 +194,28 @@ void Agent::DecreaseNeeds(float deltaTime)
 	if (needs.socialVal > 0)
 	{
 		needs.socialVal -= 1 * deltaTime;
+	}
+
+	if (needs.healthVal < 100)
+	{
+		needs.healthVal += 1 * deltaTime;
+	}
+}
+
+void Agent::SettleEmotions(float deltaTime)
+{
+	//overtime, emotions settle to neutral (0)
+
+	for (std::pair<std::string, float> emotion : emotions)
+	{
+		if (emotion.second > 0)
+		{
+			emotion.second -= 0.1f * deltaTime;
+		}
+		else
+		{
+			emotion.second += 0.1f * deltaTime;
+		}
 	}
 }
 
@@ -155,16 +234,16 @@ void Agent::UpdateImGui()
 		ImGui_Implementation::time.erase(ImGui_Implementation::time.begin());
 	}
 
-	if (ImGui_Implementation::hungerValues.size() >= 400)
+	if (hungerValues.size() >= 400)
 	{
-		ImGui_Implementation::hungerValues.erase(ImGui_Implementation::hungerValues.begin());
-		ImGui_Implementation::thirstValues.erase(ImGui_Implementation::thirstValues.begin());
-		ImGui_Implementation::socialValues.erase(ImGui_Implementation::socialValues.begin());
+		hungerValues.erase(hungerValues.begin());
+		thirstValues.erase(thirstValues.begin());
+		socialValues.erase(socialValues.begin());
 	}
 
-	ImGui_Implementation::hungerValues.push_back(needs.hungerVal);
-	ImGui_Implementation::thirstValues.push_back(needs.thirstVal);
-	ImGui_Implementation::socialValues.push_back(needs.socialVal);
+	hungerValues.push_back(needs.hungerVal);
+	thirstValues.push_back(needs.thirstVal);
+	socialValues.push_back(needs.socialVal);
 }
 
 

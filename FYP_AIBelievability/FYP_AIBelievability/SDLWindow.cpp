@@ -87,8 +87,6 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 					ImGui_Implementation::agentCount = a.agentCount;
 					ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
 					ImGui_Implementation::Traits = a.personalityComponent.traits;
-					ImGui_Implementation::needStruct = a.needs;
-
 					break;
 				}
 			}

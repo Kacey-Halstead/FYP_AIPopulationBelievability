@@ -4,11 +4,13 @@
 PersonalityComponent::PersonalityComponent(Agent* parent1, Agent* parent2)
 {
 	GenerateFromParents(parent1, parent2);
+
 }
 
 PersonalityComponent::PersonalityComponent()
 {
 	RandomGeneration();
+	SetMultipliers();
 }
 
 PersonalityComponent::~PersonalityComponent()
@@ -24,7 +26,7 @@ void PersonalityComponent::RandomGeneration()
 		index = distrib(RandomGenerator::gen);
 		traits[i].traitName = FromJSONFile::traitsAndValues[index].traitName; //sets trait name
 		traits[i].traitEffect = FromJSONFile::traitsAndValues[index].traitEffect; //sets trait effect (-1/1)
-		traits[i].OCEANEffect = FromJSONFile::traitsAndValues[index].OCEANEffect; //sets effected OCEAN value
+		traits[i].OCEANEffect = FromJSONFile::traitsAndValues[index].OCEANEffect; //sets affected OCEAN value
 		OCEANValues[FromJSONFile::traitsAndValues[index].OCEANEffect] += FromJSONFile::traitsAndValues[index].traitEffect; //creates changed OCEAN values
 	}
 }
@@ -36,8 +38,25 @@ void PersonalityComponent::GenerateFromParents(Agent* parent1, Agent* parent2)
 
 void PersonalityComponent::SetMultipliers()
 {
+	//for every trait, check ocean value to see affected emotions, then apply trait effect
+
 	for (Trait& trait : traits)
 	{
-		
+		for (int i = 0; i < 8; i++)
+		{
+			//emotion multiplier = +/- trait * whether high or low score trait. High score = normal, low score = converted values
+			emotionMultipliers[i] += (OCEANMultipliers[trait.OCEANEffect][i] * trait.traitEffect);
+		}
 	}
 }
+
+/*
+	Surprise
+	Anticipation
+	Disgust
+	Joy
+	Anger
+	Fear
+	Trust
+	Sadness
+*/

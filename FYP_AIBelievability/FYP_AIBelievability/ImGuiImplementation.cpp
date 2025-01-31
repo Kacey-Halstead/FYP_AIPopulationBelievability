@@ -18,6 +18,7 @@ namespace ImGui_Implementation
 	bool pause = false;
 	bool toSelectDest = false;
 	std::string action = " ";
+	std::array<std::pair<std::string, float>, 8> emotionValues = {};
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
@@ -63,13 +64,41 @@ namespace ImGui_Implementation
 
 			ImGui_Implementation::Text("Performing Action: = %s", action.c_str());
 
+			//EMOTIONS
+			if (ImPlot::BeginPlot("Emotions", ImVec2(370, 370), ImPlotFlags_NoInputs))
+			{
+				const char* labels[8] = { "Surprise" , "Anticipation", "Disgust", "Joy", "Anger", "Fear", "Trust", "Sadness"};
+				float data[8];
+
+				for (int i = 0; i < 8; i++)
+				{
+					if (emotionValues[i].second < 0)
+					{
+						data[i] = 0;
+						continue;
+					}
+
+					data[i] = emotionValues[i].second;
+				}
+				
+				ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+				ImPlot::SetupAxesLimits(0, 1, 0, 1);
+
+				ImPlot::PushColormap(ImPlotColormap_Pastel);
+				ImPlot::PlotPieChart(labels, data, 8, 0.5, 0.5, 0.4);
+
+
+				ImPlot::PopColormap;
+				ImPlot::EndPlot();
+
+			}
+
 			//AGENT NEEDS
 			if (ImPlot::BeginPlot("Agent Needs"))
 			{
 				ImPlot::SetupAxisLimits(ImAxis_X1, time[0], time[0] + 50, ImPlotCond_Always);
 				ImPlot::SetupAxes("Time", "Need Values");
 				ImPlot::SetupAxisLimits(ImAxis_Y1, -5, 105, ImPlotCond_Always);
-
 
 				ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 400);
 				ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 400);

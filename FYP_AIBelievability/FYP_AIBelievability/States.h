@@ -67,6 +67,8 @@ struct SocialiseState
 	//is agent being spoken to?
 	bool isTalkingTo = false;
 
+	glm::vec2 runAwayPosBefore;
+
 	//is agent currently seeking another agent? (so agents cannot interrupt eachother)
 	bool isSeekingOtherAgent = false;
 };

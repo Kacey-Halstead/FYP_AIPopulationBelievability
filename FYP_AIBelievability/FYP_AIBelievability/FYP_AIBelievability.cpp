@@ -65,6 +65,10 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	//Transfer knowledge - dependencies: FindOtherAgent
 	node* socialNode = mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(0).second));
 	socialNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(1).second)));
+
+	//Fight - dependencies: FindOtherAgent
+	node* fightNode = mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(2).second));
+	fightNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(1).second)));
 }
 
 FYP_AIBelievability::~FYP_AIBelievability()
@@ -165,6 +169,17 @@ void FYP_AIBelievability::Update()
 				}
 			}
 		}
+		else if (!agent.responsiveStack.empty()) //is more responsive task comes up
+		{
+			node* toExecute = mDAG->FindNode(agent.responsiveStack.top());
+			Action* action = toExecute->action;
+			action->first.first(agent.states);
+
+			if (action->first.second(agent.states).first != InProgress)
+			{
+				agent.responsiveStack.pop();
+			}
+		}
 		else
 		{
 			std::vector<Action>* actions = Goals::PickGoal(agent.states);
@@ -185,8 +200,20 @@ void FYP_AIBelievability::Update()
 		{
 			ImGui_Implementation::time.push_back(mAccumulatedTime);
 			agent.UpdateImGui();
+
+			if (ImGui_Implementation::isAgentPressed)
+			{
+				ImGui_Implementation::hungerValues = agent.GetValuesForImGui(0);
+				ImGui_Implementation::thirstValues = agent.GetValuesForImGui(1);
+				ImGui_Implementation::socialValues = agent.GetValuesForImGui(2);
+				ImGui_Implementation::emotionValues = agent.emotions;
+			}
+
 			mCounter = 0;
 		}
+
+
+
 
 		//detect food sources
 		for (FoodSource& foodSource : mFoodSources)

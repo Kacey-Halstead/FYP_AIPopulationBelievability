@@ -1,6 +1,7 @@
 #include "ActionDefinitions.h"
 #include "DAG.h"
 
+
 //Defined Actions
 
 //FOOD
@@ -27,7 +28,7 @@ struct FindFood
 		{
 			return { ActionProgress::Complete, 1 };
 		}
-
+		  
 		return { ActionProgress::InProgress, 1 };
 	}
 
@@ -55,6 +56,7 @@ struct EatFood
 		}
 
 		states.foodState.foundFoodRef = nullptr;
+		states.moveState.agent->ChangeEmotionValue("Joy", 1);
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
@@ -64,6 +66,8 @@ struct EatFood
 		else
 			return { ActionProgress::InProgress, 1 };
 	}
+
+
 };
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -115,6 +119,8 @@ struct DrinkWater
 	{
 		states.moveState.agent->DrinkWater((100-states.moveState.agent->needs.thirstVal));
 		states.waterState.waterRefSet = false;
+
+		states.moveState.agent->ChangeEmotionValue("Joy", 1);
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
@@ -196,7 +202,7 @@ struct FindAgentToSocialise
 		{
 			return { ActionProgress::Complete, 1 };
 		}
-		else if(states.socialState.otherAgents.empty() || states.foodState.prevFoodPositions.empty())
+		else if(states.socialState.otherAgents.empty())
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
@@ -214,8 +220,6 @@ struct TransferKnowledge
 	static void Execute(States& states)
 	{
 		//look through selected agent's food/water positions, if different, transfer
-
-
 
 		for ( const std::pair<glm::vec2, FoodSource*>& positions : states.foodState.prevFoodPositions)
 		{
@@ -239,6 +243,12 @@ struct TransferKnowledge
 				break;
 			}
 		}
+
+		states.moveState.agent->ChangeEmotionValue("Joy", 1);
+		states.moveState.agent->ChangeEmotionValue("Trust", 2);
+
+		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Joy", 1);
+		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Trust", 2);
 
 		states.moveState.agent->needs.socialVal = 100;
 		states.socialState.agentRef->needs.socialVal = 100;
@@ -268,23 +278,102 @@ struct Fight
 {
 	static void Execute(States& states)
 	{
+		if (states.socialState.agentRef->GetDominantEmotion().first == "Anger" || 
+			states.socialState.agentRef->GetDominantEmotion().first == "Sadness") //if fight
+		{
 
-	}
+			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Anger", 2);
+			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Anticipation", 1);
 
-	static void setNextCheck(States& states)
-	{
-
+			states.socialState.agentRef->needs.healthVal -= 50.0f;
+			states.moveState.agent->needs.healthVal -= 50.0f;
+			states.socialState.agentRef->states.socialState.isTalkingTo = false;
+		}
+		else //if flight
+		{			
+			states.socialState.agentRef->responsiveStack.push(Actions::FindID("Run Away"));
+		} 
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		return { ActionProgress::Impossible, 0 };
+		if (states.moveState.agent->needs.healthVal < 50 || ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 3.0f))
+		{
+			states.socialState.agentRef = nullptr;
+			states.socialState.isSeekingOtherAgent = false;
+			return { ActionProgress::Complete, 1 };
+		}
+		else if (!states.socialState.agentRef && !states.moveState.agent->QueryDominantEmotions("Anger"))
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+
+		return { ActionProgress::InProgress, 1 };
 	}
 };
 
 // -------------------------------------------------------------------------------------------------------------------
 
+struct RunAway
+{
+	static void Execute(States& states)
+	{
+		states.moveState.agent->ChangeEmotionValue("Surprise", 1);
+		states.moveState.agent->ChangeEmotionValue("Fear", 2);
 
+		states.socialState.runAwayPosBefore = states.moveState.agent->position;
+		states.moveState.from = states.moveState.agent->position;
+		states.moveState.to = GetRandomValidTile(states);
+		states.moveState.isMoveToSet = true;
+	}
+
+	static glm::vec2 GetRandomValidTile(States& states)
+	{
+		static std::vector<glm::vec2> Offsets = { {5, 0}, {-5, 0}, {0, 5}, {0, -5} }; //right, left, up, down
+
+		for (int i = 0; i < 4; i++) //for all 4 directions
+		{
+			if (states.moveState.agent->GetGridRef()->IsInGrid(states.moveState.agent->position, Offsets[i])) //if in grid
+			{
+				return (states.moveState.agent->position + Offsets[i]);
+			}
+		}
+
+		return glm::vec2();
+	}
+
+	static std::pair<ActionProgress, int> IsValid(States& states)
+	{
+		if (ComparePositions(states.moveState.agent->position, states.socialState.runAwayPosBefore, 5.0f)) //is away from angry agent?
+		{
+			states.socialState.isTalkingTo = false;
+			return { ActionProgress::Complete, 1 };
+		}
+		else if (!states.socialState.isTalkingTo)
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+
+		return { ActionProgress::InProgress, 1 };
+	}
+};
+
+// -------------------------------------------------------------------------------------------------------------------
+
+struct FightBack
+{
+	static void Execute(States& states)
+	{
+
+	}
+
+	static std::pair<ActionProgress, int> IsValid(States& states)
+	{
+
+	}
+};
+
+// -------------------------------------------------------------------------------------------------------------------
 namespace Actions
 {
 	int counter = 0;
@@ -307,7 +396,9 @@ namespace Actions
 
 	std::vector<Action> socialActions = {
 		MakeAction(TransferKnowledge::Execute, TransferKnowledge::IsValid, Counter("Tell Other Agents About Food")),
-		MakeAction(FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, Counter("Find Other Agent"))
+		MakeAction(FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, Counter("Find Other Agent")),
+		MakeAction(Fight::Execute, Fight::IsValid, Counter("Fight Agent")),
+		MakeAction(RunAway::Execute, RunAway::IsValid, Counter("Run Away"))
 	};
 
 	std::vector<Action>* GetActions(ActionIndexes index)
@@ -341,5 +432,19 @@ namespace Actions
 	Action MakeAction(ExecuteFunc executeFunc, IsValidFunc isValidFunc, int ID)
 	{
 		return std::make_pair(std::make_pair(executeFunc, isValidFunc), ID);
+	}
+
+	int FindID(std::string nameToSearch)
+	{
+		int indexCounter = 0;
+
+		for (std::string name : names) 
+		{
+			if (name == nameToSearch)
+			{
+				return indexCounter;
+			}
+			indexCounter++;
+		}
 	}
 }
