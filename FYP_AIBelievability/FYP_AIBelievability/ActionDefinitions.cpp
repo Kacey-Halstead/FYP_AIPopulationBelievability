@@ -56,7 +56,7 @@ struct EatFood
 		}
 
 		states.foodState.foundFoodRef = nullptr;
-		states.moveState.agent->ChangeEmotionValue("Joy", 1);
+		states.moveState.agent->ChangeEmotionValue(JOY, 1);
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
@@ -120,7 +120,7 @@ struct DrinkWater
 		states.moveState.agent->DrinkWater((100-states.moveState.agent->needs.thirstVal));
 		states.waterState.waterRefSet = false;
 
-		states.moveState.agent->ChangeEmotionValue("Joy", 1);
+		states.moveState.agent->ChangeEmotionValue(JOY, 1);
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
@@ -244,11 +244,11 @@ struct TransferKnowledge
 			}
 		}
 
-		states.moveState.agent->ChangeEmotionValue("Joy", 1);
-		states.moveState.agent->ChangeEmotionValue("Trust", 2);
+		states.moveState.agent->ChangeEmotionValue(JOY, 1);
+		states.moveState.agent->ChangeEmotionValue(TRUST, 2);
 
-		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Joy", 1);
-		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Trust", 2);
+		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(JOY, 1);
+		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(TRUST, 2);
 
 		states.moveState.agent->needs.socialVal = 100;
 		states.socialState.agentRef->needs.socialVal = 100;
@@ -278,12 +278,12 @@ struct Fight
 {
 	static void Execute(States& states)
 	{
-		if (states.socialState.agentRef->GetDominantEmotion().first == "Anger" || 
-			states.socialState.agentRef->GetDominantEmotion().first == "Sadness") //if fight
+		if (states.socialState.agentRef->GetDominantEmotion().first == ANGER || 
+			states.socialState.agentRef->GetDominantEmotion().first == SADNESS) //if fight
 		{
 
-			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Anger", 2);
-			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue("Anticipation", 1);
+			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANGER, 2);
+			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANTICIPATION, 1);
 
 			states.socialState.agentRef->needs.healthVal -= 50.0f;
 			states.moveState.agent->needs.healthVal -= 50.0f;
@@ -291,7 +291,7 @@ struct Fight
 		}
 		else //if flight
 		{			
-			states.socialState.agentRef->responsiveStack.push(Actions::FindID("Run Away"));
+			states.socialState.agentRef->responsiveStack.push(FLEE);
 		} 
 	}
 
@@ -303,7 +303,7 @@ struct Fight
 			states.socialState.isSeekingOtherAgent = false;
 			return { ActionProgress::Complete, 1 };
 		}
-		else if (!states.socialState.agentRef && !states.moveState.agent->QueryDominantEmotions("Anger"))
+		else if (!states.socialState.agentRef && !states.moveState.agent->QueryDominantEmotions(ANGER))
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
@@ -318,8 +318,8 @@ struct RunAway
 {
 	static void Execute(States& states)
 	{
-		states.moveState.agent->ChangeEmotionValue("Surprise", 1);
-		states.moveState.agent->ChangeEmotionValue("Fear", 2);
+		states.moveState.agent->ChangeEmotionValue(SURPRISE, 1);
+		states.moveState.agent->ChangeEmotionValue(FEAR, 2);
 
 		states.socialState.runAwayPosBefore = states.moveState.agent->position;
 		states.moveState.from = states.moveState.agent->position;
@@ -380,47 +380,34 @@ namespace Actions
 
 	std::vector<std::string> names{};
 
-	std::vector<Action> foodActions = {
-		MakeAction(EatFood::Execute, EatFood::IsValid, Counter("Eat Food")),
-		MakeAction(FindFood::Execute, FindFood::IsValid, Counter("Find Food"))
+	std::vector<Action> ActionVec = {
+		{EatFood::Execute, EatFood::IsValid, GOAL_EATFOOD, "Eat Food", NONE},
+		{FindFood::Execute, FindFood::IsValid, FIND_FOOD, "Find Food", NONE},
+		{DrinkWater::Execute, DrinkWater::IsValid, GOAL_DRINKWATER,"Drink Water", NONE},
+		{FindWater::Execute, FindWater::IsValid, FIND_WATER,"Find Water", NONE},
+		{Wander::Execute, Wander::IsValid, GOAL_WANDER,"Wander", NONE},
+		{TransferKnowledge::Execute, TransferKnowledge::IsValid, GOAL_TRANSFERINFO,"Tell Other Agents About Food", JOY},
+		{FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, FIND_OTHER_AGENT,"Find Other Agent", NONE},
+		{Fight::Execute, Fight::IsValid, GOAL_FIGHT,"Fight Agent", ANGER},
+		{RunAway::Execute, RunAway::IsValid, FLEE,"Run Away", FEAR}
 	};
 
-	std::vector<Action> waterActions = {
-		MakeAction(DrinkWater::Execute, DrinkWater::IsValid, Counter("Drink Water")),
-		MakeAction(FindWater::Execute, FindWater::IsValid, Counter("Find Water")),
-	};
-
-	std::vector<Action> wanderActions = {
-		MakeAction(Wander::Execute, Wander::IsValid, Counter("Wander"))
-	};
-
-	std::vector<Action> socialActions = {
-		MakeAction(TransferKnowledge::Execute, TransferKnowledge::IsValid, Counter("Tell Other Agents About Food")),
-		MakeAction(FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, Counter("Find Other Agent")),
-		MakeAction(Fight::Execute, Fight::IsValid, Counter("Fight Agent")),
-		MakeAction(RunAway::Execute, RunAway::IsValid, Counter("Run Away"))
-	};
-
-	std::vector<Action>* GetActions(ActionIndexes index)
+	std::vector<Action*> GetAllActions()
 	{
-		switch (index)
+		std::vector<Action*> actionPtrs;
+		actionPtrs.reserve(ActionVec.size());
+
+		for (Action& action : ActionVec)
 		{
-		case FOOD:
-			return &foodActions;
-		case WATER:
-			return &waterActions;
-		case WANDER:
-			return &wanderActions;
-		case SOCIAL:
-			return &socialActions;
+			actionPtrs.emplace_back(&action);
 		}
 
-		return nullptr;
+		return actionPtrs;
 	}
 
-	std::string Getname(int IDs)
+	Action GetAction(actionIDs ID)
 	{
-		return names[IDs];
+		return ActionVec[ID];
 	}
 
 	int Counter(std::string nameOfAction)
@@ -429,9 +416,36 @@ namespace Actions
 		return counter++;
 	}
 
-	Action MakeAction(ExecuteFunc executeFunc, IsValidFunc isValidFunc, int ID)
+	Action GetGoalAction(ActionIndexes actionIndex, EEmotions emotion)
 	{
-		return std::make_pair(std::make_pair(executeFunc, isValidFunc), ID);
+		actionIDs toReturn{};
+
+		switch (actionIndex)
+		{
+		case FOOD:
+			toReturn = GOAL_EATFOOD;
+			break;
+		case WATER:
+			toReturn = GOAL_DRINKWATER;
+			break;
+		case WANDER:
+			toReturn = GOAL_WANDER;
+			break;
+		case SOCIAL:
+		{
+			if (emotion == ANGER)
+			{
+				toReturn = GOAL_FIGHT;
+			}
+			else if (emotion == JOY)
+			{
+				toReturn = GOAL_TRANSFERINFO;
+			}
+		}
+			break;
+		}
+
+		return GetAction(toReturn);
 	}
 
 	int FindID(std::string nameToSearch)

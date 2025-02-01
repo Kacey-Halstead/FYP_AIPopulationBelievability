@@ -2,10 +2,22 @@
 #include <vector>
 #include <functional>
 #include "Agent.h"
-
+#include "Commons.h"
 
 class DAG;
 
+enum actionIDs : unsigned int
+{
+	GOAL_EATFOOD,
+	FIND_FOOD,
+	GOAL_DRINKWATER,
+	FIND_WATER,
+	GOAL_WANDER,
+	GOAL_TRANSFERINFO,
+	FIND_OTHER_AGENT,
+	GOAL_FIGHT,
+	FLEE
+};
 
 enum ActionProgress
 {
@@ -22,11 +34,20 @@ using IsValidReturnType = std::pair<ActionProgress, int>; // TODO: change from b
 using IsValidFunc = IsValidReturnType(*)(States&); //function pointer - smaller memory than using std::function
 
 //action definition 
-using Action = std::pair<std::pair<ExecuteFunc, IsValidFunc>, int>;
+
+struct Action
+{
+	ExecuteFunc executeFunc;
+	IsValidFunc isValidFunc;
+	actionIDs ID;
+	std::string actionName;
+	EEmotions emotionNeeded;
+};
+
+//using Action = std::pair<std::pair<ExecuteFunc, IsValidFunc>, int>;
 
 namespace Actions
 {
-
 	enum ActionIndexes
 	{
 		FOOD,
@@ -35,17 +56,13 @@ namespace Actions
 		SOCIAL
 	};
 
-	extern std::vector<Action> foodActions;
-	extern std::vector<Action> waterActions;
-	extern std::vector<Action> wanderActions;
+	std::vector<Action*> GetAllActions();
 
-	std::vector<Action>* GetActions(ActionIndexes index);
-
-	std::string Getname(int IDs);
+	Action GetAction(actionIDs ID);
 
 	int FindID(std::string nameToSearch);
 
 	int Counter(std::string nameOfAction);
 
-	Action MakeAction(ExecuteFunc executeFunc, IsValidFunc isValidFunc, int ID);
+	Action GetGoalAction(ActionIndexes actionIndex, EEmotions emotion);
 }

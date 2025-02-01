@@ -25,7 +25,7 @@ namespace ImGui_Implementation
 	extern int agentCount;
 	extern std::array<int, 5> OCEANValues;
 	extern std::array<Trait, 6> Traits;
-	extern std::array<std::pair<std::string, float>, 8> emotionValues;
+	extern std::array<std::pair<EEmotions, float>, 8> emotionValues;
 	extern Needs needStruct;
 	extern float currentTime;
 	extern std::string action;

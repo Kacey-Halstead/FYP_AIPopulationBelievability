@@ -11,7 +11,7 @@
 #include "AStar.h"
 #include "States.h"
 
-
+enum actionIDs : unsigned int;
 
 struct States
 {
@@ -35,7 +35,7 @@ public:
 	void UpdateImGui();
 
 	void Move(glm::vec2 destination);
-	char DecideOnGoal();
+	std::pair<char, EEmotions> DecideOnGoal();
 	bool IsPointInAgent(SDL_Point point);
 
 	//DETECT
@@ -49,9 +49,9 @@ public:
 	void SettleEmotions(float deltaTime);
 
 	//EMOTIONS
-	std::pair<std::string, float> GetDominantEmotion(); //SADJAFTS
-	void ChangeEmotionValue(std::string emotion, float value); //multipliers applied here
-	bool QueryDominantEmotions(std::string query);
+	std::pair<EEmotions, float> GetDominantEmotion(); //SADJAFTS
+	void ChangeEmotionValue(EEmotions emotion, float value); //multipliers applied here
+	bool QueryDominantEmotions(EEmotions emotion);
 
 	//GETTERS
 	inline Grid* GetGridRef() { return gridRef; }
@@ -59,15 +59,15 @@ public:
 
 	glm::vec2 position = {};
 
-	std::array<std::pair<std::string, float>, 8> emotions = {
-	make_pair("Surprise", 1),
-	make_pair("Anticipation", 1),
-	make_pair("Disgust", 1),
-	make_pair("Joy", 1),
-	make_pair("Anger", 1),
-	make_pair("Fear", 1),
-	make_pair("Trust", 1),
-	make_pair("Sadness", 1)
+	std::array<std::pair<EEmotions, float>, 8> emotions = {
+	make_pair(SURPRISE, 1),
+	make_pair(ANTICIPATION, 1),
+	make_pair(DISGUST, 1),
+	make_pair(JOY, 1),
+	make_pair(ANGER, 1),
+	make_pair(FEAR, 1),
+	make_pair(TRUST, 1),
+	make_pair(SADNESS, 1)
 	};
 
 	Needs needs = {};
@@ -77,7 +77,7 @@ public:
 	int agentCount = 0;
 	glm::ivec2 size = { 50, 50 };
 
-	std::stack<int> responsiveStack{};
+	std::stack<actionIDs> responsiveStack{};
 
 private:
 

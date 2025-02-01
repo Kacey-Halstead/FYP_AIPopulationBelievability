@@ -115,7 +115,7 @@ std::vector<float> Agent::GetValuesForImGui(int index)
 	return std::vector<float>();
 }
 
-char Agent::DecideOnGoal()
+std::pair<char, EEmotions> Agent::DecideOnGoal()
 {
 	std::vector<std::pair<char, float>> utilities{};
 
@@ -130,17 +130,21 @@ char Agent::DecideOnGoal()
 	std::pair<char, float> highestUrgency = utilities[0];
 
 	//if no needs are very low
-	if (highestUrgency.second < 0.4) return 'W';
+	if (highestUrgency.second < 0.4)
+	{
 
-	return highestUrgency.first;
+		return make_pair('W', GetDominantEmotion().first);
+	}
+
+	return make_pair(highestUrgency.first, GetDominantEmotion().first);
 }
 
-std::pair<std::string, float> Agent::GetDominantEmotion()
+std::pair<EEmotions, float> Agent::GetDominantEmotion()
 {
-	std::pair<std::string, float> highest;
+	std::pair<EEmotions, float> highest;
 	highest.second = 0;
 
-	for (std::pair<std::string, float> emotion : emotions)
+	for (std::pair<EEmotions, float> emotion : emotions)
 	{
 		if (emotion.second > highest.second)
 		{
@@ -151,7 +155,7 @@ std::pair<std::string, float> Agent::GetDominantEmotion()
 	return highest;
 }
 
-void Agent::ChangeEmotionValue(std::string emotion, float value)
+void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 {
 	for (int i = 0; i < 8; i++)
 	{
@@ -163,11 +167,11 @@ void Agent::ChangeEmotionValue(std::string emotion, float value)
 	}
 }
 
-bool Agent::QueryDominantEmotions(std::string query) //must be top 3
+bool Agent::QueryDominantEmotions(EEmotions query) //must be top 3
 {
-	std::array<std::pair<std::string, float>, 8> toSort = emotions;
+	std::array<std::pair<EEmotions, float>, 8> toSort = emotions;
 
-	std::sort(toSort.begin(), toSort.end(), [](std::pair<std::string, float> a, std::pair<std::string, float> b) {
+	std::sort(toSort.begin(), toSort.end(), [](std::pair<EEmotions, float> a, std::pair<EEmotions, float> b) {
 		return a.second > b.second;
 		});
 
@@ -206,7 +210,7 @@ void Agent::SettleEmotions(float deltaTime)
 {
 	//overtime, emotions settle to neutral (0)
 
-	for (std::pair<std::string, float> emotion : emotions)
+	for (std::pair<EEmotions, float> emotion : emotions)
 	{
 		if (emotion.second > 0)
 		{

@@ -18,6 +18,19 @@ struct Needs
 	float socialVal = 100;
 };
 
+enum EEmotions
+{
+	SURPRISE,
+	ANTICIPATION,
+	DISGUST,
+	JOY,
+	ANGER,
+	FEAR,
+	TRUST,
+	SADNESS,
+	NONE
+};
+
 constexpr int gridSizeX = 30;
 constexpr int gridSizeY = 30;
 constexpr glm::ivec2 windowSize{ 900, 900 };

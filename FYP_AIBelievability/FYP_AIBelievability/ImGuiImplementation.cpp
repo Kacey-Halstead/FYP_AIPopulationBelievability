@@ -18,7 +18,7 @@ namespace ImGui_Implementation
 	bool pause = false;
 	bool toSelectDest = false;
 	std::string action = " ";
-	std::array<std::pair<std::string, float>, 8> emotionValues = {};
+	std::array<std::pair<EEmotions, float>, 8> emotionValues = {};
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);

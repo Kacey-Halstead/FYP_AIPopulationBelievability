@@ -1,25 +1,25 @@
 #include "Action.h"
 #include "DAG.h"
 
-std::vector<Action>* Goals::PickGoal(States& states)
+Action Goals::PickGoal(States& states)
 {
-	char index = states.moveState.agent->DecideOnGoal();
+	std::pair<char, EEmotions> goal = states.moveState.agent->DecideOnGoal();
 
-	switch (index)
+	switch (goal.first)
 	{
 	case 'H':
-		return Actions::GetActions(Actions::FOOD);
+		return Actions::GetGoalAction(Actions::FOOD, goal.second);
 		break;
 	case 'T':
-		return Actions::GetActions(Actions::WATER); 
+		return Actions::GetGoalAction(Actions::WATER, goal.second);
 		break;
 	case 'S':
-		return Actions::GetActions(Actions::SOCIAL);
+		return Actions::GetGoalAction(Actions::SOCIAL, goal.second);
 		break;
 	case 'W':
-		return Actions::GetActions(Actions::WANDER);
+		return Actions::GetGoalAction(Actions::WANDER, goal.second);
 		break;
 	}
 
-	return nullptr;
+	return Action();
 }

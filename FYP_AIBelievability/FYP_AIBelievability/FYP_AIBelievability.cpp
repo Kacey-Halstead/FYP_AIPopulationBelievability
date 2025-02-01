@@ -47,28 +47,21 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	}
 
 	//Create all nodes for all actions
-	mDAG->CreateNode(Actions::GetActions(Actions::WATER));
-	mDAG->CreateNode(Actions::GetActions(Actions::FOOD));
-	mDAG->CreateNode(Actions::GetActions(Actions::WANDER));
-	mDAG->CreateNode(Actions::GetActions(Actions::SOCIAL));
+	auto Nodes = mDAG->CreateNodes(Actions::GetAllActions());
 
 	//Drink Water - dependencies: Find Water, Wander
-	node* waterNode = mDAG->FindNode((Actions::GetActions(Actions::WATER)->at(0).second));
-	waterNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::WATER)->at(1).second)));
-	waterNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::WANDER)->at(0).second)));
+	Nodes[GOAL_DRINKWATER]->children.push_back(Nodes[FIND_WATER]);
+	Nodes[GOAL_DRINKWATER]->children.push_back(Nodes[GOAL_WANDER]);
 
 	//Eat Food - dependencies: Find Food, Wander
-	node* foodNode = mDAG->FindNode((Actions::GetActions(Actions::FOOD)->at(0).second));
-	foodNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::FOOD)->at(1).second)));
-	foodNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::WANDER)->at(0).second)));
+	Nodes[GOAL_EATFOOD]->children.push_back(Nodes[FIND_FOOD]);
+	Nodes[GOAL_EATFOOD]->children.push_back(Nodes[GOAL_WANDER]);
 
 	//Transfer knowledge - dependencies: FindOtherAgent
-	node* socialNode = mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(0).second));
-	socialNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(1).second)));
+	Nodes[GOAL_TRANSFERINFO]->children.push_back(Nodes[FIND_OTHER_AGENT]);
 
 	//Fight - dependencies: FindOtherAgent
-	node* fightNode = mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(2).second));
-	fightNode->children.push_back(mDAG->FindNode((Actions::GetActions(Actions::SOCIAL)->at(1).second)));
+	Nodes[GOAL_FIGHT]->children.push_back(Nodes[FIND_OTHER_AGENT]);
 }
 
 FYP_AIBelievability::~FYP_AIBelievability()
@@ -171,24 +164,24 @@ void FYP_AIBelievability::Update()
 		}
 		else if (!agent.responsiveStack.empty()) //is more responsive task comes up
 		{
-			node* toExecute = mDAG->FindNode(agent.responsiveStack.top());
+			DagNode* toExecute = mDAG->FindNode(agent.responsiveStack.top());
 			Action* action = toExecute->action;
-			action->first.first(agent.states);
+			action->executeFunc(agent.states);
 
-			if (action->first.second(agent.states).first != InProgress)
+			if (action->isValidFunc(agent.states).first != InProgress)
 			{
 				agent.responsiveStack.pop();
 			}
 		}
 		else
 		{
-			std::vector<Action>* actions = Goals::PickGoal(agent.states);
-			node* currentNode = mDAG->FindPlan(actions->front().second, agent.states);
+			Action goalAction = Goals::PickGoal(agent.states);
+			DagNode* currentNode = mDAG->FindPlan(goalAction.ID, agent.states);
 
 			if (currentNode != nullptr && !agent.states.socialState.isTalkingTo)
 			{
-				currentNode->action->first.first(agent.states);
-				ImGui_Implementation::action = Actions::Getname(currentNode->action->second);
+				currentNode->action->executeFunc(agent.states);
+				ImGui_Implementation::action = currentNode->action->actionName;
 			}
 		}
 

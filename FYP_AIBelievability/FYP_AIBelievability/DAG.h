@@ -1,13 +1,13 @@
 #pragma once
 #include "Action.h"
 
-struct node
+struct DagNode
 {
 	Action* action;
 
-	std::vector<node*> children;
+	std::vector<DagNode*> children;
 
-	node(Action* a)
+	DagNode(Action* a)
 	{
 		action = a;
 	}
@@ -30,21 +30,24 @@ public:
 		}
 	}
 
-	void CreateNode(std::vector<Action>* actions)
+	std::vector<DagNode*> CreateNodes(std::vector<Action*>&& actions)
 	{
-		for (Action& a : *actions)
+		std::vector<DagNode*> newNodes;
+		newNodes.reserve(actions.size());
+		for (Action* a : actions)
 		{			
-			allActions.emplace_back(new node(&a));
+			newNodes.push_back(allActions.emplace_back(new DagNode(a)));
 		}
+		return newNodes;
 	}
 
-	node* FindPlan(int actionIndex, States& states)
+	DagNode* FindPlan(actionIDs actionIndex, States& states)
 	{
-		node* current = FindNode(actionIndex);
+		DagNode* current = FindNode(actionIndex);
 		if (current == nullptr) return nullptr;
 
 		//if current complete then return
-		if (current->action->first.second(states).first == Complete)
+		if (current->action->isValidFunc(states).first == Complete)
 		{
 			return nullptr;
 		}
@@ -55,10 +58,10 @@ public:
 			bool complete = true;
 			bool impossible = true;
 			int highestPriority = -1;
-			node* highest = current;
+			DagNode* highest = current;
 			for (auto child : current->children)
 			{
-				auto [state, prio] = child->action->first.second(states);
+				auto [state, prio] = child->action->isValidFunc(states);
 				if (state == Impossible)
 				{
 					complete = false;
@@ -85,11 +88,11 @@ public:
 		return current;
 	}
 
-	node* FindNode(int actionIndex)
+	DagNode* FindNode(actionIDs actionIndex)
 	{
-		for (node* n : allActions)
+		for (DagNode* n : allActions)
 		{
-			if (n->action->second == actionIndex)
+			if (n->action->ID == actionIndex)
 			{
 				return n;
 			}
@@ -97,7 +100,7 @@ public:
 		return nullptr;
 	}
 
-	std::vector<node*> allActions;
+	std::vector<DagNode*> allActions;
 };
 
 

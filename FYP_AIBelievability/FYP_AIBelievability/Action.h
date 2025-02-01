@@ -55,5 +55,5 @@ public:
 
 	//decide goal
 
-	static std::vector<Action>* PickGoal(States& states);
+	static Action PickGoal(States& states);
 };
