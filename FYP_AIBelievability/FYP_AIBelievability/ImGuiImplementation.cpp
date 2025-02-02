@@ -17,13 +17,31 @@ namespace ImGui_Implementation
 	float currentTime = 0;
 	bool pause = false;
 	bool toSelectDest = false;
+
+	float deltaTimeModifier = 1.0f;
+
 	std::string action = " ";
+	std::list<std::string> actions{};
+
 	std::array<std::pair<EEmotions, float>, 8> emotionValues = {};
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
 	std::vector<float> socialValues = std::vector<float>(400, 100);
 	std::vector<float> time = std::vector<float>(400, 0);
+
+	//						  { "Surprise" ,	"Anticipation", "Disgust", "Joy",		"Anger",	"Fear",		"Trust",	"Sadness"}
+	ImU32 emotionColours[8] = { 
+		0xFFe3d732, // surprise
+		0xFF4397e0,
+		0xFFd945d1,
+		0xFF10d1e3,
+		0xFF1111d6,
+		0xFF1b8c26,
+		0xFF5fe86d,
+		0xFFe35232
+	};
+	ImPlotColormap customEmotionColours;
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
 	{
@@ -35,6 +53,9 @@ namespace ImGui_Implementation
 		// Setup Platform/Renderer backends
 		ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
 		ImGui_ImplSDLRenderer2_Init(renderer);
+
+		
+		customEmotionColours = ImPlot::AddColormap("FYPAiBelievability", emotionColours, 8);
 	}
 
 	void Destroy()
@@ -60,11 +81,32 @@ namespace ImGui_Implementation
 	{
 		if (isAgentPressed)
 		{
-			ImGui_Implementation::Begin("Agent Information");
+			ImGui_Implementation::SetNextWindowPos({ 900, 200 });
+			ImGui_Implementation::SetNextWindowSize({ 400, 700 });
+			ImGui_Implementation::Begin("Agent Information", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+			
+			ImGui_Implementation::Text("agent = %d", agentCount);
 
-			ImGui_Implementation::Text("Performing Action: = %s", action.c_str());
+			//list of completed actions
+			ImGui_Implementation::Text("Actions Performed");
+			ImGui_Implementation::SetNextWindowSize({ 400, 200 });
+			ImGui_Implementation::BeginChild("ActionsPerformed");
+
+			std::list<std::string> toPrint = actions;
+
+			ImGui_Implementation::Text("Most Recent Action: = %s", toPrint.front().c_str());
+			toPrint.pop_front();
+
+			for (std::string action : toPrint) //0 = most recent action
+			{
+				ImGui_Implementation::Text(action.c_str());
+			}
+
+			ImGui_Implementation::EndChild();
 
 			//EMOTIONS
+
+			
 			if (ImPlot::BeginPlot("Emotions", ImVec2(370, 370), ImPlotFlags_NoInputs))
 			{
 				const char* labels[8] = { "Surprise" , "Anticipation", "Disgust", "Joy", "Anger", "Fear", "Trust", "Sadness"};
@@ -84,11 +126,10 @@ namespace ImGui_Implementation
 				ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
 				ImPlot::SetupAxesLimits(0, 1, 0, 1);
 
-				ImPlot::PushColormap(ImPlotColormap_Pastel);
+				ImPlot::PushColormap(customEmotionColours);
 				ImPlot::PlotPieChart(labels, data, 8, 0.5, 0.5, 0.4);
+				ImPlot::PopColormap();
 
-
-				ImPlot::PopColormap;
 				ImPlot::EndPlot();
 
 			}
@@ -131,7 +172,7 @@ namespace ImGui_Implementation
 			}
 			ImGui_Implementation::EndChild();
 
-			ImGui_Implementation::Text("agent = %d", agentCount);
+
 
 			ImGui_Implementation::End();	
 		}
@@ -139,7 +180,9 @@ namespace ImGui_Implementation
 
 	void MainUI()
 	{
-		ImGui_Implementation::Begin("Menu");
+		ImGui_Implementation::SetNextWindowPos({ 900, 0 });
+		ImGui_Implementation::SetNextWindowSize({ 400, 200 });
+		ImGui_Implementation::Begin("Menu", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
 		ImGui_Implementation::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui_Implementation::GetIO().Framerate, ImGui_Implementation::GetIO().Framerate);
 
@@ -153,13 +196,15 @@ namespace ImGui_Implementation
 			pause = !pause;
 		}
 
-		if (isAgentPressed)
-		{
-			if (ImGui_Implementation::Button("Select end destination for agent", { 120, 30 }))
-			{
-				toSelectDest = true;
-			}
-		}
+		ImGui_Implementation::SliderFloat("Speed", &deltaTimeModifier, 0.1f, 10.0f);
+
+		//if (isAgentPressed)
+		//{
+		//	if (ImGui_Implementation::Button("Select end destination for agent", { 120, 30 }))
+		//	{
+		//		toSelectDest = true;
+		//	}
+		//}
 
 		ImGui_Implementation::End();
 	}

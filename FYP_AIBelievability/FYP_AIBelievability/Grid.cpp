@@ -4,7 +4,7 @@
 Grid::Grid(std::array<char, numberOfTypes> types)
 {
 	allTypes = types;
-	tileSizeOnScreen = { windowSize.x / gridSizeX, windowSize.y / gridSizeY };
+	tileSizeOnScreen = { 900 / gridSizeX, 900 / gridSizeY };
 
 	//for every cell, define possible tiles
 	int index = 0;

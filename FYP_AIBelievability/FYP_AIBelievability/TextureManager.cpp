@@ -14,7 +14,19 @@ namespace TextureManager
 	"AGENT",
 	"PATH",
 	"BUSHE",
-	"BUSHF"
+	"BUSHF",
+	"EMOTE_ANGER",
+	"EMOTE_ANGRYFACE",
+	"EMOTE_DOT1",
+	"EMOTE_DOT2",
+	"EMOTE_DOT3",
+	"EMOTE_DROPS",
+	"EMOTE_EXCLAIM",
+	"EMOTE_FEAR",
+	"EMOTE_HAPPYFACE",
+	"EMOTE_HEART",
+	"EMOTE_SADFACE",
+	"EMOTE_SWIRL"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

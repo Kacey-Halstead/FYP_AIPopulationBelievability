@@ -2,6 +2,8 @@
 #include <array>
 #include <glm/glm.hpp>
 #include <string>
+#include <queue>
+#include <list>
 
 #include "Commons.h"
 #include "WFC.h" 
@@ -21,6 +23,8 @@ namespace ImGui_Implementation
 	void MainUI();
 	void RenderBefore();
 
+	extern float deltaTimeModifier;
+
 	extern bool isAgentPressed;	
 	extern int agentCount;
 	extern std::array<int, 5> OCEANValues;
@@ -28,7 +32,8 @@ namespace ImGui_Implementation
 	extern std::array<std::pair<EEmotions, float>, 8> emotionValues;
 	extern Needs needStruct;
 	extern float currentTime;
-	extern std::string action;
+
+	extern std::list<std::string> actions;
 
 	extern std::vector<float> hungerValues;
 	extern std::vector<float> thirstValues;

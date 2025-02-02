@@ -58,7 +58,10 @@ void Agent::Update(float deltaTime)
 void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
 	SDL_Rect destRect = gridRef->GetRenderRect(position, size);
+	SDL_Rect emoteRect = {destRect.x, destRect.y + 10, 10, 10};
+	SDL_SetTextureColorMod(TextureManager::GetTexture(AGENT), textureColour[0], textureColour[1], textureColour[2]);
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &destRect);
+	SDL_RenderCopy(renderer, TextureManager::GetTexture(EMOTE_HAPPYFACE), NULL, &emoteRect);
 	SDL_RenderDrawRect(renderer, &destRect);
 }
 
@@ -119,9 +122,9 @@ std::pair<char, EEmotions> Agent::DecideOnGoal()
 {
 	std::vector<std::pair<char, float>> utilities{};
 
-	utilities.push_back(make_pair('H', sqrt((100 - needs.hungerVal) / 100)));
-	utilities.push_back(make_pair('T', sqrt((100 - needs.thirstVal) / 100)));
-	utilities.push_back(make_pair('S', sqrt((100 - needs.socialVal) / 100)));
+	utilities.push_back(make_pair('H', GetUtility(needs.hungerVal)));
+	utilities.push_back(make_pair('T', GetUtility(needs.thirstVal)));
+	utilities.push_back(make_pair('S', GetUtility(needs.socialVal)));
 
 	std::sort(utilities.begin(), utilities.end(), [](std::pair<char, float> a, std::pair<char, float> b) {
 		return a.second > b.second;
@@ -129,14 +132,20 @@ std::pair<char, EEmotions> Agent::DecideOnGoal()
 	
 	std::pair<char, float> highestUrgency = utilities[0];
 
+	EEmotions dominantEmotion = GetDominantEmotion().first;
+
+	if (highestUrgency.first == 'S' && dominantEmotion == SADNESS) //if social lowest but sad, skip
+	{
+		highestUrgency = utilities[1];
+	}
+
 	//if no needs are very low
 	if (highestUrgency.second < 0.4)
 	{
-
-		return make_pair('W', GetDominantEmotion().first);
+		return make_pair('W', dominantEmotion);
 	}
 
-	return make_pair(highestUrgency.first, GetDominantEmotion().first);
+	return make_pair(highestUrgency.first, dominantEmotion);
 }
 
 std::pair<EEmotions, float> Agent::GetDominantEmotion()
@@ -152,6 +161,37 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 		}
 	}
 
+	switch (highest.first)
+	{
+	case SURPRISE:
+		textureColour = { 104, 211, 232 };
+		break;
+	case ANTICIPATION:
+		textureColour = { 232, 134, 81 };
+		break;
+	case DISGUST:
+		textureColour = { 232, 95, 175 };
+		break;
+	case JOY:
+		textureColour = { 232, 207, 46 };
+		break;
+	case ANGER:
+		textureColour = { 232, 32, 32 };
+		break;
+	case FEAR:
+		textureColour = { 27, 128, 28 };
+		break;
+	case TRUST:
+		textureColour = { 141, 227, 104 };
+		break;
+	case SADNESS:
+		textureColour = { 44, 44, 212 };
+		break;
+	case NONE:
+		textureColour = { 255, 255, 255 };
+		break;
+	}
+
 	return highest;
 }
 
@@ -165,22 +205,19 @@ void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 			break;
 		}
 	}
+
+	SetSpeed();
 }
 
-bool Agent::QueryDominantEmotions(EEmotions query) //must be top 3
+void Agent::ApplyNeedModifiers()
 {
-	std::array<std::pair<EEmotions, float>, 8> toSort = emotions;
+	//utility theory 0/1 - more urgent need = unhappy
 
-	std::sort(toSort.begin(), toSort.end(), [](std::pair<EEmotions, float> a, std::pair<EEmotions, float> b) {
-		return a.second > b.second;
-		});
+	float hungerUtility = GetUtility(needs.hungerVal);
+	float thirstUtility = GetUtility(needs.thirstVal);
 
-	for (int i = 0; i < 3; i++)
-	{
-		if (toSort[i].first == query) return true;
-	}
-
-	return false;
+	float hungerModifier = 2 * hungerUtility;
+	float thirstModifier = 2 * thirstUtility;
 }
 
 void Agent::DecreaseNeeds(float deltaTime)
@@ -192,12 +229,12 @@ void Agent::DecreaseNeeds(float deltaTime)
 
 	if (needs.thirstVal > 0)
 	{
-		needs.thirstVal -= 3 * deltaTime;
+		needs.thirstVal -= 2 * deltaTime;
 	}
 
-	if (needs.socialVal > 0)
+	if (needs.socialVal > 0 && GetDominantEmotion().first != SADNESS) //do not decrease social when sad
 	{
-		needs.socialVal -= 1 * deltaTime;
+		needs.socialVal -= 2 * deltaTime;
 	}
 
 	if (needs.healthVal < 100)
@@ -221,6 +258,29 @@ void Agent::SettleEmotions(float deltaTime)
 			emotion.second += 0.1f * deltaTime;
 		}
 	}
+}
+
+void Agent::SetSpeed()
+{
+	EEmotions dominant = GetDominantEmotion().first;
+
+	if (dominant == ANGER || dominant == JOY || dominant == FEAR)
+	{
+		speed = 2.0f;
+	}
+	else if (dominant == SADNESS || dominant == ANTICIPATION)
+	{
+		speed = 0.5f;
+	}
+	else
+	{
+		speed = 1.0f;
+	}
+}
+
+float Agent::GetUtility(float need)
+{
+	return sqrt((100 - need) / 100);
 }
 
 void Agent::Move(glm::vec2 destination)

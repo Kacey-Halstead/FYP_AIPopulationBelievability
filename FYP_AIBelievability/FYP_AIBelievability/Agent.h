@@ -47,11 +47,13 @@ public:
 	void DrinkWater(float amount);
 	void DecreaseNeeds(float deltaTime);
 	void SettleEmotions(float deltaTime);
+	void SetSpeed();
+	float GetUtility(float need);
 
 	//EMOTIONS
 	std::pair<EEmotions, float> GetDominantEmotion(); //SADJAFTS
 	void ChangeEmotionValue(EEmotions emotion, float value); //multipliers applied here
-	bool QueryDominantEmotions(EEmotions emotion);
+	void ApplyNeedModifiers();
 
 	//GETTERS
 	inline Grid* GetGridRef() { return gridRef; }
@@ -79,9 +81,10 @@ public:
 
 	std::stack<actionIDs> responsiveStack{};
 
-private:
+	std::list<std::string> actions{};
 
-	SDL_Rect agentRect;	
+private:
+	SDL_Rect agentRect;
 
 	std::array<Agent*, 2> parents = {};
 
@@ -92,6 +95,8 @@ private:
 	glm::vec2 velocity = { 0, 0 };
 
 	float speed = 1.0f;
+
+	std::array<Uint8, 3> textureColour = {255, 255, 255 };
 
 	//Imgui values update
 	std::vector<float> hungerValues = std::vector<float>(400, 100);

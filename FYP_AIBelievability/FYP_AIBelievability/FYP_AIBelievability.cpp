@@ -58,10 +58,13 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	Nodes[GOAL_EATFOOD]->children.push_back(Nodes[GOAL_WANDER]);
 
 	//Transfer knowledge - dependencies: FindOtherAgent
-	Nodes[GOAL_TRANSFERINFO]->children.push_back(Nodes[FIND_OTHER_AGENT]);
+	Nodes[GOAL_TRANSFERINFO]->children.push_back(Nodes[FIND_OTHER_AGENT]); //trust
 
 	//Fight - dependencies: FindOtherAgent
-	Nodes[GOAL_FIGHT]->children.push_back(Nodes[FIND_OTHER_AGENT]);
+	Nodes[GOAL_FIGHT]->children.push_back(Nodes[FIND_OTHER_AGENT]); //anger
+
+	//Socialise - dependencies: FindOtherAgent
+	Nodes[GOAL_SOCIALISE]->children.push_back(Nodes[FIND_OTHER_AGENT]); //joy
 }
 
 FYP_AIBelievability::~FYP_AIBelievability()
@@ -123,7 +126,7 @@ void FYP_AIBelievability::Update()
 	if (deltaTime > 1.0f)
 		deltaTime = 0.0f;
 
-	deltaTime *= 3;
+	deltaTime *= ImGui_Implementation::deltaTimeModifier;
 	mAccumulatedTime += deltaTime; //total accumulated
 	mCounter += deltaTime; //counter for not executing every frame
 
@@ -181,7 +184,12 @@ void FYP_AIBelievability::Update()
 			if (currentNode != nullptr && !agent.states.socialState.isTalkingTo)
 			{
 				currentNode->action->executeFunc(agent.states);
-				ImGui_Implementation::action = currentNode->action->actionName;
+				agent.actions.push_front(currentNode->action->actionName);
+
+				if (agent.actions.size() > 10)
+				{
+					agent.actions.pop_back();
+				}
 			}
 		}
 
@@ -200,6 +208,7 @@ void FYP_AIBelievability::Update()
 				ImGui_Implementation::thirstValues = agent.GetValuesForImGui(1);
 				ImGui_Implementation::socialValues = agent.GetValuesForImGui(2);
 				ImGui_Implementation::emotionValues = agent.emotions;
+				ImGui_Implementation::actions = agent.actions;
 			}
 
 			mCounter = 0;

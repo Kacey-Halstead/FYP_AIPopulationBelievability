@@ -16,7 +16,8 @@ enum actionIDs : unsigned int
 	GOAL_TRANSFERINFO,
 	FIND_OTHER_AGENT,
 	GOAL_FIGHT,
-	FLEE
+	FLEE,
+	GOAL_SOCIALISE
 };
 
 enum ActionProgress

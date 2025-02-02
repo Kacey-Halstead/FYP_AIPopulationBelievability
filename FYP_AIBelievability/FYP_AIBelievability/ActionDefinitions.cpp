@@ -56,15 +56,28 @@ struct EatFood
 		}
 
 		states.foodState.foundFoodRef = nullptr;
-		states.moveState.agent->ChangeEmotionValue(JOY, 1);
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
 		if (states.moveState.agent->needs.hungerVal > 60)
+		{
 			return { ActionProgress::Complete, 1 };
+		}
+		else if (!states.foodState.foundFoodRef)
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+		else if (!states.foodState.foundFoodRef->canEat && ComparePositions(states.moveState.agent->position, states.foodState.foundFoodRef->position, 1.0f))
+		{
+			states.moveState.agent->ChangeEmotionValue(ANGER, 2);
+			states.moveState.agent->ChangeEmotionValue(SADNESS, 2);
+			return { ActionProgress::Impossible, 1 };
+		}
 		else
+		{
 			return { ActionProgress::InProgress, 1 };
+		}
 	}
 
 
@@ -118,17 +131,23 @@ struct DrinkWater
 	static void Execute(States& states)
 	{
 		states.moveState.agent->DrinkWater((100-states.moveState.agent->needs.thirstVal));
-		states.waterState.waterRefSet = false;
-
-		states.moveState.agent->ChangeEmotionValue(JOY, 1);
+		states.waterState.waterRefSet = false;	
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if(states.moveState.agent->needs.thirstVal > 60)
+		if (states.moveState.agent->needs.thirstVal > 60)
+		{
 			return { ActionProgress::Complete, 1 };
+		}
+		else if (!states.waterState.waterRefSet)
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
 		else
+		{
 			return { ActionProgress::InProgress, 1 };
+		}
 	}
 };
 
@@ -219,36 +238,89 @@ struct TransferKnowledge
 {
 	static void Execute(States& states)
 	{
-		//look through selected agent's food/water positions, if different, transfer
+		Agent* agentWithMore = nullptr;
+		Agent* agentWithLess = nullptr;
 
-		for ( const std::pair<glm::vec2, FoodSource*>& positions : states.foodState.prevFoodPositions)
+		//if agent foodPos > otherAgent foodPos
+		if (states.moveState.agent->states.foodState.prevFoodPositions.size() > states.socialState.agentRef->states.foodState.prevFoodPositions.size())
 		{
-			if (std::none_of(states.socialState.agentRef->states.foodState.prevFoodPositions.begin(), states.socialState.agentRef->states.foodState.prevFoodPositions.end(), [positions](const std::pair<glm::vec2, FoodSource*>& other) {
+			agentWithMore = states.moveState.agent;
+			agentWithLess = states.socialState.agentRef;
+		}
+		else
+		{
+			agentWithLess = states.moveState.agent;
+			agentWithMore = states.socialState.agentRef;
+		}
+
+		for ( const std::pair<glm::vec2, FoodSource*>& positions : agentWithMore->states.foodState.prevFoodPositions)
+		{
+			if (std::none_of(agentWithLess->states.foodState.prevFoodPositions.begin(), agentWithLess->states.foodState.prevFoodPositions.end(), [positions](const std::pair<glm::vec2, FoodSource*>& other) {
 				return positions.first == other.first;
 				}))
 			{
-				states.socialState.agentRef->states.foodState.prevFoodPositions.push_back(positions);
-
-				break;
+				agentWithLess->states.foodState.prevFoodPositions.push_back(positions);
+				FinishSocial(states);
+				return;
 			}
 		}
 
-		for (const glm::vec2& positions : states.waterState.prevWaterPositions)
+		for (const glm::vec2& positions : agentWithMore->states.waterState.prevWaterPositions)
 		{
-			if (std::none_of(states.socialState.agentRef->states.waterState.prevWaterPositions.begin(), states.socialState.agentRef->states.waterState.prevWaterPositions.end(), [positions](const glm::vec2& other) {
+			if (std::none_of(agentWithLess->states.waterState.prevWaterPositions.begin(), agentWithLess->states.waterState.prevWaterPositions.end(), [positions](const glm::vec2& other) {
 				return positions == other;
 				}))
 			{
-				states.socialState.agentRef->states.waterState.prevWaterPositions.push_back(positions);
-				break;
+				agentWithLess->states.waterState.prevWaterPositions.push_back(positions);
+				FinishSocial(states);
+				return;
 			}
 		}
 
+		FinishSocial(states);
+	}
+
+	static std::pair<ActionProgress, int> IsValid(States& states)
+	{
+		if (states.moveState.agent->needs.socialVal > 80)
+		{
+			return { ActionProgress::Complete, 1 };
+		}
+		else if (!states.socialState.agentRef && states.moveState.agent->GetDominantEmotion().first != TRUST)
+		{
+			return { ActionProgress::Impossible, 1 };
+		}
+		
+		return { ActionProgress::InProgress, 1 };
+	}
+
+	static void FinishSocial(States& states)
+	{
 		states.moveState.agent->ChangeEmotionValue(JOY, 1);
 		states.moveState.agent->ChangeEmotionValue(TRUST, 2);
 
 		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(JOY, 1);
 		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(TRUST, 2);
+
+		states.moveState.agent->needs.socialVal = 100;
+		states.socialState.agentRef->needs.socialVal = 100;
+		states.socialState.agentRef->states.socialState.isTalkingTo = false;
+		states.socialState.isSeekingOtherAgent = false;
+		states.socialState.agentRef = nullptr;
+	}
+};
+
+// -------------------------------------------------------------------------------------------------------------------
+
+struct Socialise
+{
+	static void Execute(States& states)
+	{
+		states.moveState.agent->ChangeEmotionValue(JOY, 2);
+		states.moveState.agent->ChangeEmotionValue(TRUST, 1);
+
+		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(JOY, 2);
+		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(TRUST, 1);
 
 		states.moveState.agent->needs.socialVal = 100;
 		states.socialState.agentRef->needs.socialVal = 100;
@@ -267,7 +339,7 @@ struct TransferKnowledge
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
-		
+
 		return { ActionProgress::InProgress, 1 };
 	}
 };
@@ -278,8 +350,7 @@ struct Fight
 {
 	static void Execute(States& states)
 	{
-		if (states.socialState.agentRef->GetDominantEmotion().first == ANGER || 
-			states.socialState.agentRef->GetDominantEmotion().first == SADNESS) //if fight
+		if (states.socialState.agentRef->GetDominantEmotion().first == ANGER) //if fight
 		{
 
 			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANGER, 2);
@@ -297,13 +368,13 @@ struct Fight
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.healthVal < 50 || ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 3.0f))
+		if (states.moveState.agent->needs.healthVal < 50)
 		{
 			states.socialState.agentRef = nullptr;
 			states.socialState.isSeekingOtherAgent = false;
 			return { ActionProgress::Complete, 1 };
 		}
-		else if (!states.socialState.agentRef && !states.moveState.agent->QueryDominantEmotions(ANGER))
+		else if (!states.socialState.agentRef && states.moveState.agent->GetDominantEmotion().first != ANGER)
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
@@ -381,15 +452,24 @@ namespace Actions
 	std::vector<std::string> names{};
 
 	std::vector<Action> ActionVec = {
+
+		//FOOD
 		{EatFood::Execute, EatFood::IsValid, GOAL_EATFOOD, "Eat Food", NONE},
 		{FindFood::Execute, FindFood::IsValid, FIND_FOOD, "Find Food", NONE},
+
+		//WATER
 		{DrinkWater::Execute, DrinkWater::IsValid, GOAL_DRINKWATER,"Drink Water", NONE},
 		{FindWater::Execute, FindWater::IsValid, FIND_WATER,"Find Water", NONE},
+
+		//WANDER
 		{Wander::Execute, Wander::IsValid, GOAL_WANDER,"Wander", NONE},
+
+		//SOCIAL
 		{TransferKnowledge::Execute, TransferKnowledge::IsValid, GOAL_TRANSFERINFO,"Tell Other Agents About Food", JOY},
 		{FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, FIND_OTHER_AGENT,"Find Other Agent", NONE},
 		{Fight::Execute, Fight::IsValid, GOAL_FIGHT,"Fight Agent", ANGER},
-		{RunAway::Execute, RunAway::IsValid, FLEE,"Run Away", FEAR}
+		{RunAway::Execute, RunAway::IsValid, FLEE,"Run Away", FEAR},
+		{Socialise::Execute, Socialise::IsValid, GOAL_SOCIALISE,"Socialise", JOY}
 	};
 
 	std::vector<Action*> GetAllActions()
@@ -437,9 +517,13 @@ namespace Actions
 			{
 				toReturn = GOAL_FIGHT;
 			}
-			else if (emotion == JOY)
+			else if (emotion == TRUST)
 			{
 				toReturn = GOAL_TRANSFERINFO;
+			}
+			else
+			{
+				toReturn = GOAL_SOCIALISE;
 			}
 		}
 			break;
