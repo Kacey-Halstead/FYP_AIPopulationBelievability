@@ -53,16 +53,36 @@ void Agent::Update(float deltaTime)
 
 	DecreaseNeeds(deltaTime);
 	SettleEmotions(deltaTime);
+
+	if (states.emoteToSet != NO_EMOTE)
+	{
+		emoteCounter += 2 * deltaTime;
+
+		if (emoteCounter > 10)
+		{
+			emoteCounter = 0;
+			states.emoteToSet = NO_EMOTE;
+		}
+	}
 }
 
 void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
 	SDL_Rect destRect = gridRef->GetRenderRect(position, size);
-	SDL_Rect emoteRect = {destRect.x, destRect.y + 10, 10, 10};
+
 	SDL_SetTextureColorMod(TextureManager::GetTexture(AGENT), textureColour[0], textureColour[1], textureColour[2]);
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &destRect);
-	SDL_RenderCopy(renderer, TextureManager::GetTexture(EMOTE_HAPPYFACE), NULL, &emoteRect);
-	SDL_RenderDrawRect(renderer, &destRect);
+
+	if (states.emoteToSet != NO_EMOTE)
+	{
+		SDL_Rect emoteRect = { destRect.x + (destRect.w / 2), destRect.y - 15, 20, 20 };
+		SDL_RenderCopy(renderer, TextureManager::GetTexture(states.emoteToSet), NULL, &emoteRect);
+	}
+
+	if (ImGui_Implementation::agentCount == agentCount)
+	{
+		SDL_RenderDrawRect(renderer, &destRect);
+	}
 }
 
 bool Agent::IsPointInAgent(SDL_Point point)
@@ -161,6 +181,11 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 		}
 	}
 
+	if (highest.second <= 1)
+	{
+		highest = make_pair(NONE, 0);
+	}
+
 	switch (highest.first)
 	{
 	case SURPRISE:
@@ -179,7 +204,7 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 		textureColour = { 232, 32, 32 };
 		break;
 	case FEAR:
-		textureColour = { 27, 128, 28 };
+		textureColour = { 14, 99, 25 };
 		break;
 	case TRUST:
 		textureColour = { 141, 227, 104 };
@@ -188,7 +213,7 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 		textureColour = { 44, 44, 212 };
 		break;
 	case NONE:
-		textureColour = { 255, 255, 255 };
+		textureColour = { 237, 166, 95 };
 		break;
 	}
 
@@ -206,6 +231,38 @@ void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 		}
 	}
 
+	switch (emotion)
+	{
+	case SURPRISE:
+		states.emoteToSet = EMOTE_EXCLAIM;
+		break;
+	case ANTICIPATION:
+		states.emoteToSet = EMOTE_ANGER;
+		break;
+	case DISGUST:
+		states.emoteToSet = EMOTE_SWIRL;
+		break;
+	case JOY:
+		states.emoteToSet = EMOTE_HAPPYFACE;
+		break;
+	case ANGER:
+		states.emoteToSet = EMOTE_ANGRYFACE;
+		break;
+	case FEAR:
+		states.emoteToSet = EMOTE_FEAR;
+		break;
+	case TRUST:
+		states.emoteToSet = EMOTE_HEART;
+		break;
+	case SADNESS:
+		states.emoteToSet = EMOTE_SADFACE;
+		break;
+	case NONE:
+		states.emoteToSet = NO_EMOTE;
+		break;
+	}
+
+	GetDominantEmotion();
 	SetSpeed();
 }
 
@@ -247,15 +304,15 @@ void Agent::SettleEmotions(float deltaTime)
 {
 	//overtime, emotions settle to neutral (0)
 
-	for (std::pair<EEmotions, float> emotion : emotions)
+	for (std::pair<EEmotions, float>& emotion : emotions)
 	{
-		if (emotion.second > 0)
+		if (emotion.second > 1)
 		{
-			emotion.second -= 0.1f * deltaTime;
+			emotion.second -= 0.05f * deltaTime;
 		}
-		else
+		else if(emotion.second < 0)
 		{
-			emotion.second += 0.1f * deltaTime;
+			emotion.second += 0.05f * deltaTime;
 		}
 	}
 }
@@ -266,7 +323,7 @@ void Agent::SetSpeed()
 
 	if (dominant == ANGER || dominant == JOY || dominant == FEAR)
 	{
-		speed = 2.0f;
+		speed = 1.5f;
 	}
 	else if (dominant == SADNESS || dominant == ANTICIPATION)
 	{

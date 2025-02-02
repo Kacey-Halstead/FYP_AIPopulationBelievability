@@ -5,11 +5,9 @@
 #include <imgui_impl_sdlrenderer2.h>
 #include <SDL.h>
 
-
-
 namespace ImGui_Implementation
 {
-	int agentCount = 0;
+	int agentCount = 1;
 	std::array<int, 5> OCEANValues{};
 	std::array<Trait, 6> Traits{};
 	bool isAgentPressed = false;
@@ -20,8 +18,7 @@ namespace ImGui_Implementation
 
 	float deltaTimeModifier = 1.0f;
 
-	std::string action = " ";
-	std::list<std::string> actions{};
+	std::list<std::string> actions = {"Wander"};
 
 	std::array<std::pair<EEmotions, float>, 8> emotionValues = {};
 
@@ -30,9 +27,8 @@ namespace ImGui_Implementation
 	std::vector<float> socialValues = std::vector<float>(400, 100);
 	std::vector<float> time = std::vector<float>(400, 0);
 
-	//						  { "Surprise" ,	"Anticipation", "Disgust", "Joy",		"Anger",	"Fear",		"Trust",	"Sadness"}
-	ImU32 emotionColours[8] = { 
-		0xFFe3d732, // surprise
+	ImU32 emotionColours[8] = { //SADJAFTS	
+		0xFFe3d732, 
 		0xFF4397e0,
 		0xFFd945d1,
 		0xFF10d1e3,
@@ -41,6 +37,7 @@ namespace ImGui_Implementation
 		0xFF5fe86d,
 		0xFFe35232
 	};
+
 	ImPlotColormap customEmotionColours;
 
 	void Init(SDL_Renderer* renderer, SDL_Window* window)
@@ -52,9 +49,7 @@ namespace ImGui_Implementation
 
 		// Setup Platform/Renderer backends
 		ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-		ImGui_ImplSDLRenderer2_Init(renderer);
-
-		
+		ImGui_ImplSDLRenderer2_Init(renderer);		
 		customEmotionColours = ImPlot::AddColormap("FYPAiBelievability", emotionColours, 8);
 	}
 
@@ -79,21 +74,22 @@ namespace ImGui_Implementation
 
 	void AgentPopUp()
 	{
-		if (isAgentPressed)
+		ImGui_Implementation::SetNextWindowPos({ 900, 200 });
+		ImGui_Implementation::SetNextWindowSize({ 400, 700 });
+
+		ImGui_Implementation::Begin("Agent Information", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+
+		ImGui_Implementation::Text("agent = %d", agentCount);
+
+		//list of completed actions
+		ImGui_Implementation::Text("Actions Performed");
+		ImGui_Implementation::SetNextWindowSize({ 400, 200 });
+		ImGui_Implementation::BeginChild("ActionsPerformed");
+
+		std::list<std::string> toPrint = actions;
+
+		if (!toPrint.empty())
 		{
-			ImGui_Implementation::SetNextWindowPos({ 900, 200 });
-			ImGui_Implementation::SetNextWindowSize({ 400, 700 });
-			ImGui_Implementation::Begin("Agent Information", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-			
-			ImGui_Implementation::Text("agent = %d", agentCount);
-
-			//list of completed actions
-			ImGui_Implementation::Text("Actions Performed");
-			ImGui_Implementation::SetNextWindowSize({ 400, 200 });
-			ImGui_Implementation::BeginChild("ActionsPerformed");
-
-			std::list<std::string> toPrint = actions;
-
 			ImGui_Implementation::Text("Most Recent Action: = %s", toPrint.front().c_str());
 			toPrint.pop_front();
 
@@ -101,81 +97,79 @@ namespace ImGui_Implementation
 			{
 				ImGui_Implementation::Text(action.c_str());
 			}
-
-			ImGui_Implementation::EndChild();
-
-			//EMOTIONS
-
-			
-			if (ImPlot::BeginPlot("Emotions", ImVec2(370, 370), ImPlotFlags_NoInputs))
-			{
-				const char* labels[8] = { "Surprise" , "Anticipation", "Disgust", "Joy", "Anger", "Fear", "Trust", "Sadness"};
-				float data[8];
-
-				for (int i = 0; i < 8; i++)
-				{
-					if (emotionValues[i].second < 0)
-					{
-						data[i] = 0;
-						continue;
-					}
-
-					data[i] = emotionValues[i].second;
-				}
-				
-				ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
-				ImPlot::SetupAxesLimits(0, 1, 0, 1);
-
-				ImPlot::PushColormap(customEmotionColours);
-				ImPlot::PlotPieChart(labels, data, 8, 0.5, 0.5, 0.4);
-				ImPlot::PopColormap();
-
-				ImPlot::EndPlot();
-
-			}
-
-			//AGENT NEEDS
-			if (ImPlot::BeginPlot("Agent Needs"))
-			{
-				ImPlot::SetupAxisLimits(ImAxis_X1, time[0], time[0] + 50, ImPlotCond_Always);
-				ImPlot::SetupAxes("Time", "Need Values");
-				ImPlot::SetupAxisLimits(ImAxis_Y1, -5, 105, ImPlotCond_Always);
-
-				ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 400);
-				ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 400);
-				ImPlot::PlotLine("Social", time.data(), socialValues.data(), 400);
-
-				ImPlot::EndPlot();
-			}
-
-			//OCEAN VALUES
-			if (ImPlot::BeginPlot("Agent Personality Values"))
-			{		
-				ImPlot::SetupAxes("OCEAN Factors", "OCEAN Value Intensities", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
-				ImPlot::SetupAxesLimits(0, 5, 0, 5);
-
-				static const double positions[] = { 0,1,2,3,4 };
-				static const char* labels[] = {"O", "C", "E", "A", "N"};
-
-				ImPlot::SetupAxisTicks(ImAxis_X1, positions, 5, labels);
-				ImPlot::PlotBars("OCEAN Values", OCEANValues.data(), OCEANValues.size(), 0.5);
-				ImPlot::EndPlot();
-			}
-
-			//TRAITS
-			if (ImGui_Implementation::BeginChild("Scrolling"))
-			{
-				for (int i = 0; i < Traits.size(); i++)
-				{
-					ImGui_Implementation::Text(Traits[i].traitName.c_str());
-				}
-			}
-			ImGui_Implementation::EndChild();
-
-
-
-			ImGui_Implementation::End();	
 		}
+
+		ImGui_Implementation::EndChild();
+
+		//EMOTIONS
+		if (ImPlot::BeginPlot("Emotions", ImVec2(370, 370), ImPlotFlags_NoInputs))
+		{
+			const char* labels[8] = { "Surprise" , "Anticipation", "Disgust", "Joy", "Anger", "Fear", "Trust", "Sadness" };
+			float data[8];
+
+			for (int i = 0; i < 8; i++)
+			{
+				if (emotionValues[i].second < 0)
+				{
+					data[i] = 0;
+					continue;
+				}
+
+				data[i] = emotionValues[i].second;
+			}
+
+			ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+			ImPlot::SetupAxesLimits(0, 1, 0, 1);
+
+			ImPlot::PushColormap(customEmotionColours);
+			ImPlot::PlotPieChart(labels, data, 8, 0.5, 0.5, 0.4);
+			ImPlot::PopColormap();
+
+			ImPlot::EndPlot();
+
+		}
+
+		//AGENT NEEDS
+		if (ImPlot::BeginPlot("Agent Needs"))
+		{
+			ImPlot::SetupAxisLimits(ImAxis_X1, time[0], time[0] + 50, ImPlotCond_Always);
+			ImPlot::SetupAxes("Time", "Need Values");
+			ImPlot::SetupAxisLimits(ImAxis_Y1, -5, 105, ImPlotCond_Always);
+
+			ImPlot::PlotLine("Hunger", time.data(), hungerValues.data(), 400);
+			ImPlot::PlotLine("Thirst", time.data(), thirstValues.data(), 400);
+			ImPlot::PlotLine("Social", time.data(), socialValues.data(), 400);
+
+			ImPlot::EndPlot();
+		}
+
+		//OCEAN VALUES
+		if (ImPlot::BeginPlot("Agent Personality Values"))
+		{
+			ImPlot::SetupAxes("OCEAN Factors", "OCEAN Value Intensities", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+			ImPlot::SetupAxesLimits(0, 5, 0, 5);
+
+			static const double positions[] = { 0,1,2,3,4 };
+			static const char* labels[] = { "O", "C", "E", "A", "N" };
+
+			ImPlot::SetupAxisTicks(ImAxis_X1, positions, 5, labels);
+			ImPlot::PlotBars("OCEAN Values", OCEANValues.data(), OCEANValues.size(), 0.5);
+			ImPlot::EndPlot();
+		}
+
+		//TRAITS
+		if (ImGui_Implementation::BeginChild("Scrolling"))
+		{
+			for (int i = 0; i < Traits.size(); i++)
+			{
+				ImGui_Implementation::Text(Traits[i].traitName.c_str());
+			}
+		}
+		ImGui_Implementation::EndChild();
+
+
+
+		ImGui_Implementation::End();
 	}
 
 	void MainUI()

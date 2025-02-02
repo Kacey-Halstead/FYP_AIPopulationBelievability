@@ -15,6 +15,8 @@ enum actionIDs : unsigned int;
 
 struct States
 {
+	TextureIndexes emoteToSet = NO_EMOTE;
+
 	MoveToState moveState{};
 	FindFoodState foodState{};
 	FindState findState{};
@@ -81,7 +83,7 @@ public:
 
 	std::stack<actionIDs> responsiveStack{};
 
-	std::list<std::string> actions{};
+	std::list<std::string> actions{"Wander"};
 
 private:
 	SDL_Rect agentRect;
@@ -96,6 +98,7 @@ private:
 
 	float speed = 1.0f;
 
+	float emoteCounter = 0;
 	std::array<Uint8, 3> textureColour = {255, 255, 255 };
 
 	//Imgui values update

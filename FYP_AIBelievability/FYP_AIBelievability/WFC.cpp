@@ -49,7 +49,7 @@ namespace WFC
 			selectedTile->SetType(random[randomType]);
 			if (random[randomType] == 'S')
 			{
-				//selectedTile->walkable = false;
+				selectedTile->walkable = false;
 				grid->waterPositions.push_back(selectedTile->GetGridPos());
 			}
 

@@ -94,14 +94,6 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 		{
 			SDL_Rect destRect{ x * tileSizeOnScreen.x, y * tileSizeOnScreen.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
 
-			if (Tiles[x][y].isInPath)
-			{
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(PATH), NULL, &destRect);
-				//SDL_RenderDrawRect(renderer, &rects[counter]);
-				counter++;
-				continue;
-			}
-
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':

@@ -21,7 +21,7 @@ SDLWindow::SDLWindow()
 	}
 
 	//Create window
-	window = SDL_CreateWindow("FYP", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1300, windowSize.y, SDL_WINDOW_OPENGL); //name, horizontal pos, vertical pos, width, height, mode
+	window = SDL_CreateWindow("FYP_AI_BELIEVABILITY", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1300, windowSize.y, SDL_WINDOW_OPENGL); //name, horizontal pos, vertical pos, width, height, mode
 	if (!window) {
 		std::string error{ "Error window creation", SDL_GetError() };
 		throw std::runtime_error(error);
@@ -83,7 +83,6 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 				float agentSize = (float)a.size.x / grid->tileSizeOnScreen.x;
 				if(ComparePositions(a.position, mouseWorldPos, agentSize))
 				{
-					ImGui_Implementation::isAgentPressed = true;
 					ImGui_Implementation::agentCount = a.agentCount;
 					ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
 					ImGui_Implementation::Traits = a.personalityComponent.traits;
@@ -97,7 +96,7 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			{
 				for (Tile& t : v) // tiles in vector
 				{
-					if (mousePos.x > 30) continue;
+					if (mousePos.x > 29) continue;
 
 					if (grid->GetTileFromPos(glm::vec2(mousePos.x, mousePos.y))->GetGridPos() == t.GetGridPos()) //if tile is clicked
 					{

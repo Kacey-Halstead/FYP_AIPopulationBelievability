@@ -25,7 +25,8 @@ enum TextureIndexes
 	EMOTE_HAPPYFACE,
 	EMOTE_HEART,
 	EMOTE_SADFACE,
-	EMOTE_SWIRL
+	EMOTE_SWIRL,
+	NO_EMOTE
 };
 
 namespace TextureManager

@@ -23,7 +23,7 @@ void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
 	TextureIndexes indexForTexture = canEat ?  BUSHF : BUSHE;
 	SDL_Rect rect = gridRef->GetRenderRect(position, size);
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(indexForTexture), NULL, &rect);
-	SDL_RenderDrawRect(renderer, &rect);
+	//SDL_RenderDrawRect(renderer, &rect);
 }
 
 void FoodSource::Update(float deltaTime)

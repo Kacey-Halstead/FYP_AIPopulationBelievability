@@ -219,6 +219,7 @@ struct FindAgentToSocialise
 	{
 		if (states.socialState.agentRef && ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f))
 		{
+			//evaluate agent response? push to responsive stack
 			return { ActionProgress::Complete, 1 };
 		}
 		else if(states.socialState.otherAgents.empty())
@@ -356,25 +357,28 @@ struct Fight
 			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANGER, 2);
 			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANTICIPATION, 1);
 
-			states.socialState.agentRef->needs.healthVal -= 50.0f;
-			states.moveState.agent->needs.healthVal -= 50.0f;
+			states.socialState.agentRef->needs.healthVal -= 10.0f;
+			states.moveState.agent->needs.healthVal -= 10.0f;
+
 			states.socialState.agentRef->states.socialState.isTalkingTo = false;
 		}
 		else //if flight
 		{			
 			states.socialState.agentRef->responsiveStack.push(FLEE);
 		} 
+
+		states.moveState.agent->needs.socialVal += 30;
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.healthVal < 50)
+		if (states.moveState.agent->needs.socialVal > 50)
 		{
 			states.socialState.agentRef = nullptr;
 			states.socialState.isSeekingOtherAgent = false;
 			return { ActionProgress::Complete, 1 };
 		}
-		else if (!states.socialState.agentRef && states.moveState.agent->GetDominantEmotion().first != ANGER)
+		else if (!states.socialState.agentRef)
 		{
 			return { ActionProgress::Impossible, 1 };
 		}

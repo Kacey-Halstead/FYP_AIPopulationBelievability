@@ -46,6 +46,12 @@ FYP_AIBelievability::FYP_AIBelievability() :
 		mAgents.emplace_back(mGrid.get(), nullptr, nullptr);
 	}
 
+	ImGui_Implementation::agentCount = mAgents[0].agentCount;
+	ImGui_Implementation::OCEANValues = mAgents[0].personalityComponent.OCEANValues;
+	ImGui_Implementation::Traits = mAgents[0].personalityComponent.traits;
+	ImGui_Implementation::actions = mAgents[0].actions;
+	ImGui_Implementation::emotionValues = mAgents[0].emotions;
+
 	//Create all nodes for all actions
 	auto Nodes = mDAG->CreateNodes(Actions::GetAllActions());
 
@@ -65,6 +71,8 @@ FYP_AIBelievability::FYP_AIBelievability() :
 
 	//Socialise - dependencies: FindOtherAgent
 	Nodes[GOAL_SOCIALISE]->children.push_back(Nodes[FIND_OTHER_AGENT]); //joy
+
+	
 }
 
 FYP_AIBelievability::~FYP_AIBelievability()
@@ -171,6 +179,16 @@ void FYP_AIBelievability::Update()
 			Action* action = toExecute->action;
 			action->executeFunc(agent.states);
 
+			if (!agent.actions.empty() && agent.actions.front() != action->actionName)
+			{
+				agent.actions.push_front(action->actionName);
+			}
+
+			if (agent.actions.size() > 10)
+			{
+				agent.actions.pop_back();
+			}
+
 			if (action->isValidFunc(agent.states).first != InProgress)
 			{
 				agent.responsiveStack.pop();
@@ -184,7 +202,11 @@ void FYP_AIBelievability::Update()
 			if (currentNode != nullptr && !agent.states.socialState.isTalkingTo)
 			{
 				currentNode->action->executeFunc(agent.states);
-				agent.actions.push_front(currentNode->action->actionName);
+
+				if (!agent.actions.empty() && agent.actions.front() != currentNode->action->actionName)
+				{
+					agent.actions.push_front(currentNode->action->actionName);
+				}
 
 				if (agent.actions.size() > 10)
 				{
@@ -202,14 +224,11 @@ void FYP_AIBelievability::Update()
 			ImGui_Implementation::time.push_back(mAccumulatedTime);
 			agent.UpdateImGui();
 
-			if (ImGui_Implementation::isAgentPressed)
-			{
-				ImGui_Implementation::hungerValues = agent.GetValuesForImGui(0);
-				ImGui_Implementation::thirstValues = agent.GetValuesForImGui(1);
-				ImGui_Implementation::socialValues = agent.GetValuesForImGui(2);
-				ImGui_Implementation::emotionValues = agent.emotions;
-				ImGui_Implementation::actions = agent.actions;
-			}
+			ImGui_Implementation::hungerValues = agent.GetValuesForImGui(0);
+			ImGui_Implementation::thirstValues = agent.GetValuesForImGui(1);
+			ImGui_Implementation::socialValues = agent.GetValuesForImGui(2);
+			ImGui_Implementation::emotionValues = agent.emotions;
+			ImGui_Implementation::actions = agent.actions;
 
 			mCounter = 0;
 		}

@@ -71,6 +71,7 @@ namespace TextureManager
 			SDL_FreeSurface(image);
 			textures.emplace_back(texture);
 		}
+		return true;
 	}
 
 	SDL_Texture* GetTexture(TextureIndexes index)
