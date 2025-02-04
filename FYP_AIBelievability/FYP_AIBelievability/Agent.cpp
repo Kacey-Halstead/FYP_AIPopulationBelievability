@@ -119,11 +119,7 @@ void Agent::DetectOtherAgents(Agent* agent)
 
 void Agent::DrinkWater(float amount)
 {
-	needs.thirstVal += amount;
-	if (needs.thirstVal > 100.0f)
-	{
-		needs.thirstVal = 100.0f;
-	}
+	needs.thirstVal = 100.0f;
 }
 
 std::vector<float> Agent::GetValuesForImGui(int index)
