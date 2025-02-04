@@ -55,14 +55,6 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	//Create all nodes for all actions
 	auto Nodes = mDAG->CreateNodes(Actions::GetAllActions());
 
-	//Drink Water - dependencies: Find Water, Wander
-	Nodes[GOAL_DRINKWATER]->children.push_back(Nodes[FIND_WATER]);
-	Nodes[GOAL_DRINKWATER]->children.push_back(Nodes[GOAL_WANDER]);
-
-	//Eat Food - dependencies: Find Food, Wander
-	Nodes[GOAL_EATFOOD]->children.push_back(Nodes[FIND_FOOD]);
-	Nodes[GOAL_EATFOOD]->children.push_back(Nodes[GOAL_WANDER]);
-
 	//Transfer knowledge - dependencies: FindOtherAgent
 	Nodes[GOAL_TRANSFERINFO]->children.push_back(Nodes[FIND_OTHER_AGENT]); //trust
 
@@ -71,7 +63,6 @@ FYP_AIBelievability::FYP_AIBelievability() :
 
 	//Socialise - dependencies: FindOtherAgent
 	Nodes[GOAL_SOCIALISE]->children.push_back(Nodes[FIND_OTHER_AGENT]); //joy
-
 	
 }
 
@@ -161,19 +152,18 @@ void FYP_AIBelievability::Update()
 					agent.states.moveState.path.erase(agent.states.moveState.path.begin());
 				}
 			}
+			else if(ComparePositions(agent.position, agent.states.moveState.to, 0.5f))
+			{
+				agent.states.moveState.isMoveToSet = false;
+			}
 			else
 			{
-				if (ComparePositions(agent.position, agent.states.moveState.to, 0.5f))
-				{
-					agent.states.moveState.isMoveToSet = false;
-				}
-				else
-				{
-					agent.states.moveState.agent->Move(agent.states.moveState.to);
-				}
+				agent.states.moveState.agent->Move(agent.states.moveState.to);
 			}
 		}
-		else if (!agent.responsiveStack.empty()) //is more responsive task comes up
+
+
+		if (!agent.responsiveStack.empty()) //if more responsive task comes up
 		{
 			DagNode* toExecute = mDAG->FindNode(agent.responsiveStack.top());
 			Action* action = toExecute->action;
@@ -232,9 +222,6 @@ void FYP_AIBelievability::Update()
 
 			mCounter = 0;
 		}
-
-
-
 
 		//detect food sources
 		for (FoodSource& foodSource : mFoodSources)

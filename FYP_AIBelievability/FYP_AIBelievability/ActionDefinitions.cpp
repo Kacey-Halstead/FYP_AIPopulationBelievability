@@ -23,9 +23,8 @@ struct EatFood
 				states.moveState.agent->ChangeEmotionValue(SADNESS, 2);
 			}
 			states.foodState.foundFoodRef = nullptr;
-			states.moveState.isMoveToSet = false;
 		}
-		else
+		else if(!states.moveState.isMoveToSet)
 		{
 			states.moveState.to = states.foodState.prevFoodPositions[0].first;
 			states.foodState.foundFoodRef = states.foodState.prevFoodPositions[0].second;
@@ -65,7 +64,6 @@ struct DrinkWater
 		{
 			states.moveState.agent->needs.thirstVal = 100;
 			states.waterState.waterRefSet = false;
-			states.moveState.isMoveToSet = false;
 		}
 		else
 		{
@@ -83,7 +81,7 @@ struct DrinkWater
 		{
 			return { ActionProgress::Complete, 1 };
 		}
-		else if (states.foodState.prevFoodPositions.empty())
+		else if (states.waterState.prevWaterPositions.empty())
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
@@ -100,10 +98,8 @@ struct Wander
 {
 	static void Execute(States& states)
 	{
-		if(ComparePositions(states.moveState.agent->position, states.moveState.to, 1.0f))
+		if(!states.moveState.isMoveToSet)
 		{ 
-			states.moveState.isMoveToSet = false;
-
 			std::uniform_int_distribution<> distrib(0, gridSizeX - 1);
 
 			states.moveState.from = states.moveState.agent->position;
@@ -154,12 +150,8 @@ struct FindAgentToSocialise
 			}
 		}
 
-		if(ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f))
+		if(!ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f) && !states.moveState.isMoveToSet)
 		{ 
-			states.moveState.isMoveToSet = false;
-		}
-		else
-		{
 			states.socialState.agentRef->states.socialState.isTalkingTo = true;
 			states.socialState.isSeekingOtherAgent = true;
 			states.moveState.to = states.socialState.agentRef->position;
@@ -175,9 +167,16 @@ struct FindAgentToSocialise
 			//evaluate agent response? push to responsive stack
 			return { ActionProgress::Complete, 1 };
 		}
+		else if (states.socialState.agentRef && !ComparePositions(states.moveState.to, states.socialState.agentRef->position, 1.0f))
+		{
+			states.socialState.agentRef->states.socialState.isTalkingTo = false;
+			states.socialState.isSeekingOtherAgent = false;
+			states.socialState.agentRef = nullptr;
+			return { ActionProgress::Impossible, 1 };
+		}
 		else if(states.socialState.otherAgents.empty())
 		{
-			return { ActionProgress::Impossible, 1 };
+			return { ActionProgress::Impossible, 1 };  
 		}
 		else
 		{
@@ -240,7 +239,7 @@ struct TransferKnowledge
 		{
 			return { ActionProgress::Complete, 1 };
 		}
-		else if (!states.socialState.agentRef && states.moveState.agent->GetDominantEmotion().first != TRUST)
+		else if (!states.socialState.agentRef)
 		{
 			return { ActionProgress::Impossible, 1 };
 		}
@@ -289,10 +288,7 @@ struct Socialise
 		{
 			return { ActionProgress::Complete, 1 };
 		}
-		else if (!states.socialState.agentRef)
-		{
-			return { ActionProgress::Impossible, 1 };
-		}
+
 
 		return { ActionProgress::InProgress, 1 };
 	}
@@ -345,15 +341,16 @@ struct RunAway
 {
 	static void Execute(States& states)
 	{
-		if()
+		if (!states.moveState.isMoveToSet)
+		{
+			states.moveState.agent->ChangeEmotionValue(SURPRISE, 1);
+			states.moveState.agent->ChangeEmotionValue(FEAR, 2);
 
-		states.moveState.agent->ChangeEmotionValue(SURPRISE, 1);
-		states.moveState.agent->ChangeEmotionValue(FEAR, 2);
-
-		states.socialState.runAwayPosBefore = states.moveState.agent->position;
-		states.moveState.from = states.moveState.agent->position;
-		states.moveState.to = GetRandomValidTile(states);
-		states.moveState.isMoveToSet = true;
+			states.socialState.runAwayPosBefore = states.moveState.agent->position;
+			states.moveState.from = states.moveState.agent->position;
+			states.moveState.to = GetRandomValidTile(states);
+			states.moveState.isMoveToSet = true;
+		}
 	}
 
 	static glm::vec2 GetRandomValidTile(States& states)
@@ -413,21 +410,19 @@ namespace Actions
 
 		//FOOD
 		{EatFood::Execute, EatFood::IsValid, GOAL_EATFOOD, "Eat Food", NONE},
-		{FindFood::Execute, FindFood::IsValid, FIND_FOOD, "Find Food", NONE},
 
 		//WATER
 		{DrinkWater::Execute, DrinkWater::IsValid, GOAL_DRINKWATER,"Drink Water", NONE},
-		{FindWater::Execute, FindWater::IsValid, FIND_WATER,"Find Water", NONE},
 
 		//WANDER
 		{Wander::Execute, Wander::IsValid, GOAL_WANDER,"Wander", NONE},
 
 		//SOCIAL
-		{TransferKnowledge::Execute, TransferKnowledge::IsValid, GOAL_TRANSFERINFO,"Tell Other Agents About Food", JOY},
+		{TransferKnowledge::Execute, TransferKnowledge::IsValid, GOAL_TRANSFERINFO,"Tell Other Agents About Food", TRUST},
 		{FindAgentToSocialise::Execute, FindAgentToSocialise::IsValid, FIND_OTHER_AGENT,"Find Other Agent", NONE},
 		{Fight::Execute, Fight::IsValid, GOAL_FIGHT,"Fight Agent", ANGER},
 		{RunAway::Execute, RunAway::IsValid, FLEE,"Run Away", FEAR},
-		{Socialise::Execute, Socialise::IsValid, GOAL_SOCIALISE,"Socialise", JOY}
+		{Socialise::Execute, Socialise::IsValid, GOAL_SOCIALISE,"Socialise", NONE}
 	};
 
 	std::vector<Action*> GetAllActions()

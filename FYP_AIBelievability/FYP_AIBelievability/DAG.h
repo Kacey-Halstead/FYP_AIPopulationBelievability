@@ -47,9 +47,13 @@ public:
 		if (current == nullptr) return nullptr;
 
 		//if current complete then return
-		if (current->action->isValidFunc(states).first == Complete)
+		ActionProgress progress = current->action->isValidFunc(states).first;
+		if (progress != InProgress)
 		{
-			return nullptr;
+			if (progress == Impossible)
+				return FindPlan(GOAL_WANDER, states);
+			else
+				return nullptr;
 		}
 
 		while (!current->children.empty())
@@ -78,7 +82,7 @@ public:
 					highestPriority = prio;
 				}
 			}
-			if (impossible) return nullptr;
+			if (impossible) return FindPlan(GOAL_WANDER, states);
 
 			if (complete)
 				break;
