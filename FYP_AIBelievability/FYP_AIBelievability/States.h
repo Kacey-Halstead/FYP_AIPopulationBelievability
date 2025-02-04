@@ -10,8 +10,6 @@ struct MoveToState
 	glm::vec2 to = {1, 1};
 	glm::vec2 from;
 
-	Agent* agent = nullptr;
-
 	bool isMoveToSet = false;
 
 	std::vector<Node> path;
@@ -19,8 +17,6 @@ struct MoveToState
 	glm::vec2 nextInPatrol;
 
 	int patrolIndex = 0;
-
-	bool IsComplete();
 };
 
 struct FindState
@@ -30,8 +26,6 @@ struct FindState
 	glm::vec2 nextToCheck;
 
 	bool isFound = false;
-
-	bool IsComplete();
 };
 
 struct FindFoodState
@@ -41,8 +35,6 @@ struct FindFoodState
 	FoodSource* foundFoodRef = nullptr;
 
 	bool complete = false;
-
-	bool IsComplete();
 };
 
 struct FindWaterState
@@ -54,8 +46,6 @@ struct FindWaterState
 	bool waterRefSet = false;
 
 	bool complete = false;
-
-	bool IsComplete();
 };
 
 struct SocialiseState

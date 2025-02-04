@@ -16,6 +16,7 @@ enum actionIDs : unsigned int;
 struct States
 {
 	TextureIndexes emoteToSet = NO_EMOTE;
+	Agent* agent = nullptr;
 
 	MoveToState moveState{};
 	FindFoodState foodState{};
@@ -49,7 +50,7 @@ public:
 	void DrinkWater(float amount);
 	void DecreaseNeeds(float deltaTime);
 	void SettleEmotions(float deltaTime);
-	void SetSpeed();
+	void SetSpeed(float amount);
 	float GetUtility(float need);
 
 	//EMOTIONS
@@ -60,18 +61,19 @@ public:
 	//GETTERS
 	inline Grid* GetGridRef() { return gridRef; }
 	std::vector<float> GetValuesForImGui(int index); //0 - hunger, 1- thirst, 2 - social
+	Agent* GetClosestAgent();
 
 	glm::vec2 position = {};
 
 	std::array<std::pair<EEmotions, float>, 8> emotions = {
-	make_pair(SURPRISE, 1),
-	make_pair(ANTICIPATION, 1),
-	make_pair(DISGUST, 1),
-	make_pair(JOY, 1),
-	make_pair(ANGER, 1),
-	make_pair(FEAR, 1),
-	make_pair(TRUST, 1),
-	make_pair(SADNESS, 1)
+	make_pair(SURPRISE, 0),
+	make_pair(ANTICIPATION, 0),
+	make_pair(DISGUST, 0),
+	make_pair(JOY, 0),
+	make_pair(ANGER, 0),
+	make_pair(FEAR, 0),
+	make_pair(TRUST, 0),
+	make_pair(SADNESS, 0)
 	};
 
 	Needs needs = {};

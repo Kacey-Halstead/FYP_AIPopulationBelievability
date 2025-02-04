@@ -39,8 +39,8 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	}
 
 	//Agent init
-	mAgents.reserve(10);
-	for (int i = 1; i < 6; i++)
+	mAgents.reserve(50);
+	for (int i = 1; i < 51; i++)
 	{
 		ImGui_Implementation::agentCount = i;
 		mAgents.emplace_back(mGrid.get(), nullptr, nullptr);
@@ -145,7 +145,7 @@ void FYP_AIBelievability::Update()
 			{
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
 
-				agent.states.moveState.agent->Move(toGo);
+				agent.states.agent->Move(toGo);
 
 				if (ComparePositions(agent.position, toGo, 1.0f))
 				{
@@ -158,12 +158,10 @@ void FYP_AIBelievability::Update()
 			}
 			else
 			{
-				agent.states.moveState.agent->Move(agent.states.moveState.to);
+				agent.states.agent->Move(agent.states.moveState.to);
 			}
 		}
-
-
-		if (!agent.responsiveStack.empty()) //if more responsive task comes up
+		else if (!agent.responsiveStack.empty()) //if more responsive task comes up
 		{
 			DagNode* toExecute = mDAG->FindNode(agent.responsiveStack.top());
 			Action* action = toExecute->action;

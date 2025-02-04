@@ -8,7 +8,7 @@ Agent::Agent()
 Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
 {
 	agentCount = ImGui_Implementation::agentCount;
-	states.moveState.agent = this;
+	states.agent = this;
 
 	if (P1 == nullptr) //if no parents
 	{
@@ -134,6 +134,25 @@ std::vector<float> Agent::GetValuesForImGui(int index)
 	return std::vector<float>();
 }
 
+Agent* Agent::GetClosestAgent()
+{
+	if (states.socialState.otherAgents.empty()) return nullptr;
+
+	std::pair<float, Agent*> closestAgent = std::make_pair(std::numeric_limits<float>().max(), states.socialState.otherAgents[0]);
+
+	for (Agent* agent : states.socialState.otherAgents)
+	{
+		float dist = DistanceBetween(states.agent->position, agent->position);
+
+		if (dist < closestAgent.first)
+		{
+			closestAgent = std::make_pair(dist, agent);
+		}
+	}
+
+	return closestAgent.second;
+}
+
 std::pair<char, EEmotions> Agent::DecideOnGoal()
 {
 	std::vector<std::pair<char, float>> utilities{};
@@ -177,7 +196,7 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 		}
 	}
 
-	if (highest.second <= 1)
+	if (highest.second <= 0.5)
 	{
 		highest = make_pair(NONE, 0);
 	}
@@ -222,7 +241,12 @@ void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 	{
 		if (emotion == emotions[i].first)
 		{
-			emotions[i].second += (value * personalityComponent.emotionMultipliers[i]);
+			emotions[i].second += (value * personalityComponent.emotionMultipliers[i])/10;
+
+			if (emotions[i].second > 1)
+			{
+				emotions[i].second = 1;
+			}
 			break;
 		}
 	}
@@ -259,7 +283,7 @@ void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 	}
 
 	GetDominantEmotion();
-	SetSpeed();
+	SetSpeed(0.0f);
 }
 
 void Agent::ApplyNeedModifiers()
@@ -302,19 +326,25 @@ void Agent::SettleEmotions(float deltaTime)
 
 	for (std::pair<EEmotions, float>& emotion : emotions)
 	{
-		if (emotion.second > 1)
+		if (emotion.second > 0)
 		{
-			emotion.second -= 0.05f * deltaTime;
+			emotion.second -= 0.005f * deltaTime;
 		}
-		else if(emotion.second < 0)
+		else if(emotion.second < 1)
 		{
-			emotion.second += 0.05f * deltaTime;
+			emotion.second += 0.005f * deltaTime;
 		}
 	}
 }
 
-void Agent::SetSpeed()
+void Agent::SetSpeed(float amount)
 {
+	if (amount != 0.0f)
+	{
+		speed = amount;
+		return;
+	}
+
 	EEmotions dominant = GetDominantEmotion().first;
 
 	if (dominant == ANGER || dominant == JOY || dominant == FEAR)

@@ -11,11 +11,12 @@ FoodSource::FoodSource(Grid* grid)
 	foodAmount = maxfoodAmount;
 	gridRef = grid;
 
-	auto landTiles = gridRef->GetLandTiles();
-	std::uniform_int_distribution<> distrib(0, landTiles.size()-1);
+	std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size()-1);
 
 	// need to make sure can't gen on same tile
-	position = landTiles[distrib(RandomGenerator::gen)];
+	position = gridRef->landTilePositions[distrib(RandomGenerator::gen)];
+
+	gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + distrib(RandomGenerator::gen));
 }
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const

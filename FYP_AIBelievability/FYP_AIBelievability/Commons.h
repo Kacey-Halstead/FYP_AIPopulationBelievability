@@ -40,6 +40,8 @@ constexpr int numberOfTypes = allTypes.size();
 
 bool ComparePositions(glm::vec2 a, glm::vec2 b, float acceptanceRadius);
 
+float DistanceBetween(glm::vec2 a, glm::vec2 b);
+
 static std::array<std::array<float, 8>, 8> OCEANMultipliers = {
 		-1, -1, -1, 1, 0, -1, 1, -1,
 		0, 1, 0, 0, -1, 0, 0, 1,

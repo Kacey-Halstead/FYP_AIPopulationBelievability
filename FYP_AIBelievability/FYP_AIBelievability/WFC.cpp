@@ -79,7 +79,25 @@ namespace WFC
 			WFCReset();
 		}
 
-		//if groups of tiles less than specific number, regenerate
+		gridRef->landTilePositions = gridRef->GetLandTiles();
+
+		for (int i = 0; i < 10; i++)
+		{
+			// need to make sure can't gen on same tile
+			std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size() - 1);
+			int index = distrib(RandomGenerator::gen);
+			gridRef->rocks.push_back(gridRef->landTilePositions[index]);
+			gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + index);
+		}
+
+		for (int i = 0; i < 10; i++)
+		{
+			// need to make sure can't gen on same tile
+			std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size() - 1);
+			int index = distrib(RandomGenerator::gen);
+			gridRef->trees.push_back(gridRef->landTilePositions[index]);
+			gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + index);
+		}
 	}
 
 	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)

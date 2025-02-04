@@ -26,6 +26,8 @@ enum TextureIndexes
 	EMOTE_HEART,
 	EMOTE_SADFACE,
 	EMOTE_SWIRL,
+	ROCK,
+	TREE,
 	NO_EMOTE
 };
 

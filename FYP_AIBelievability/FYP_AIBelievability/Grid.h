@@ -25,11 +25,17 @@ public:
 	SDL_Rect GetRenderRect(glm::vec2 worldPos, glm::ivec2 size);
 
 	bool IsInGrid(glm::ivec2 point, glm::ivec2 dir);
+	bool IsInGrid(glm::ivec2 point);
 
 	Tile* SmallestEntropy();
 
+	std::vector<glm::vec2> landTilePositions;
+
 	glm::ivec2 tileSizeOnScreen;
 	std::vector<std::vector<Tile>> Tiles;
+
+	std::vector<glm::ivec2> rocks;
+	std::vector<glm::ivec2> trees;
 
 	std::vector<glm::ivec2> waterPositions{};
 

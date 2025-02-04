@@ -26,7 +26,7 @@ public:
 	//Goal Completion Functions
 	static bool GoalComplete(States& state)
 	{
-		if (ComparePositions(state.moveState.agent->position, state.moveState.to, 5))
+		if (ComparePositions(state.agent->position, state.moveState.to, 5))
 		{
 			return true;
 		}
@@ -36,7 +36,7 @@ public:
 
 	static bool FoodGoalComplete(States& states)
 	{
-		if (states.moveState.agent->needs.hungerVal > 80)
+		if (states.agent->needs.hungerVal > 80)
 		{
 			return true;
 		}
@@ -46,7 +46,7 @@ public:
 
 	static bool ThirstGoalComplete(States& states)
 	{
-		if (states.moveState.agent->needs.thirstVal > 80)
+		if (states.agent->needs.thirstVal > 80)
 		{
 			return true;
 		}

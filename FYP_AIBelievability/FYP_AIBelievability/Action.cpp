@@ -3,7 +3,7 @@
 
 Action Goals::PickGoal(States& states)
 {
-	std::pair<char, EEmotions> goal = states.moveState.agent->DecideOnGoal();
+	std::pair<char, EEmotions> goal = states.agent->DecideOnGoal();
 
 	switch (goal.first)
 	{

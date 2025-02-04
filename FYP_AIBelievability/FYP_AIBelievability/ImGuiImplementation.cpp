@@ -111,11 +111,16 @@ namespace ImGui_Implementation
 			{
 				if (emotionValues[i].second < 0)
 				{
-					data[i] = 0;
+					data[i] = 1;
+					continue;
+				}
+				else if (emotionValues[i].second > 1)
+				{
+					data[i] = 2;
 					continue;
 				}
 
-				data[i] = emotionValues[i].second;
+				data[i] = emotionValues[i].second + 1;
 			}
 
 			ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);

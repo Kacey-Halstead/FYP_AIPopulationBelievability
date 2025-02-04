@@ -10,32 +10,32 @@ struct EatFood
 {
 	static void Execute(States& states)
 	{
-		if (states.foodState.foundFoodRef && ComparePositions(states.moveState.agent->position, states.foodState.foundFoodRef->position, 1.0f)) //if near food
+		if (states.foodState.foundFoodRef && ComparePositions(states.agent->position, states.foodState.foundFoodRef->position, 1.0f)) //if near food
 		{
-			if (states.foodState.foundFoodRef->EatFrom(100 - states.moveState.agent->needs.hungerVal)) //if canEat
+			if (states.foodState.foundFoodRef->EatFrom(100 - states.agent->needs.hungerVal)) //if canEat
 			{
-				states.moveState.agent->needs.hungerVal = 100;
+				states.agent->needs.hungerVal = 100;
 			}
 			else
 			{
 				states.foodState.prevFoodPositions.erase(states.foodState.prevFoodPositions.begin());
-				states.moveState.agent->ChangeEmotionValue(ANGER, 2);
-				states.moveState.agent->ChangeEmotionValue(SADNESS, 2);
+				states.agent->ChangeEmotionValue(ANGER, 2);
+				states.agent->ChangeEmotionValue(SADNESS, 2);
 			}
 			states.foodState.foundFoodRef = nullptr;
 		}
 		else if(!states.moveState.isMoveToSet)
 		{
-			states.moveState.to = states.foodState.prevFoodPositions[0].first;
-			states.foodState.foundFoodRef = states.foodState.prevFoodPositions[0].second;
+			states.foodState.foundFoodRef = FindNearestFoodSource(states);
+			states.moveState.to = states.foodState.foundFoodRef->position;
 			states.moveState.isMoveToSet = true;
-			states.moveState.path = AStar::toFindPath(states.moveState.agent->position, states.moveState.to);
+			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
 		}
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.hungerVal > 60)
+		if (states.agent->needs.hungerVal > 60)
 		{
 			return { ActionProgress::Complete, 1 };
 		}
@@ -49,7 +49,20 @@ struct EatFood
 		}
 	}
 
+	static FoodSource* FindNearestFoodSource(States& states)
+	{
+		std::pair<float, FoodSource*> closestFood = std::make_pair(std::numeric_limits<float>().max(), states.foodState.prevFoodPositions[0].second);
 
+		for (std::pair<glm::vec2, FoodSource*> foodSource : states.foodState.prevFoodPositions)
+		{
+			float distance = DistanceBetween(states.agent->position, foodSource.first);
+			if(distance < closestFood.first)
+			{
+				closestFood = std::make_pair(distance, foodSource.second);
+			}
+		}
+		return closestFood.second;
+	}
 };
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -60,24 +73,24 @@ struct DrinkWater
 {
 	static void Execute(States& states)
 	{
-		if (states.waterState.waterRefSet && ComparePositions(states.moveState.agent->position, states.waterState.foundWaterRef, 1.0f)) //if near food
+		if (states.waterState.waterRefSet && ComparePositions(states.agent->position, states.waterState.foundWaterRef, 1.0f)) //if near food
 		{
-			states.moveState.agent->needs.thirstVal = 100;
+			states.agent->needs.thirstVal = 100;
 			states.waterState.waterRefSet = false;
 		}
 		else
 		{
-			states.moveState.to = states.waterState.prevWaterPositions[0];
-			states.waterState.foundWaterRef = states.waterState.prevWaterPositions[0];
+			states.moveState.to = FindNearestWaterSource(states);
+			states.waterState.foundWaterRef = states.moveState.to;
 			states.waterState.waterRefSet = true;
 			states.moveState.isMoveToSet = true;
-			states.moveState.path = AStar::toFindPath(states.moveState.agent->position, states.moveState.to);
+			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
 		}
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.thirstVal > 60)
+		if (states.agent->needs.thirstVal > 60)
 		{
 			return { ActionProgress::Complete, 1 };
 		}
@@ -90,6 +103,22 @@ struct DrinkWater
 			return { ActionProgress::InProgress, 1 };
 		}
 	}
+
+	static glm::vec2 FindNearestWaterSource(States& states)
+	{
+		float limit = std::numeric_limits<float>().max();
+		std::pair<float, glm::vec2> closestWater = std::make_pair(limit, states.waterState.prevWaterPositions[0]);
+
+		for (glm::vec2 waterSource : states.waterState.prevWaterPositions)
+		{
+			float distance = DistanceBetween(states.agent->position, waterSource);
+			if (distance < closestWater.first)
+			{
+				closestWater.second = waterSource;
+			}
+		}
+		return closestWater.second;
+	}
 };
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -100,12 +129,9 @@ struct Wander
 	{
 		if(!states.moveState.isMoveToSet)
 		{ 
-			std::uniform_int_distribution<> distrib(0, gridSizeX - 1);
+			states.moveState.from = states.agent->position;
 
-			states.moveState.from = states.moveState.agent->position;
-
-			states.moveState.to.x = distrib(RandomGenerator::gen);
-			states.moveState.to.y = distrib(RandomGenerator::gen);
+			states.moveState.to = GetToPos(states, states.agent->GetDominantEmotion().first);
 
 			states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 			if (!states.moveState.path.empty())
@@ -119,6 +145,74 @@ struct Wander
 	{
 		return { ActionProgress::InProgress, 0 };
 	}
+
+	static glm::vec2 GetToPos(States& states, EEmotions emotion)
+	{
+		if (states.socialState.otherAgents.empty())
+		{
+			std::uniform_int_distribution<> distrib(0, gridSizeX - 1);
+			return { distrib(RandomGenerator::gen), distrib(RandomGenerator::gen) };
+		}
+
+		Agent* closestAgent = states.agent->GetClosestAgent();
+		glm::vec2 vecBetween = closestAgent->position - states.agent->position;
+		vecBetween = glm::normalize(vecBetween);
+
+		switch (emotion)
+		{
+		case SADNESS:
+		{
+			glm::vec2 toMove = states.agent->position - glm::vec2(vecBetween.x * 3, vecBetween.y * 3);
+			if (states.agent->GetGridRef()->IsInGrid(states.agent->position, glm::vec2(-vecBetween.x * 3, -vecBetween.y * 3)))
+			{
+				//avoid other agents
+				return toMove;
+			}
+			break;
+		}
+		case JOY:
+		{
+			if (ComparePositions(states.agent->position, closestAgent->position, 3.0f))
+			{
+				return states.agent->position;
+			}
+
+			glm::vec2 toMove = states.agent->position + glm::vec2(vecBetween.x * 3, vecBetween.y * 3);
+			if (states.agent->GetGridRef()->IsInGrid(states.agent->position, glm::vec2(vecBetween.x * 3, vecBetween.y * 3)))
+			{
+				//go to other agents
+				return toMove;
+			}
+			break;
+		}
+		case FEAR:
+		{
+			//if close to people, runAway
+			if (ComparePositions(states.agent->position, closestAgent->position, 2.0f))
+			{
+				states.socialState.agentRef->responsiveStack.push(FLEE);
+			}
+			return states.agent->position;
+		}
+		case SURPRISE:
+		{
+			//if close to people, runAway
+			if (ComparePositions(states.agent->position, closestAgent->position, 2.0f))
+			{
+				states.socialState.agentRef->responsiveStack.push(FLEE);
+			}
+			return states.agent->position;
+		}
+		default:
+		{
+			std::uniform_int_distribution<> distrib(0, gridSizeX - 1);
+			return { distrib(RandomGenerator::gen), distrib(RandomGenerator::gen) };
+		}
+		}
+
+		std::uniform_int_distribution<> distrib(0, gridSizeX - 1);
+		return { distrib(RandomGenerator::gen), distrib(RandomGenerator::gen) };
+	}
 };
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -129,6 +223,7 @@ struct FindAgentToSocialise
 	{
 		if (!states.socialState.agentRef)
 		{
+			states.moveState.isMoveToSet = false;
 			bool validAgent = false;
 			int index = 0;
 
@@ -150,29 +245,29 @@ struct FindAgentToSocialise
 			}
 		}
 
-		if(!ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f) && !states.moveState.isMoveToSet)
-		{ 
+		if (!states.moveState.isMoveToSet)
+		{
 			states.socialState.agentRef->states.socialState.isTalkingTo = true;
 			states.socialState.isSeekingOtherAgent = true;
 			states.moveState.to = states.socialState.agentRef->position;
 			states.moveState.isMoveToSet = true;
-			states.moveState.path = AStar::toFindPath(states.moveState.agent->position, states.moveState.to);
+			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
 		}
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (states.socialState.agentRef && ComparePositions(states.moveState.agent->position, states.socialState.agentRef->position, 1.0f))
+		if (states.socialState.agentRef && ComparePositions(states.agent->position, states.moveState.to, 1.0f))
 		{
-			//evaluate agent response? push to responsive stack
+			if (!ComparePositions(states.agent->position, states.socialState.agentRef->position, 1.0f))
+			{
+				states.socialState.agentRef->states.socialState.isTalkingTo = false;
+				states.socialState.isSeekingOtherAgent = false;
+				states.socialState.agentRef = nullptr;
+				return { ActionProgress::Impossible, 1 };
+			}
+
 			return { ActionProgress::Complete, 1 };
-		}
-		else if (states.socialState.agentRef && !ComparePositions(states.moveState.to, states.socialState.agentRef->position, 1.0f))
-		{
-			states.socialState.agentRef->states.socialState.isTalkingTo = false;
-			states.socialState.isSeekingOtherAgent = false;
-			states.socialState.agentRef = nullptr;
-			return { ActionProgress::Impossible, 1 };
 		}
 		else if(states.socialState.otherAgents.empty())
 		{
@@ -195,14 +290,14 @@ struct TransferKnowledge
 		Agent* agentWithLess = nullptr;
 
 		//if agent foodPos > otherAgent foodPos
-		if (states.moveState.agent->states.foodState.prevFoodPositions.size() > states.socialState.agentRef->states.foodState.prevFoodPositions.size())
+		if (states.agent->states.foodState.prevFoodPositions.size() > states.socialState.agentRef->states.foodState.prevFoodPositions.size())
 		{
-			agentWithMore = states.moveState.agent;
+			agentWithMore = states.agent;
 			agentWithLess = states.socialState.agentRef;
 		}
 		else
 		{
-			agentWithLess = states.moveState.agent;
+			agentWithLess = states.agent;
 			agentWithMore = states.socialState.agentRef;
 		}
 
@@ -235,7 +330,7 @@ struct TransferKnowledge
 
 	static std::pair<ActionProgress, int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.socialVal > 80)
+		if (states.agent->needs.socialVal > 80)
 		{
 			return { ActionProgress::Complete, 1 };
 		}
@@ -249,13 +344,13 @@ struct TransferKnowledge
 
 	static void FinishSocial(States& states)
 	{
-		states.moveState.agent->ChangeEmotionValue(JOY, 1);
-		states.moveState.agent->ChangeEmotionValue(TRUST, 2);
+		states.agent->ChangeEmotionValue(JOY, 1);
+		states.agent->ChangeEmotionValue(TRUST, 2);
 
-		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(JOY, 1);
-		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(TRUST, 2);
+		states.socialState.agentRef->states.agent->ChangeEmotionValue(JOY, 1);
+		states.socialState.agentRef->states.agent->ChangeEmotionValue(TRUST, 2);
 
-		states.moveState.agent->needs.socialVal = 100;
+		states.agent->needs.socialVal = 100;
 		states.socialState.agentRef->needs.socialVal = 100;
 		states.socialState.agentRef->states.socialState.isTalkingTo = false;
 		states.socialState.isSeekingOtherAgent = false;
@@ -269,13 +364,13 @@ struct Socialise
 {
 	static void Execute(States& states)
 	{
-		states.moveState.agent->ChangeEmotionValue(JOY, 2);
-		states.moveState.agent->ChangeEmotionValue(TRUST, 1);
+		states.agent->ChangeEmotionValue(JOY, 2);
+		states.agent->ChangeEmotionValue(TRUST, 1);
 
-		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(JOY, 2);
-		states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(TRUST, 1);
+		states.socialState.agentRef->states.agent->ChangeEmotionValue(JOY, 2);
+		states.socialState.agentRef->states.agent->ChangeEmotionValue(TRUST, 1);
 
-		states.moveState.agent->needs.socialVal = 100;
+		states.agent->needs.socialVal = 100;
 		states.socialState.agentRef->needs.socialVal = 100;
 		states.socialState.agentRef->states.socialState.isTalkingTo = false;
 		states.socialState.isSeekingOtherAgent = false;
@@ -284,7 +379,7 @@ struct Socialise
 
 	static std::pair<ActionProgress, int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.socialVal > 80)
+		if (states.agent->needs.socialVal > 80)
 		{
 			return { ActionProgress::Complete, 1 };
 		}
@@ -302,33 +397,30 @@ struct Fight
 	{
 		if (states.socialState.agentRef->GetDominantEmotion().first == ANGER) //if fight
 		{
-			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANGER, 2);
-			states.socialState.agentRef->states.moveState.agent->ChangeEmotionValue(ANTICIPATION, 1);
+			states.socialState.agentRef->states.agent->ChangeEmotionValue(ANGER, 2);
+			states.socialState.agentRef->states.agent->ChangeEmotionValue(ANTICIPATION, 1);
 
 			states.socialState.agentRef->needs.healthVal -= 20.0f;
-			states.moveState.agent->needs.healthVal -= 20.0f;
+			states.agent->needs.healthVal -= 20.0f;
 
 			states.socialState.agentRef->states.socialState.isTalkingTo = false;
 		}
 		else //if flight
 		{			
+			states.socialState.agentRef->states.socialState.agentRef = states.agent;
 			states.socialState.agentRef->responsiveStack.push(FLEE);
 		} 
 
-		states.moveState.agent->needs.socialVal = 100;
+		states.agent->needs.socialVal = 100;
 		states.socialState.agentRef = nullptr;
 		states.socialState.isSeekingOtherAgent = false;
 	}
 
 	static std::pair<ActionProgress,int> IsValid(States& states)
 	{
-		if (states.moveState.agent->needs.socialVal > 50)
+		if (states.agent->needs.socialVal > 50)
 		{
 			return { ActionProgress::Complete, 1 };
-		}
-		else if (!states.socialState.agentRef)
-		{
-			return { ActionProgress::Impossible, 1 };
 		}
 
 		return { ActionProgress::InProgress, 1 };
@@ -343,11 +435,12 @@ struct RunAway
 	{
 		if (!states.moveState.isMoveToSet)
 		{
-			states.moveState.agent->ChangeEmotionValue(SURPRISE, 1);
-			states.moveState.agent->ChangeEmotionValue(FEAR, 2);
+			states.agent->SetSpeed(2.5f);
+			states.agent->ChangeEmotionValue(SURPRISE, 1);
+			states.agent->ChangeEmotionValue(FEAR, 2);
 
-			states.socialState.runAwayPosBefore = states.moveState.agent->position;
-			states.moveState.from = states.moveState.agent->position;
+			states.socialState.runAwayPosBefore = states.agent->position;
+			states.moveState.from = states.agent->position;
 			states.moveState.to = GetRandomValidTile(states);
 			states.moveState.isMoveToSet = true;
 		}
@@ -355,29 +448,25 @@ struct RunAway
 
 	static glm::vec2 GetRandomValidTile(States& states)
 	{
-		static std::vector<glm::vec2> Offsets = { {5, 0}, {-5, 0}, {0, 5}, {0, -5} }; //right, left, up, down
+		glm::vec2 otherAgentPos = states.socialState.agentRef->position;
+		glm::vec2 diff = otherAgentPos - states.agent->position;
+		diff = glm::normalize(diff);
 
-		for (int i = 0; i < 4; i++) //for all 4 directions
+		if (states.agent->GetGridRef()->IsInGrid(states.agent->position, glm::vec2(-diff.x * 5, -diff.y * 5)))
 		{
-			if (states.moveState.agent->GetGridRef()->IsInGrid(states.moveState.agent->position, Offsets[i])) //if in grid
-			{
-				return (states.moveState.agent->position + Offsets[i]);
-			}
+			return { -diff.x * 4, -diff.y * 4 };
 		}
 
-		return glm::vec2();
+		return states.agent->position;
 	}
 
 	static std::pair<ActionProgress, int> IsValid(States& states)
 	{
-		if (ComparePositions(states.moveState.agent->position, states.socialState.runAwayPosBefore, 5.0f)) //is away from angry agent?
+		if (!ComparePositions(states.agent->position, states.socialState.runAwayPosBefore, 3.0f)) //is away from angry agent?
 		{
+			states.agent->SetSpeed(0.0f);
 			states.socialState.isTalkingTo = false;
 			return { ActionProgress::Complete, 1 };
-		}
-		else if (!states.socialState.isTalkingTo)
-		{
-			return { ActionProgress::Impossible, 1 };
 		}
 
 		return { ActionProgress::InProgress, 1 };
@@ -385,6 +474,13 @@ struct RunAway
 };
 
 // -------------------------------------------------------------------------------------------------------------------
+
+//emotional outbursts if emotion too high
+//anger - rampage
+//sadness - avoid people
+//Joy - be around people more
+//
+
 
 struct FightBack
 {

@@ -26,7 +26,9 @@ namespace TextureManager
 	"EMOTE_HAPPYFACE",
 	"EMOTE_HEART",
 	"EMOTE_SADFACE",
-	"EMOTE_SWIRL"
+	"EMOTE_SWIRL",
+	"ROCK",
+	"TREE"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

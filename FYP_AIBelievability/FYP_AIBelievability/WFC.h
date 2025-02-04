@@ -4,6 +4,7 @@
 #include <iostream>
 #include <glm/glm.hpp>
 
+#include "RandomGenerator.h"
 #include "Grid.h"
 #include "Tile.h"
 #include "AStar.h"
