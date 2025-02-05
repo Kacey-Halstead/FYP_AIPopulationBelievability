@@ -33,18 +33,33 @@ FYP_AIBelievability::FYP_AIBelievability() :
 
 	//WFC Init
 	WFC::WFCBody(mGrid.get());
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		mFoodSources.emplace_back(mGrid.get());
+		if (i < 5)
+		{
+			mFoodSources.emplace_back(mGrid.get(), false); //red bushes
+		}
+		else
+		{
+			mFoodSources.emplace_back(mGrid.get(), true); //blue bushes
+		}
 	}
 
 	//Agent init
-	mAgents.reserve(50);
+	mAgents.resize(50);
 	for (int i = 1; i < 51; i++)
 	{
-		ImGui_Implementation::agentCount = i;
-		mAgents.emplace_back(mGrid.get(), nullptr, nullptr);
+		ImGui_Implementation::agentCount = index++;
+		mAgents[i-1] = Agent(mGrid.get());
+		mAgents[i - 1].Reset();
+
+		if (i % 2 == 0)
+		{
+			mAgents[i-1].blueBushPref = true; // blue bush preference
+		}
 	}
+
+	index = 11;
 
 	ImGui_Implementation::agentCount = mAgents[0].agentCount;
 	ImGui_Implementation::OCEANValues = mAgents[0].personalityComponent.OCEANValues;
@@ -79,6 +94,7 @@ void FYP_AIBelievability::MainLoop()
 	{
 		if (!mSDL->Events(mGrid.get(), mAgents)) break;
 
+		UpdateAgentsandFood();
 		Update();
 		Render();
 	}
@@ -96,13 +112,15 @@ void FYP_AIBelievability::Render() const
 
 	mGrid->RenderGrid(mSDL->getRenderer()); //render WFC 
 
-	for (const auto& foodSource : mFoodSources)
+	for (const FoodSource& foodSource : mFoodSources)
 	{
 		foodSource.Render(mSDL->getRenderer(), mSDL->getWindow());
 	}
 
 	for (const Agent& a : mAgents) //render agents
 	{
+		if (a.agentCount == index) break;
+
 		a.Render(mSDL->getRenderer(), mSDL->getWindow());
 	}
 
@@ -137,11 +155,12 @@ void FYP_AIBelievability::Update()
 
 	for (Agent& agent : mAgents) //update agents
 	{
+		if (agent.agentCount == index) break;
 
 		//movement
 		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
-			if (!agent.states.moveState.path.empty())
+			if (agent.states.moveState.path.size() > 1)
 			{
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
 
@@ -165,6 +184,7 @@ void FYP_AIBelievability::Update()
 		{
 			DagNode* toExecute = mDAG->FindNode(agent.responsiveStack.top());
 			Action* action = toExecute->action;
+
 			action->executeFunc(agent.states);
 
 			if (!agent.actions.empty() && agent.actions.front() != action->actionName)
@@ -172,15 +192,7 @@ void FYP_AIBelievability::Update()
 				agent.actions.push_front(action->actionName);
 			}
 
-			if (agent.actions.size() > 10)
-			{
-				agent.actions.pop_back();
-			}
-
-			if (action->isValidFunc(agent.states).first != InProgress)
-			{
-				agent.responsiveStack.pop();
-			}
+			agent.responsiveStack.pop();
 		}
 		else
 		{
@@ -249,6 +261,49 @@ void FYP_AIBelievability::Update()
 			{
 				agent.DetectOtherAgents(&otherAgent);
 			}
+		}
+	}
+}
+
+void FYP_AIBelievability::UpdateAgentsandFood()
+{
+	//spawn/delete agents or food sources
+
+	if (ImGui_Implementation::agentNumber > (index - 1)) //more added
+	{
+		int toAdd = ImGui_Implementation::agentNumber - (index-1);
+		for (int i = 0; i < toAdd - 1; i++)
+		{
+			ImGui_Implementation::agentCount = index++;
+			mAgents[index - 1].Reset();
+		}
+	}
+	else if (ImGui_Implementation::agentNumber < (index - 1))
+	{
+		index = ImGui_Implementation::agentNumber + 1;
+	}
+
+	if (ImGui_Implementation::foodNumber > mFoodSources.size()) //more added
+	{
+		int toAdd = ImGui_Implementation::foodNumber - mFoodSources.size();
+		for (int i = 0; i < toAdd - 1; i++)
+		{
+			if (i < toAdd / 2)
+			{
+				mFoodSources.emplace_back(mGrid.get(), false); //red bushes
+			}
+			else
+			{
+				mFoodSources.emplace_back(mGrid.get(), true); //blue bushes
+			}
+		}
+	}
+	else if (ImGui_Implementation::foodNumber < mFoodSources.size()) //some taken away
+	{
+		int toAdd = mFoodSources.size() - ImGui_Implementation::foodNumber;
+		for (int i = 0; i < toAdd; i++)
+		{
+			mFoodSources.erase(mFoodSources.begin() + (mFoodSources.size() - 1));
 		}
 	}
 }

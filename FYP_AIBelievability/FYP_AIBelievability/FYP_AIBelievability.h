@@ -25,7 +25,9 @@ private:
 
 	float mAccumulatedTime = 0;
 	float mCounter = 0;
+	int index = 1;
 
 	void Render() const;
 	void Update();
+	void UpdateAgentsandFood();
 };

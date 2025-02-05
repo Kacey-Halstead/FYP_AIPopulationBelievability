@@ -24,6 +24,8 @@ namespace ImGui_Implementation
 	void RenderBefore();
 
 	extern float deltaTimeModifier;
+	extern int agentNumber;
+	extern int foodNumber;
 
 	extern bool isAgentPressed;	
 	extern int agentCount;
@@ -32,6 +34,7 @@ namespace ImGui_Implementation
 	extern std::array<std::pair<EEmotions, float>, 8> emotionValues;
 	extern Needs needStruct;
 	extern float currentTime;
+	extern bool isBlue;
 
 	extern std::list<std::string> actions;
 

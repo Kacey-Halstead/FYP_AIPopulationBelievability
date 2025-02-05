@@ -6,10 +6,12 @@ FoodSource::FoodSource()
 
 }
 
-FoodSource::FoodSource(Grid* grid)
+FoodSource::FoodSource(Grid* grid, bool isBlueBush)
 {
 	foodAmount = maxfoodAmount;
 	gridRef = grid;
+
+	if (isBlueBush) isBlue = true;
 
 	std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size()-1);
 
@@ -21,10 +23,14 @@ FoodSource::FoodSource(Grid* grid)
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
-	TextureIndexes indexForTexture = canEat ?  BUSHF : BUSHE;
+	TextureIndexes indexForTexture = BUSHE;
+	if (canEat)
+	{
+		indexForTexture = isBlue ? BLUE_BUSH : BUSHF;
+	}
+	
 	SDL_Rect rect = gridRef->GetRenderRect(position, size);
 	SDL_RenderCopy(renderer, TextureManager::GetTexture(indexForTexture), NULL, &rect);
-	//SDL_RenderDrawRect(renderer, &rect);
 }
 
 void FoodSource::Update(float deltaTime)
@@ -33,11 +39,11 @@ void FoodSource::Update(float deltaTime)
 	foodAmount > 20 ? canEat = true : canEat = false;
 }
 
-bool FoodSource::EatFrom(float amount)
+bool FoodSource::EatFrom()
 {
 	if (canEat)
 	{
-		foodAmount -= amount;
+		foodAmount = 0;
 		return true;
 	}
 	return false;

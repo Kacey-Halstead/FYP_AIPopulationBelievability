@@ -28,7 +28,8 @@ namespace TextureManager
 	"EMOTE_SADFACE",
 	"EMOTE_SWIRL",
 	"ROCK",
-	"TREE"
+	"TREE",
+	"BLUEBUSHF"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

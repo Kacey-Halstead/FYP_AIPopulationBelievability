@@ -30,7 +30,7 @@ class Agent
 public:
 
 	Agent();
-	Agent(Grid* grid, Agent* P1, Agent* P2);
+	Agent(Grid* grid);
 	~Agent();
 
 	void Update(float deltaTime);
@@ -62,25 +62,19 @@ public:
 	inline Grid* GetGridRef() { return gridRef; }
 	std::vector<float> GetValuesForImGui(int index); //0 - hunger, 1- thirst, 2 - social
 	Agent* GetClosestAgent();
+	void Reset();
 
 	glm::vec2 position = {};
 
-	std::array<std::pair<EEmotions, float>, 8> emotions = {
-	make_pair(SURPRISE, 0),
-	make_pair(ANTICIPATION, 0),
-	make_pair(DISGUST, 0),
-	make_pair(JOY, 0),
-	make_pair(ANGER, 0),
-	make_pair(FEAR, 0),
-	make_pair(TRUST, 0),
-	make_pair(SADNESS, 0)
-	};
+	std::array<std::pair<EEmotions, float>, 8> emotions = baseEmotions();
+
 
 	Needs needs = {};
 	States states = {};
 	PersonalityComponent personalityComponent = {};
 
 	int agentCount = 0;
+	bool blueBushPref = false;
 	glm::ivec2 size = { 50, 50 };
 
 	std::stack<actionIDs> responsiveStack{};
@@ -107,7 +101,20 @@ private:
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
 	std::vector<float> socialValues = std::vector<float>(400, 100);
+
+	inline std::array<std::pair<EEmotions, float>, 8> baseEmotions()
+	{
+		return { make_pair(SURPRISE, 0),
+			make_pair(ANTICIPATION, 0),
+			make_pair(DISGUST, 0),
+			make_pair(JOY, 0),
+			make_pair(ANGER, 0),
+			make_pair(FEAR, 0),
+			make_pair(TRUST, 0),
+			make_pair(SADNESS, 0)};
+	};
 };
+
 
 
 

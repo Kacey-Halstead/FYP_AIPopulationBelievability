@@ -153,6 +153,10 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
+	if (pos.y > 29 || pos.y < 1 || pos.x > 29 || pos.x < 1) nullptr;
+
+	//if(IsInGrid(pos)) return ;
+
 	return &Tiles[tilePos.x][tilePos.y];
 }
 

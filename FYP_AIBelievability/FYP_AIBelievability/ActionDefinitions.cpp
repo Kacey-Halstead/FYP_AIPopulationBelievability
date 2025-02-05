@@ -12,8 +12,22 @@ struct EatFood
 	{
 		if (states.foodState.foundFoodRef && ComparePositions(states.agent->position, states.foodState.foundFoodRef->position, 1.0f)) //if near food
 		{
-			if (states.foodState.foundFoodRef->EatFrom(100 - states.agent->needs.hungerVal)) //if canEat
+			if (states.foodState.foundFoodRef->EatFrom()) //if canEat
 			{
+				if (states.foodState.foundFoodRef->isBlue && states.agent->blueBushPref)
+				{
+					states.agent->ChangeEmotionValue(JOY, 1);
+					states.agent->ChangeEmotionValue(ANGER, -1);
+					states.agent->ChangeEmotionValue(SADNESS, -1);
+					states.agent->ChangeEmotionValue(DISGUST, -2);
+				}
+				else
+				{
+					states.agent->ChangeEmotionValue(DISGUST, 3);
+					states.agent->ChangeEmotionValue(ANGER, 1);
+					states.agent->ChangeEmotionValue(SADNESS, 1);
+				}
+
 				states.agent->needs.hungerVal = 100;
 			}
 			else
@@ -24,7 +38,7 @@ struct EatFood
 			}
 			states.foodState.foundFoodRef = nullptr;
 		}
-		else if(!states.moveState.isMoveToSet)
+		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{
 			states.foodState.foundFoodRef = FindNearestFoodSource(states);
 			states.moveState.to = states.foodState.foundFoodRef->position;
@@ -51,12 +65,24 @@ struct EatFood
 
 	static FoodSource* FindNearestFoodSource(States& states)
 	{
-		std::pair<float, FoodSource*> closestFood = std::make_pair(std::numeric_limits<float>().max(), states.foodState.prevFoodPositions[0].second);
+		std::pair<float, FoodSource*> closestFood;
+		std::list<std::pair<glm::vec2, FoodSource*>> toCheck = states.foodState.prevFoodPositions;
 
-		for (std::pair<glm::vec2, FoodSource*> foodSource : states.foodState.prevFoodPositions)
+		if (states.agent->blueBushPref) //prefers blue - check front first
+		{
+			closestFood = std::make_pair(std::numeric_limits<float>().max(), states.foodState.prevFoodPositions.front().second);
+		}
+		else
+		{
+			closestFood = std::make_pair(std::numeric_limits<float>().max(), states.foodState.prevFoodPositions.back().second);
+			std::reverse(toCheck.begin(), toCheck.end()); //reverse so in next stage, red bushes checked first
+		}
+		
+
+		for (std::pair<glm::vec2, FoodSource*> foodSource : toCheck)
 		{
 			float distance = DistanceBetween(states.agent->position, foodSource.first);
-			if(distance < closestFood.first)
+			if( foodSource.second->canEat && distance < closestFood.first)
 			{
 				closestFood = std::make_pair(distance, foodSource.second);
 			}
@@ -78,7 +104,7 @@ struct DrinkWater
 			states.agent->needs.thirstVal = 100;
 			states.waterState.waterRefSet = false;
 		}
-		else
+		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position))
 		{
 			states.moveState.to = FindNearestWaterSource(states);
 			states.waterState.foundWaterRef = states.moveState.to;
@@ -127,7 +153,7 @@ struct Wander
 {
 	static void Execute(States& states)
 	{
-		if(!states.moveState.isMoveToSet)
+		if(states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{ 
 			states.moveState.from = states.agent->position;
 
@@ -245,9 +271,10 @@ struct FindAgentToSocialise
 			}
 		}
 
-		if (!states.moveState.isMoveToSet)
+		if (states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{
 			states.socialState.agentRef->states.socialState.isTalkingTo = true;
+			states.socialState.agentRef->states.moveState.isMoveToSet = false;
 			states.socialState.isSeekingOtherAgent = true;
 			states.moveState.to = states.socialState.agentRef->position;
 			states.moveState.isMoveToSet = true;
@@ -264,6 +291,8 @@ struct FindAgentToSocialise
 				states.socialState.agentRef->states.socialState.isTalkingTo = false;
 				states.socialState.isSeekingOtherAgent = false;
 				states.socialState.agentRef = nullptr;
+				states.agent->ChangeEmotionValue(ANGER, 1);
+				states.agent->ChangeEmotionValue(SADNESS, 1);
 				return { ActionProgress::Impossible, 1 };
 			}
 
@@ -406,17 +435,17 @@ struct Fight
 			states.socialState.agentRef->states.socialState.isTalkingTo = false;
 		}
 		else //if flight
-		{			
+		{
 			states.socialState.agentRef->states.socialState.agentRef = states.agent;
 			states.socialState.agentRef->responsiveStack.push(FLEE);
-		} 
+		}
 
 		states.agent->needs.socialVal = 100;
 		states.socialState.agentRef = nullptr;
 		states.socialState.isSeekingOtherAgent = false;
 	}
 
-	static std::pair<ActionProgress,int> IsValid(States& states)
+	static std::pair<ActionProgress, int> IsValid(States& states)
 	{
 		if (states.agent->needs.socialVal > 50)
 		{
@@ -435,15 +464,16 @@ struct RunAway
 	{
 		if (!states.moveState.isMoveToSet)
 		{
+			states.socialState.isTalkingTo = false;
 			states.agent->SetSpeed(2.5f);
 			states.agent->ChangeEmotionValue(SURPRISE, 1);
 			states.agent->ChangeEmotionValue(FEAR, 2);
-
-			states.socialState.runAwayPosBefore = states.agent->position;
 			states.moveState.from = states.agent->position;
-			states.moveState.to = GetRandomValidTile(states);
 			states.moveState.isMoveToSet = true;
+			states.moveState.to = GetRandomValidTile(states);
+			states.moveState.path = AStar::toFindPath(states.moveState.from, states.moveState.to);
 		}
+
 	}
 
 	static glm::vec2 GetRandomValidTile(States& states)
@@ -451,13 +481,25 @@ struct RunAway
 		glm::vec2 otherAgentPos = states.socialState.agentRef->position;
 		glm::vec2 diff = otherAgentPos - states.agent->position;
 		diff = glm::normalize(diff);
+		diff.x < 0 ? diff.x = std::floor(diff.x) : diff.x = std::ceil(diff.x);
+		diff.y < 0 ? diff.y = std::floor(diff.y) : diff.y = std::ceil(diff.y);
 
-		if (states.agent->GetGridRef()->IsInGrid(states.agent->position, glm::vec2(-diff.x * 5, -diff.y * 5)))
+		glm::vec2 pos = glm::vec2(states.agent->position.x + (-diff.x * 4), states.agent->position.y + (-diff.y * 4));
+
+		if (states.agent->GetGridRef()->IsInGrid(pos))
 		{
-			return { -diff.x * 4, -diff.y * 4 };
+			return glm::vec2(pos);
+		}
+		else
+		{
+			pos = glm::vec2(states.agent->position.x + (diff.x * 4), states.agent->position.y + (diff.y * 4));
+			if (states.agent->GetGridRef()->IsInGrid(pos))
+			{
+				return glm::vec2(pos);
+			}
 		}
 
-		return states.agent->position;
+		return glm::vec2(gridSizeX/2, gridSizeY/2);
 	}
 
 	static std::pair<ActionProgress, int> IsValid(States& states)
@@ -465,7 +507,6 @@ struct RunAway
 		if (!ComparePositions(states.agent->position, states.socialState.runAwayPosBefore, 3.0f)) //is away from angry agent?
 		{
 			states.agent->SetSpeed(0.0f);
-			states.socialState.isTalkingTo = false;
 			return { ActionProgress::Complete, 1 };
 		}
 

@@ -30,7 +30,7 @@ struct FindState
 
 struct FindFoodState
 {
-	std::vector<std::pair<glm::vec2, FoodSource*>> prevFoodPositions;
+	std::list<std::pair<glm::vec2, FoodSource*>> prevFoodPositions;
 
 	FoodSource* foundFoodRef = nullptr;
 

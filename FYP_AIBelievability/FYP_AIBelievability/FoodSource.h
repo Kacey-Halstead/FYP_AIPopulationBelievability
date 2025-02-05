@@ -12,15 +12,17 @@ class FoodSource
 {
 public:
 	FoodSource();
-	FoodSource(Grid* grid);
+	FoodSource(Grid* grid, bool isBlueBush);
 	void Render(SDL_Renderer* renderer, SDL_Window* window) const;
 
 	void Update(float deltaTime);
-	bool EatFrom(float amount);
+	bool EatFrom();
 	void Replenish(float deltaTime);
 
 	bool canEat = true;
 	glm::vec2 position;
+
+	bool isBlue = false;
 
 private:
 	SDL_Rect rect;
@@ -30,7 +32,7 @@ private:
 
 	Grid* gridRef;
 
-	const float maxfoodAmount = 100;
+	float maxfoodAmount = 100;
 
 	//for replenishment
 	int counter = 0;

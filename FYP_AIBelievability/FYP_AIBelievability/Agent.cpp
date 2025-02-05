@@ -5,39 +5,14 @@ Agent::Agent()
 
 }
 
-Agent::Agent(Grid* grid, Agent* P1, Agent* P2)
+Agent::Agent(Grid* grid)
 {
 	agentCount = ImGui_Implementation::agentCount;
-	states.agent = this;
 
-	if (P1 == nullptr) //if no parents
-	{
-		//generates random personality
-		personalityComponent = PersonalityComponent();
-
-		//random positions
-		position.x = 30 * ((float)rand() / RAND_MAX);
-		position.y = 30* ((float)rand() / RAND_MAX);
-	}
-	else
-	{
-		//generates personality from parents
-		personalityComponent = PersonalityComponent(P1, P2);
-		parents[0] = P1;
-		parents[1] = P2;
-	}
+	position.x = 1 + (28 * ((float)rand() / RAND_MAX));
+	position.y = 1 + (28 * ((float)rand() / RAND_MAX));
 
 	gridRef = grid;
-
-	//sets extern variables
-	ImGui_Implementation::OCEANValues = personalityComponent.OCEANValues;
-	ImGui_Implementation::Traits = personalityComponent.traits;
-	ImGui_Implementation::needStruct = needs;
-
-	for (int i = 0; i < 5; i++)
-	{
-		states.findState.patrolPoints[i] = patrolPositions[i];
-	}
 }
 
 Agent::~Agent()
@@ -93,9 +68,17 @@ bool Agent::IsPointInAgent(SDL_Point point)
 void Agent::DetectFood(std::pair<glm::vec2, FoodSource*> foodPair)
 {
 	auto it = std::find(states.foodState.prevFoodPositions.begin(), states.foodState.prevFoodPositions.end(), foodPair);
+
 	if (it == states.foodState.prevFoodPositions.end())
 	{
-		states.foodState.prevFoodPositions.push_back(foodPair);
+		if (foodPair.second->isBlue)
+		{
+			states.foodState.prevFoodPositions.push_front(foodPair);
+		}
+		else
+		{
+			states.foodState.prevFoodPositions.push_back(foodPair);
+		}
 	}
 }
 
@@ -151,6 +134,17 @@ Agent* Agent::GetClosestAgent()
 	}
 
 	return closestAgent.second;
+}
+
+void Agent::Reset()
+{
+	needs = Needs{};
+	emotions = baseEmotions();
+	personalityComponent = PersonalityComponent();
+	actions = { "Wander" };
+	states = {};
+	states.agent = this;
+	textureColour = { 255, 255, 255 };
 }
 
 std::pair<char, EEmotions> Agent::DecideOnGoal()

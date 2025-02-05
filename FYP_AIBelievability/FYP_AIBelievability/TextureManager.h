@@ -28,6 +28,7 @@ enum TextureIndexes
 	EMOTE_SWIRL,
 	ROCK,
 	TREE,
+	BLUE_BUSH,
 	NO_EMOTE
 };
 

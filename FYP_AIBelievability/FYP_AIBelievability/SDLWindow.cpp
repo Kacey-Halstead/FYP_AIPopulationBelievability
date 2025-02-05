@@ -80,6 +80,8 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			//CLICKING AGENTS
 			for (Agent& a : agents)
 			{
+				if (a.agentCount > ImGui_Implementation::agentNumber) break;
+
 				float agentSize = (float)a.size.x / grid->tileSizeOnScreen.x;
 				if(ComparePositions(a.position, mouseWorldPos, agentSize))
 				{
@@ -87,6 +89,7 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 					ImGui_Implementation::OCEANValues = a.personalityComponent.OCEANValues;
 					ImGui_Implementation::Traits = a.personalityComponent.traits;
 					ImGui_Implementation::actions = a.actions;
+					ImGui_Implementation::isBlue = a.blueBushPref;
 					break;
 				}
 			}

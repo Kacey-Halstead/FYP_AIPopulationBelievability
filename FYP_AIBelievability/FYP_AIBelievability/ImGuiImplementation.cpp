@@ -15,8 +15,11 @@ namespace ImGui_Implementation
 	float currentTime = 0;
 	bool pause = false;
 	bool toSelectDest = false;
+	bool isBlue = false;
 
 	float deltaTimeModifier = 1.0f;
+	int agentNumber = 10;
+	int foodNumber = 10;
 
 	std::list<std::string> actions = {"Wander"};
 
@@ -79,10 +82,27 @@ namespace ImGui_Implementation
 
 		ImGui_Implementation::Begin("Agent Information", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
+		//AGENT COUNT
 		ImGui_Implementation::Text("agent = %d", agentCount);
+		ImGui_Implementation::Dummy({ 0.0f, 5.0f });
+
+		//FOOD PREFERENCE
+		if (isBlue)
+		{
+			ImGui_Implementation::TextColored({ 0, 0, 255, 255 }, "Agent food preference: Blue Berries");
+		}
+		else
+		{
+			ImGui_Implementation::TextColored({ 255, 0, 0, 255 }, "Agent food preference: Red Berries");
+		}
+
+		ImGui_Implementation::Dummy({ 0.0f, 10.0f });
 
 		//list of completed actions
-		ImGui_Implementation::Text("Actions Performed");
+		ImGui_Implementation::TextColored({ 0, 255, 0, 255 }, "Actions Performed");
+
+		ImGui_Implementation::Dummy({ 0.0f, 5.0f });
+
 		ImGui_Implementation::SetNextWindowSize({ 400, 200 });
 		ImGui_Implementation::BeginChild("ActionsPerformed");
 
@@ -123,11 +143,11 @@ namespace ImGui_Implementation
 				data[i] = emotionValues[i].second + 1;
 			}
 
-			ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+			ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_NoTickLabels, ImPlotAxisFlags_NoDecorations | ImPlotAxisFlags_NoTickLabels);
 			ImPlot::SetupAxesLimits(0, 1, 0, 1);
 
 			ImPlot::PushColormap(customEmotionColours);
-			ImPlot::PlotPieChart(labels, data, 8, 0.5, 0.5, 0.4);
+			ImPlot::PlotPieChart(labels, data, 8, 0.5, 0.5, 0.4, " ", 90.0f, ImPlotPieChartFlags_Normalize);
 			ImPlot::PopColormap();
 
 			ImPlot::EndPlot();
@@ -197,13 +217,10 @@ namespace ImGui_Implementation
 
 		ImGui_Implementation::SliderFloat("Speed", &deltaTimeModifier, 0.1f, 10.0f);
 
-		//if (isAgentPressed)
-		//{
-		//	if (ImGui_Implementation::Button("Select end destination for agent", { 120, 30 }))
-		//	{
-		//		toSelectDest = true;
-		//	}
-		//}
+
+		ImGui_Implementation::SliderInt("Number of Agents", &agentNumber, 1, 50);
+
+		ImGui_Implementation::SliderInt("Number of Food Sources", &foodNumber, 1, 50);
 
 		ImGui_Implementation::End();
 	}
