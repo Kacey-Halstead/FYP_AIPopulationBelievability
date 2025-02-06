@@ -217,6 +217,10 @@ void FYP_AIBelievability::Update()
 
 		agent.Update(deltaTime);
 
+		if (ImGui_Implementation::agentCount > ImGui_Implementation::agentNumber)
+		{
+			ImGui_Implementation::agentCount = 1;
+		}
 
 		//update ImGui
 		if (mCounter > 0.1 && ImGui_Implementation::agentCount == agent.agentCount)

@@ -84,24 +84,33 @@ namespace ImGui_Implementation
 
 		//AGENT COUNT
 		ImGui_Implementation::Text("agent = %d", agentCount);
-		ImGui_Implementation::Dummy({ 0.0f, 5.0f });
+		ImGui_Implementation::Dummy({ 0.0f, 2.0f });
+
+		ImGui_Implementation::Text("Agent food preference: ");
+		ImGui_Implementation::SameLine();
 
 		//FOOD PREFERENCE
 		if (isBlue)
 		{
-			ImGui_Implementation::TextColored({ 0, 0, 255, 255 }, "Agent food preference: Blue Berries");
+			ImGui_Implementation::PushStyleColor(ImGuiCol_Text, IM_COL32(29, 70, 207, 255));
+			ImGui_Implementation::Text("Blue Berries");
+			ImGui_Implementation::PopStyleColor();
 		}
 		else
 		{
-			ImGui_Implementation::TextColored({ 255, 0, 0, 255 }, "Agent food preference: Red Berries");
+			ImGui_Implementation::PushStyleColor(ImGuiCol_Text, IM_COL32(207, 53, 29, 255));
+			ImGui_Implementation::Text("Red Berries");
+			ImGui_Implementation::PopStyleColor();
 		}
 
 		ImGui_Implementation::Dummy({ 0.0f, 10.0f });
 
 		//list of completed actions
-		ImGui_Implementation::TextColored({ 0, 255, 0, 255 }, "Actions Performed");
+		ImGui_Implementation::PushStyleColor(ImGuiCol_Text, IM_COL32(29, 207, 38, 255));
+		ImGui_Implementation::Text("Actions Performed");
+		ImGui_Implementation::PopStyleColor();
 
-		ImGui_Implementation::Dummy({ 0.0f, 5.0f });
+		ImGui_Implementation::Dummy({ 0.0f, 2.0f });
 
 		ImGui_Implementation::SetNextWindowSize({ 400, 200 });
 		ImGui_Implementation::BeginChild("ActionsPerformed");
