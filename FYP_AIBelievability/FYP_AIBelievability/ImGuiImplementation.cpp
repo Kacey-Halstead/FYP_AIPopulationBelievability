@@ -214,10 +214,10 @@ namespace ImGui_Implementation
 
 		ImGui_Implementation::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui_Implementation::GetIO().Framerate, ImGui_Implementation::GetIO().Framerate);
 
-		if (ImGui_Implementation::Button("Regenerate WFC", {120, 30}))
-		{
-			WFC::WFCReset();
-		}
+		//if (ImGui_Implementation::Button("Regenerate WFC", {120, 30}))
+		//{
+		//	WFC::WFCReset();
+		//}
 
 		if (ImGui_Implementation::Button("Pause", { 120, 30 }))
 		{

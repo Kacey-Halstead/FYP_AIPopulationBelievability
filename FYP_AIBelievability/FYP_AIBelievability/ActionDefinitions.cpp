@@ -65,7 +65,7 @@ struct EatFood
 
 	static FoodSource* FindNearestFoodSource(States& states)
 	{
-		std::pair<float, FoodSource*> closestFood;
+		std::pair<float, FoodSource*> closestFood = {};
 		std::list<std::pair<glm::vec2, FoodSource*>> toCheck = states.foodState.prevFoodPositions;
 
 		if (states.agent->blueBushPref) //prefers blue - check front first
@@ -87,6 +87,12 @@ struct EatFood
 				closestFood = std::make_pair(distance, foodSource.second);
 			}
 		}
+
+		if (closestFood.second == nullptr)
+		{
+			return states.foodState.prevFoodPositions.front().second;
+		}
+
 		return closestFood.second;
 	}
 };
@@ -216,7 +222,8 @@ struct Wander
 			//if close to people, runAway
 			if (ComparePositions(states.agent->position, closestAgent->position, 2.0f))
 			{
-				states.socialState.agentRef->responsiveStack.push(FLEE);
+				states.socialState.agentRef = closestAgent;
+				states.agent->responsiveStack.push(FLEE);
 			}
 			return states.agent->position;
 		}
@@ -225,6 +232,7 @@ struct Wander
 			//if close to people, runAway
 			if (ComparePositions(states.agent->position, closestAgent->position, 2.0f))
 			{
+				states.socialState.agentRef = closestAgent;
 				states.socialState.agentRef->responsiveStack.push(FLEE);
 			}
 			return states.agent->position;
@@ -361,6 +369,7 @@ struct TransferKnowledge
 	{
 		if (states.agent->needs.socialVal > 80)
 		{
+			states.socialState.agentRef->states.socialState.isTalkingTo = false;
 			return { ActionProgress::Complete, 1 };
 		}
 		else if (!states.socialState.agentRef)
@@ -506,6 +515,7 @@ struct RunAway
 	{
 		if (!ComparePositions(states.agent->position, states.socialState.runAwayPosBefore, 3.0f)) //is away from angry agent?
 		{
+			states.socialState.agentRef->states.socialState.isTalkingTo = false;
 			states.agent->SetSpeed(0.0f);
 			return { ActionProgress::Complete, 1 };
 		}

@@ -81,15 +81,15 @@ bool Grid::IsInGrid(glm::ivec2 point, glm::ivec2 dir)
 	glm::ivec2 pos = point + dir; // tile position
 
 	//if pos within X and Y bounds of grid
-	return (0 < pos.x && pos.x < gridSizeX-1 
-		&& 0 < pos.y && pos.y < gridSizeY-1);
+	return (0 <= pos.x && pos.x < gridSizeX-1 
+		&& 0 <= pos.y && pos.y < gridSizeY-1);
 }
 
 bool Grid::IsInGrid(glm::ivec2 point)
 {
 	//if pos within X and Y bounds of grid
-	return (0 < point.x && point.x < gridSizeX - 1
-		&& 0 < point.y && point.y < gridSizeY - 1);
+	return (0 <= point.x && point.x < gridSizeX - 1
+		&& 0 <= point.y && point.y < gridSizeY - 1);
 }
 
 void Grid::RenderGrid(SDL_Renderer* renderer)
@@ -153,7 +153,7 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
-	if (pos.y > 29 || pos.y < 1 || pos.x > 29 || pos.x < 1) nullptr;
+	if (pos.y > 29 || pos.y < 0 || pos.x > 29 || pos.x < 0) return &Tiles[10][10];
 
 	//if(IsInGrid(pos)) return ;
 

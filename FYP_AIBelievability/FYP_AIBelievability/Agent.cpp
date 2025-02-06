@@ -145,6 +145,7 @@ void Agent::Reset()
 	states = {};
 	states.agent = this;
 	textureColour = { 255, 255, 255 };
+	position = { gridSizeX / 2, gridSizeY / 2 };
 }
 
 std::pair<char, EEmotions> Agent::DecideOnGoal()

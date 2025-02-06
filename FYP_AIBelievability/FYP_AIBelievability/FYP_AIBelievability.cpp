@@ -160,6 +160,9 @@ void FYP_AIBelievability::Update()
 		//movement
 		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
+			//if (agent.states.moveState.to.x < 0 || agent.states.moveState.to.x > (gridSizeX - 1) ||
+			//	agent.states.moveState.to.y < 0 || agent.states.moveState.to.y >(gridSizeY - 1)) break;
+
 			if (agent.states.moveState.path.size() > 1)
 			{
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
