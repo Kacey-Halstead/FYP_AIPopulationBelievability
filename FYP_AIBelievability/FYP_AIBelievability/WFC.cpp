@@ -70,13 +70,13 @@ namespace WFC
 		//check if enough of each tile. if not, regenerate
 		if (typeCounter[0] < 3 || typeCounter[1] < 3 || typeCounter[2] < 3)
 		{
-			WFCReset();
+			//WFCReset();
 		}
 
 		//check if too many sea tiles
 		if (typeCounter[2] > (gridSizeX * gridSizeY) / 3)
 		{
-			WFCReset();
+			//WFCReset();
 		}
 
 		gridRef->landTilePositions = gridRef->GetLandTiles();

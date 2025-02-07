@@ -15,9 +15,9 @@ public:
 	PersonalityComponent(); //assume random generation
 	~PersonalityComponent();
 
-	std::array<int, 5> OCEANValues{};
-	std::array<Trait, 6> traits{};
-	std::array<float, 8> emotionMultipliers{};
+	std::vector<int> OCEANValues = {0, 0, 0, 0, 0};
+	std::vector<Trait> traits{};
+	std::vector<float> emotionMultipliers = {1, 1, 1, 1, 1, 1, 1, 1};
 
 private:
 	void RandomGeneration();

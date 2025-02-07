@@ -8,8 +8,8 @@
 namespace ImGui_Implementation
 {
 	int agentCount = 1;
-	std::array<int, 5> OCEANValues{};
-	std::array<Trait, 6> Traits{};
+	std::vector<int> OCEANValues{};
+	std::vector<Trait> Traits{};
 	bool isAgentPressed = false;
 	Needs needStruct{};
 	float currentTime = 0;
@@ -23,7 +23,7 @@ namespace ImGui_Implementation
 
 	std::list<std::string> actions = {"Wander"};
 
-	std::array<std::pair<EEmotions, float>, 8> emotionValues = {};
+	std::vector<std::pair<EEmotions, float>> emotionValues = {};
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);

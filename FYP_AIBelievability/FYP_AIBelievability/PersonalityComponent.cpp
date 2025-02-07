@@ -24,9 +24,11 @@ void PersonalityComponent::RandomGeneration()
 	for (int i = 0; i < 6; i++) //randomise 6 traits
 	{
 		index = distrib(RandomGenerator::gen);
-		traits[i].traitName = FromJSONFile::traitsAndValues[index].traitName; //sets trait name
-		traits[i].traitEffect = FromJSONFile::traitsAndValues[index].traitEffect; //sets trait effect (-1/1)
-		traits[i].OCEANEffect = FromJSONFile::traitsAndValues[index].OCEANEffect; //sets affected OCEAN value
+		Trait trait{};
+		trait.traitName = FromJSONFile::traitsAndValues[index].traitName; //sets trait name
+		trait.traitEffect = FromJSONFile::traitsAndValues[index].traitEffect; //sets trait effect (-1/1)
+		trait.OCEANEffect = FromJSONFile::traitsAndValues[index].OCEANEffect; //sets affected OCEAN value
+		traits.emplace_back(trait);
 		OCEANValues[FromJSONFile::traitsAndValues[index].OCEANEffect] += FromJSONFile::traitsAndValues[index].traitEffect; //creates changed OCEAN values
 	}
 }

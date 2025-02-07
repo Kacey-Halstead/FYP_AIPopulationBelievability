@@ -11,6 +11,9 @@
 #include "FoodSource.h"
 #include "DAG.h"
 #include "ActionDefinitions.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 using namespace std::chrono;
 
@@ -87,17 +90,21 @@ FYP_AIBelievability::~FYP_AIBelievability()
 	ImGui_Implementation::Destroy();
 }
 
-void FYP_AIBelievability::MainLoop()
+bool FYP_AIBelievability::MainLoop()
 {
-	//main loop
-	while (true)
+	if (!mSDL->Events(mGrid.get(), mAgents)) 
 	{
-		if (!mSDL->Events(mGrid.get(), mAgents)) break;
-
-		UpdateAgentsandFood();
-		Update();
-		Render();
+#ifdef __EMSCRIPTEN__
+		emscripten_cancel_main_loop();
+#endif // __EMSCRIPTEN__
+		return false;
 	}
+
+	UpdateAgentsandFood();
+	Update();
+	Render();
+
+	return true;
 }
 
 void FYP_AIBelievability::Render() const

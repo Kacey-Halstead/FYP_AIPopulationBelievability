@@ -41,6 +41,7 @@ struct EatFood
 		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{
 			states.foodState.foundFoodRef = FindNearestFoodSource(states);
+			if (!states.foodState.foundFoodRef) return;
 			states.moveState.to = states.foodState.foundFoodRef->position;
 			states.moveState.isMoveToSet = true;
 			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
