@@ -487,7 +487,7 @@ struct RunAway
 
 	static glm::vec2 GetRandomValidTile(States& states)
 	{
-		glm::vec2 otherAgentPos = states.socialState.agentRef->position;
+		glm::vec2 otherAgentPos = states.agent->GetClosestAgent()->position;
 		glm::vec2 diff = otherAgentPos - states.agent->position;
 		diff = glm::normalize(diff);
 		diff.x < 0 ? diff.x = std::floor(diff.x) : diff.x = std::ceil(diff.x);
