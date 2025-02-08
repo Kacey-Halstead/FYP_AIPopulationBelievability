@@ -9,7 +9,7 @@ DAG.cpp ^
 FoodSource.cpp ^
 FromJSON.cpp ^
 FYP_AIBelievability.cpp ^
-Grid.cpp ^
+-g Grid.cpp ^
 ImGuiImplementation.cpp ^
 imgui\imgui.cpp ^
 imgui\imgui_draw.cpp ^
@@ -26,7 +26,7 @@ SDLWindow.cpp ^
 States.cpp ^
 TextureManager.cpp ^
 Tile.cpp ^
-WFC.cpp ^
+-g WFC.cpp ^
 -Iglm ^
 -Iimgui\include ^
 -std=c++20 ^
@@ -57,8 +57,11 @@ WFC.cpp ^
 -sUSE_SDL=2 ^
 -sUSE_SDL_IMAGE=2 ^
 -sSDL2_IMAGE_FORMATS="png" ^
--oa.html ^
+-o.\build\a.html ^
 -sALLOW_MEMORY_GROWTH=1 ^
 -sSTACK_SIZE=200000 ^
 -sTOTAL_STACK=512mb ^
--Oz ^
+-sSAFE_HEAP=1 ^
+-sSTACK_OVERFLOW_CHECK=2 ^
+-Og ^
+-sASSERTIONS=2 
