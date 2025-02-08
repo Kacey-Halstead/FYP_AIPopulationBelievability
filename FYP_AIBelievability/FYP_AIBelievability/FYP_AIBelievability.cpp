@@ -207,14 +207,17 @@ void FYP_AIBelievability::Update()
 			DagNode* toExecute = mDAG->FindNode(agent.responsiveStack.top());
 			Action* action = toExecute->action;
 
+			if (action->isValidFunc(agent.states).second != InProgress)
+			{
+				agent.responsiveStack.pop();
+			}
+
 			action->executeFunc(agent.states);
 
 			if (!agent.actions.empty() && agent.actions.front() != action->actionName)
 			{
 				agent.actions.push_front(action->actionName);
 			}
-
-			agent.responsiveStack.pop();
 		}
 		else
 		{
