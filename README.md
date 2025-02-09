@@ -1,13 +1,12 @@
-### ![agent](FYP_AIBelievability/FYP_AIBelievability/Images/AGENT2.png) Simulating Personality and Emotion in AI Agents through Individual-Based Modelling ![agent](FYP_AIBelievability/FYP_AIBelievability/Images/AGENT2.png)
+#### ![agent](FYP_AIBelievability/FYP_AIBelievability/Images/AGENT2.png) Simulating Personality and Emotion in AI Agents through Individual-Based Modelling ![agent](FYP_AIBelievability/FYP_AIBelievability/Images/AGENT2.png)
 
-#### Read the full breakdown of this project [here](https://kaceyhalstead.wordpress.com/2025/02/02/simulating-personality-and-emotion-in-ai-agents-through-individual-based-modelling/).
+##### Read the full breakdown of this project [here](https://kaceyhalstead.wordpress.com/2025/02/02/simulating-personality-and-emotion-in-ai-agents-through-individual-based-modelling/).
 
-#### Play the simulation on itch.io [here](https://kaceyhalstead.itch.io/simulating-personality-and-emotion-in-ai-agents-through-individual-based-modelli).
+##### Play the simulation on itch.io [here](https://kaceyhalstead.itch.io/simulating-personality-and-emotion-in-ai-agents-through-individual-based-modelli).
 
 ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png)
 ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png)
 ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png)
-![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BUSHF.png) ![bush](FYP_AIBelievability/FYP_AIBelievability/Images/BLUEBUSHF.png)
 
 This simulation consists of 2D agents navigating a generated environment, trying to fulfil their needs and make decisions based on their emotions and personality. 
 
