@@ -227,9 +227,9 @@ namespace ImGui_Implementation
 		ImGui_Implementation::SliderFloat("Speed", &deltaTimeModifier, 0.1f, 10.0f);
 
 
-		ImGui_Implementation::SliderInt("Number of Agents", &agentNumber, 1, 50);
+		ImGui_Implementation::SliderInt("Agent Count", &agentNumber, 1, 50);
 
-		ImGui_Implementation::SliderInt("Number of Food Sources", &foodNumber, 1, 50);
+		ImGui_Implementation::SliderInt("Food Count", &foodNumber, 1, 50);
 
 		ImGui_Implementation::End();
 	}
