@@ -176,6 +176,12 @@ void FYP_AIBelievability::Update()
 	{
 		if (agent.agentCount == index) break;
 
+		if (!mGrid->IsInGrid(agent.position))
+		{
+			agent.position = { gridSizeX / 2, gridSizeY / 2 };
+		}
+
+
 		//movement
 		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
@@ -184,6 +190,11 @@ void FYP_AIBelievability::Update()
 
 			if (agent.states.moveState.path.size() > 1)
 			{
+				if (!agent.states.moveState.path[0].tile || !mGrid->IsInGrid(agent.states.moveState.to))
+				{
+					agent.states.moveState.isMoveToSet = false;
+				}
+
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
 
 				agent.states.agent->Move(toGo);

@@ -18,7 +18,7 @@ FoodSource::FoodSource(Grid* grid, bool isBlueBush)
 	// need to make sure can't gen on same tile
 	position = gridRef->landTilePositions[distrib(RandomGenerator::gen)];
 
-	gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + distrib(RandomGenerator::gen));
+	gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + (distrib(RandomGenerator::gen) -1));
 }
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
