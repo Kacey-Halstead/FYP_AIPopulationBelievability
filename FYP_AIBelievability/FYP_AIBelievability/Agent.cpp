@@ -1,4 +1,5 @@
 #include "Agent.h"
+#include "RandomGenerator.h"
 
 Agent::Agent()
 {
@@ -8,9 +9,6 @@ Agent::Agent()
 Agent::Agent(Grid* grid)
 {
 	agentCount = ImGui_Implementation::agentCount;
-
-	position.x = 1 + (28 * ((float)rand() / RAND_MAX));
-	position.y = 1 + (28 * ((float)rand() / RAND_MAX));
 
 	gridRef = grid;
 }
@@ -145,7 +143,9 @@ void Agent::Reset()
 	states = {};
 	states.agent = this;
 	textureColour = { 255, 255, 255 };
-	position = { gridSizeX / 2, gridSizeY / 2 };
+	std::uniform_real_distribution<> distrib(1.0f, 29.0f);
+	position.x = distrib(RandomGenerator::gen);
+	position.y = distrib(RandomGenerator::gen);
 }
 
 std::pair<char, EEmotions> Agent::DecideOnGoal()

@@ -29,9 +29,9 @@ namespace ImGui_Implementation
 
 	extern bool isAgentPressed;	
 	extern int agentCount;
-	extern std::array<int, 5> OCEANValues;
-	extern std::array<Trait, 6> Traits;
-	extern std::array<std::pair<EEmotions, float>, 8> emotionValues;
+	extern std::vector<int> OCEANValues;
+	extern std::vector<Trait> Traits;
+	extern std::vector<std::pair<EEmotions, float>> emotionValues;
 	extern Needs needStruct;
 	extern float currentTime;
 	extern bool isBlue;

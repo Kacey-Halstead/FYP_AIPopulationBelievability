@@ -8,8 +8,8 @@
 namespace ImGui_Implementation
 {
 	int agentCount = 1;
-	std::array<int, 5> OCEANValues{};
-	std::array<Trait, 6> Traits{};
+	std::vector<int> OCEANValues{};
+	std::vector<Trait> Traits{};
 	bool isAgentPressed = false;
 	Needs needStruct{};
 	float currentTime = 0;
@@ -23,7 +23,7 @@ namespace ImGui_Implementation
 
 	std::list<std::string> actions = {"Wander"};
 
-	std::array<std::pair<EEmotions, float>, 8> emotionValues = {};
+	std::vector<std::pair<EEmotions, float>> emotionValues = {};
 
 	std::vector<float> hungerValues = std::vector<float>(400, 100);
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
@@ -227,9 +227,9 @@ namespace ImGui_Implementation
 		ImGui_Implementation::SliderFloat("Speed", &deltaTimeModifier, 0.1f, 10.0f);
 
 
-		ImGui_Implementation::SliderInt("Number of Agents", &agentNumber, 1, 50);
+		ImGui_Implementation::SliderInt("Agent Count", &agentNumber, 1, 50);
 
-		ImGui_Implementation::SliderInt("Number of Food Sources", &foodNumber, 1, 50);
+		ImGui_Implementation::SliderInt("Food Count", &foodNumber, 1, 50);
 
 		ImGui_Implementation::End();
 	}

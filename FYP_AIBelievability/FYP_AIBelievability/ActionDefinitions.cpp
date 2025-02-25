@@ -41,6 +41,7 @@ struct EatFood
 		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{
 			states.foodState.foundFoodRef = FindNearestFoodSource(states);
+			if (!states.foodState.foundFoodRef) return;
 			states.moveState.to = states.foodState.foundFoodRef->position;
 			states.moveState.isMoveToSet = true;
 			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
@@ -88,7 +89,8 @@ struct EatFood
 			}
 		}
 
-		if (closestFood.second == nullptr)
+		if (closestFood.second == nullptr || closestFood.second->position.x < 0 || closestFood.second->position.x > 29 || 
+			closestFood.second->position.y < 0 || closestFood.second->position.y > 29)
 		{
 			return states.foodState.prevFoodPositions.front().second;
 		}
@@ -445,6 +447,8 @@ struct Fight
 		}
 		else //if flight
 		{
+			states.socialState.agentRef->states.agent->ChangeEmotionValue(SURPRISE, 1);
+			states.socialState.agentRef->states.agent->ChangeEmotionValue(FEAR, 2);
 			states.socialState.agentRef->states.socialState.agentRef = states.agent;
 			states.socialState.agentRef->responsiveStack.push(FLEE);
 		}
@@ -475,8 +479,6 @@ struct RunAway
 		{
 			states.socialState.isTalkingTo = false;
 			states.agent->SetSpeed(2.5f);
-			states.agent->ChangeEmotionValue(SURPRISE, 1);
-			states.agent->ChangeEmotionValue(FEAR, 2);
 			states.moveState.from = states.agent->position;
 			states.moveState.isMoveToSet = true;
 			states.moveState.to = GetRandomValidTile(states);
@@ -487,7 +489,19 @@ struct RunAway
 
 	static glm::vec2 GetRandomValidTile(States& states)
 	{
-		glm::vec2 otherAgentPos = states.agent->GetClosestAgent()->position;
+		Agent* otherAgent = states.agent->GetClosestAgent();
+		glm::vec2 otherAgentPos = { 1,1 };
+
+		if (otherAgent)
+		{
+			otherAgentPos = otherAgent->position;
+		}
+		else
+		{
+			otherAgentPos = { gridSizeX / 2, gridSizeY / 2 };
+		}
+
+
 		glm::vec2 diff = otherAgentPos - states.agent->position;
 		diff = glm::normalize(diff);
 		diff.x < 0 ? diff.x = std::floor(diff.x) : diff.x = std::ceil(diff.x);
@@ -515,7 +529,6 @@ struct RunAway
 	{
 		if (!ComparePositions(states.agent->position, states.socialState.runAwayPosBefore, 3.0f)) //is away from angry agent?
 		{
-			states.socialState.agentRef->states.socialState.isTalkingTo = false;
 			states.agent->SetSpeed(0.0f);
 			return { ActionProgress::Complete, 1 };
 		}

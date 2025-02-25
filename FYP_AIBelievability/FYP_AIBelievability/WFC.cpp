@@ -45,7 +45,9 @@ namespace WFC
 				}
 			}
 
-			int randomType = rand() % random.size();
+			std::uniform_int_distribution<> distrib(0, random.size()-1);
+			int randomType = distrib(RandomGenerator::gen);
+
 			selectedTile->SetType(random[randomType]);
 			if (random[randomType] == 'S')
 			{
@@ -70,32 +72,23 @@ namespace WFC
 		//check if enough of each tile. if not, regenerate
 		if (typeCounter[0] < 3 || typeCounter[1] < 3 || typeCounter[2] < 3)
 		{
-			WFCReset();
+			//WFCReset();
 		}
 
 		//check if too many sea tiles
 		if (typeCounter[2] > (gridSizeX * gridSizeY) / 3)
 		{
-			WFCReset();
+			//WFCReset();
 		}
 
 		gridRef->landTilePositions = gridRef->GetLandTiles();
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 10 && !gridRef->landTilePositions.empty(); i++)
 		{
 			// need to make sure can't gen on same tile
 			std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size() - 1);
 			int index = distrib(RandomGenerator::gen);
 			gridRef->rocks.push_back(gridRef->landTilePositions[index]);
-			gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + index);
-		}
-
-		for (int i = 0; i < 10; i++)
-		{
-			// need to make sure can't gen on same tile
-			std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size() - 1);
-			int index = distrib(RandomGenerator::gen);
-			gridRef->trees.push_back(gridRef->landTilePositions[index]);
 			gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + index);
 		}
 	}

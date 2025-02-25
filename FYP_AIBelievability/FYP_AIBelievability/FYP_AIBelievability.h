@@ -14,7 +14,7 @@ public:
 	FYP_AIBelievability();
 	~FYP_AIBelievability();
 
-	void MainLoop();
+	bool MainLoop();
 private:
 	std::unique_ptr<SDLWindow> mSDL;
 	std::unique_ptr<Grid> mGrid;

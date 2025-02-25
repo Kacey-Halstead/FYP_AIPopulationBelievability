@@ -66,7 +66,7 @@ public:
 
 	glm::vec2 position = {};
 
-	std::array<std::pair<EEmotions, float>, 8> emotions = baseEmotions();
+	std::vector<std::pair<EEmotions, float>> emotions = baseEmotions();
 
 
 	Needs needs = {};
@@ -84,8 +84,6 @@ public:
 private:
 	SDL_Rect agentRect;
 
-	std::array<Agent*, 2> parents = {};
-
 	Grid* gridRef;
 
 	std::vector<glm::ivec2> patrolPositions = { {2, 2}, {gridSizeX-2, 2}, {2, gridSizeY - 2}, {25, 25}, {(gridSizeX - 2 )/2, (gridSizeY - 2 )/2} };
@@ -102,7 +100,7 @@ private:
 	std::vector<float> thirstValues = std::vector<float>(400, 100);
 	std::vector<float> socialValues = std::vector<float>(400, 100);
 
-	inline std::array<std::pair<EEmotions, float>, 8> baseEmotions()
+	inline std::vector<std::pair<EEmotions, float>> baseEmotions()
 	{
 		return { make_pair(SURPRISE, 0),
 			make_pair(ANTICIPATION, 0),

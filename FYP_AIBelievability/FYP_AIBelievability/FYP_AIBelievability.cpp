@@ -11,6 +11,9 @@
 #include "FoodSource.h"
 #include "DAG.h"
 #include "ActionDefinitions.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 using namespace std::chrono;
 
@@ -19,10 +22,17 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	mGrid{new Grid(allTypes)},
 	mDAG{new DAG()}
 {
-	//unsigned int seed = time(nullptr);
-	unsigned int seed = 'k' + 'a' + 'c' + 'e' + 'y';
-	srand(seed);
-	
+#ifdef __EMSCRIPTEN__
+	unsigned long long seed = 1934669435;
+#else
+	unsigned long long seed = 0 
+		+ ('k' ^ 65173)
+		+ ('a' ^ 17783)
+		+ ('c' ^ 32957)
+		+ ('e' ^ 26633)
+		+ ('y' ^ 77813);	
+#endif
+
 	FromJSONFile::ReadFromJSON();
 
 	//TextureManager Init
@@ -32,7 +42,12 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	ImGui_Implementation::Init(mSDL->getRenderer(), mSDL->getWindow());
 
 	//WFC Init
+
+	RandomGenerator::gen.seed(seed);
 	WFC::WFCBody(mGrid.get());
+
+	std::random_device rd{};
+	RandomGenerator::gen.seed(rd());
 	for (int i = 0; i < 10; ++i)
 	{
 		if (i < 5)
@@ -87,17 +102,21 @@ FYP_AIBelievability::~FYP_AIBelievability()
 	ImGui_Implementation::Destroy();
 }
 
-void FYP_AIBelievability::MainLoop()
+bool FYP_AIBelievability::MainLoop()
 {
-	//main loop
-	while (true)
+	if (!mSDL->Events(mGrid.get(), mAgents)) 
 	{
-		if (!mSDL->Events(mGrid.get(), mAgents)) break;
-
-		UpdateAgentsandFood();
-		Update();
-		Render();
+#ifdef __EMSCRIPTEN__
+		emscripten_cancel_main_loop();
+#endif // __EMSCRIPTEN__
+		return false;
 	}
+
+	UpdateAgentsandFood();
+	Update();
+	Render();
+
+	return true;
 }
 
 void FYP_AIBelievability::Render() const
@@ -188,14 +207,17 @@ void FYP_AIBelievability::Update()
 			DagNode* toExecute = mDAG->FindNode(agent.responsiveStack.top());
 			Action* action = toExecute->action;
 
+			if (action->isValidFunc(agent.states).second != InProgress)
+			{
+				agent.responsiveStack.pop();
+			}
+
 			action->executeFunc(agent.states);
 
 			if (!agent.actions.empty() && agent.actions.front() != action->actionName)
 			{
 				agent.actions.push_front(action->actionName);
 			}
-
-			agent.responsiveStack.pop();
 		}
 		else
 		{
@@ -310,7 +332,8 @@ void FYP_AIBelievability::UpdateAgentsandFood()
 		int toAdd = mFoodSources.size() - ImGui_Implementation::foodNumber;
 		for (int i = 0; i < toAdd; i++)
 		{
-			mFoodSources.erase(mFoodSources.begin() + (mFoodSources.size() - 1));
+			mGrid->landTilePositions.push_back(mFoodSources.back().position);
+			mFoodSources.erase(mFoodSources.end() - 1);
 		}
 	}
 }
