@@ -174,7 +174,12 @@ void FYP_AIBelievability::Update()
 
 	for (Agent& agent : mAgents) //update agents
 	{
-		if (agent.agentCount == index) break;
+		if (agent.agentCount >= index)
+		{
+			agent.active = false;
+			continue;
+		}
+		agent.active = true;
 
 		if (!mGrid->IsInGrid(agent.position))
 		{
@@ -190,9 +195,10 @@ void FYP_AIBelievability::Update()
 
 			if (agent.states.moveState.path.size() > 1)
 			{
-				if (!agent.states.moveState.path[0].tile || !mGrid->IsInGrid(agent.states.moveState.to))
+				if (!mGrid.get()->IsInGrid(agent.states.moveState.to))
 				{
 					agent.states.moveState.isMoveToSet = false;
+					break;
 				}
 
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
@@ -258,11 +264,12 @@ void FYP_AIBelievability::Update()
 			ImGui_Implementation::agentCount = 1;
 		}
 
+		agent.UpdateImGui();
+
 		//update ImGui
 		if (mCounter > 0.1 && ImGui_Implementation::agentCount == agent.agentCount)
 		{
 			ImGui_Implementation::time.push_back(mAccumulatedTime);
-			agent.UpdateImGui();
 
 			ImGui_Implementation::hungerValues = agent.GetValuesForImGui(0);
 			ImGui_Implementation::thirstValues = agent.GetValuesForImGui(1);

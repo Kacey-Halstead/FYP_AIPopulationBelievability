@@ -146,6 +146,8 @@ void Agent::Reset()
 	std::uniform_real_distribution<> distrib(1.0f, 29.0f);
 	position.x = distrib(RandomGenerator::gen);
 	position.y = distrib(RandomGenerator::gen);
+	active = true;
+	states.socialState.isTalkingTo = false;
 }
 
 std::pair<char, EEmotions> Agent::DecideOnGoal()
@@ -296,17 +298,17 @@ void Agent::DecreaseNeeds(float deltaTime)
 {
 	if (needs.hungerVal > 0)
 	{
-		needs.hungerVal -= 2 * deltaTime;
+		needs.hungerVal -= 1 * deltaTime;
 	}
 
 	if (needs.thirstVal > 0)
 	{
-		needs.thirstVal -= 2 * deltaTime;
+		needs.thirstVal -= 1 * deltaTime;
 	}
 
 	if (needs.socialVal > 0 && GetDominantEmotion().first != SADNESS) //do not decrease social when sad
 	{
-		needs.socialVal -= 2 * deltaTime;
+		needs.socialVal -= 1 * deltaTime;
 	}
 
 	if (needs.healthVal < 100)

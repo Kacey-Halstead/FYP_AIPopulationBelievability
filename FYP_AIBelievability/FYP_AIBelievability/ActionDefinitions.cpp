@@ -272,7 +272,7 @@ struct FindAgentToSocialise
 
 				states.socialState.agentRef = states.socialState.otherAgents[index];
 
-				if (!states.socialState.agentRef->states.socialState.isSeekingOtherAgent && !states.socialState.agentRef->states.socialState.isTalkingTo)
+				if (!states.socialState.agentRef->states.socialState.isSeekingOtherAgent && !states.socialState.agentRef->states.socialState.isTalkingTo && states.socialState.agentRef->active)
 				{
 					validAgent = true;
 				}

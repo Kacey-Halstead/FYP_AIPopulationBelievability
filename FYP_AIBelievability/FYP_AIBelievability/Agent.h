@@ -81,6 +81,8 @@ public:
 
 	std::list<std::string> actions{"Wander"};
 
+	bool active = false;
+
 private:
 	SDL_Rect agentRect;
 
@@ -91,6 +93,7 @@ private:
 	glm::vec2 velocity = { 0, 0 };
 
 	float speed = 1.0f;
+
 
 	float emoteCounter = 0;
 	std::array<Uint8, 3> textureColour = {255, 255, 255 };
