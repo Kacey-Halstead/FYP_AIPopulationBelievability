@@ -189,7 +189,7 @@ void FYP_AIBelievability::Update()
 
 			if (agent.states.moveState.path.size() > 1)
 			{
-				if (!mGrid.get()->IsInGrid(agent.states.moveState.to))
+				if (!mGrid.get()->IsInGrid(agent.states.moveState.to) || !mGrid.get()->IsInGrid(agent.states.moveState.path[0].tile->GetGridPos()))
 				{
 					agent.states.moveState.isMoveToSet = false;
 					break;
