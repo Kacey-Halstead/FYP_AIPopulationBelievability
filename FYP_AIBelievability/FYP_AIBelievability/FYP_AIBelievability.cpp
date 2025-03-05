@@ -181,12 +181,6 @@ void FYP_AIBelievability::Update()
 		}
 		agent.active = true;
 
-		if (!mGrid->IsInGrid(agent.position))
-		{
-			agent.position = { gridSizeX / 2, gridSizeY / 2 };
-		}
-
-
 		//movement
 		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
