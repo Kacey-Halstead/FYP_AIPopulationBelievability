@@ -29,6 +29,10 @@ enum TextureIndexes
 	ROCK,
 	TREE,
 	BLUE_BUSH,
+	AGENT_SPRITES,
+	WORLD,
+	BUSHES_RED,
+	BUSHES_BLUE,
 	NO_EMOTE
 };
 

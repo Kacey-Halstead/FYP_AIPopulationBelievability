@@ -23,14 +23,22 @@ FoodSource::FoodSource(Grid* grid, bool isBlueBush)
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
-	TextureIndexes indexForTexture = BUSHE;
-	if (canEat)
+
+	int spriteYPos = 1;
+	int spriteXPos = 3;
+	TextureIndexes indexForTexture = isBlue ? BUSHES_BLUE : BUSHES_RED;
+
+	if (!canEat)
 	{
-		indexForTexture = isBlue ? BLUE_BUSH : BUSHF;
+
+		spriteYPos = 0;
+		spriteXPos = 4;
 	}
+
+	SDL_Rect sourceRect{ spriteXPos * 16, spriteYPos * 16, 16, 16};
 	
 	SDL_Rect rect = gridRef->GetRenderRect(position, size);
-	SDL_RenderCopy(renderer, TextureManager::GetTexture(indexForTexture), NULL, &rect);
+	SDL_RenderCopy(renderer, TextureManager::GetTexture(indexForTexture), &sourceRect, &rect);
 }
 
 void FoodSource::Update(float deltaTime)

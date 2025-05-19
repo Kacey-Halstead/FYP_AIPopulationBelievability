@@ -85,6 +85,10 @@ public:
 
 private:
 	SDL_Rect agentRect;
+	SDL_Rect sourceRect;
+
+	int animIndex = 0;
+	float animCounter = 0.0f;
 
 	Grid* gridRef;
 
@@ -93,6 +97,8 @@ private:
 	glm::vec2 velocity = { 0, 0 };
 
 	float speed = 1.0f;
+
+	bool facingLeft = true;
 
 
 	float emoteCounter = 0;

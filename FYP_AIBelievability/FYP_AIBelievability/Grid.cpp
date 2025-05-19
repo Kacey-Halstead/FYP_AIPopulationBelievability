@@ -100,21 +100,23 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 		for (int y = 0; y < gridSizeY; y++)
 		{
 			SDL_Rect destRect{ x * tileSizeOnScreen.x, y * tileSizeOnScreen.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
-
+			SDL_Rect sourceRect{};
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &destRect);
+				sourceRect = { 16 * 16, 16 * 16, 16, 16 };
 				break;
 			case 'L':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &destRect);
+				sourceRect = { 16 * 16, 12 * 16, 16, 16 };
 				break;
 			case 'C':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &destRect);
+				sourceRect = { 16 * 16, 8 * 16, 16, 16 };
 				break;
 			default:
 				break;
 			}
+
+			SDL_RenderCopy(renderer, TextureManager::GetTexture(WORLD), &sourceRect, &destRect);
 
 			counter++;
 		}
@@ -125,12 +127,6 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 		SDL_Rect rockRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 40 };
 		SDL_RenderCopy(renderer, TextureManager::GetTexture(ROCK), NULL, &rockRect);
 	}
-
-	//for (glm::ivec2 positions : trees)
-	//{
-	//	SDL_Rect treeRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 80 };
-	//	SDL_RenderCopy(renderer, TextureManager::GetTexture(TREE), NULL, &treeRect);
-	//}
 }
 
 std::vector<glm::vec2> Grid::GetLandTiles() const
