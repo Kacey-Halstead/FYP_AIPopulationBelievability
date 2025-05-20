@@ -8,6 +8,7 @@
 #include "Grid.h"
 #include "Tile.h"
 #include "AStar.h"
+#include <bitset>
 
 enum directions
 {

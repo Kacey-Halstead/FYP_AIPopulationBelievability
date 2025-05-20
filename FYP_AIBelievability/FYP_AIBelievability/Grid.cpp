@@ -95,6 +95,8 @@ bool Grid::IsInGrid(glm::ivec2 point)
 void Grid::RenderGrid(SDL_Renderer* renderer)
 {
 	int counter = 0;
+	int index = 0;
+	TextureIndexes spriteSheetInex = WORLD;
 	for (int x = 0; x < gridSizeX; x++)
 	{
 		for (int y = 0; y < gridSizeY; y++)
@@ -104,19 +106,23 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
-				sourceRect = { 16 * 16, 16 * 16, 16, 16 };
+				index = (y * gridSizeX) + x;
+				spriteSheetInex = WATER_SAND;
+				sourceRect = { sourceRectPositions[index].x * 16, sourceRectPositions[index].y * 16 , 16, 16 };
 				break;
 			case 'L':
+				spriteSheetInex = WORLD;
 				sourceRect = { 16 * 16, 12 * 16, 16, 16 };
 				break;
 			case 'C':
+				spriteSheetInex = WORLD;
 				sourceRect = { 16 * 16, 8 * 16, 16, 16 };
 				break;
 			default:
 				break;
 			}
 
-			SDL_RenderCopy(renderer, TextureManager::GetTexture(WORLD), &sourceRect, &destRect);
+			SDL_RenderCopy(renderer, TextureManager::GetTexture(spriteSheetInex), &sourceRect, &destRect);
 
 			counter++;
 		}
@@ -129,14 +135,14 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 	}
 }
 
-std::vector<glm::vec2> Grid::GetLandTiles() const
+std::vector<glm::vec2> Grid::GetTilesOfType(char type)
 {
 	std::vector<glm::vec2> landTileWorldPositions;
 	for (int x = 0; x < gridSizeX; x++)
 	{
 		for (int y = 0; y < gridSizeY; y++)
 		{
-			if (Tiles[x][y].GetType() == 'L')
+			if (Tiles[x][y].GetType() == type)
 			{
 				landTileWorldPositions.emplace_back(Tiles[x][y].GetWorldPos());
 			}
@@ -149,7 +155,7 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
-	if (pos.y > 29 || pos.y < 0 || pos.x > 29 || pos.x < 0) return &Tiles[10][10];
+	if (tilePos.y > 29 || tilePos.y < 0 || tilePos.x > 29 || tilePos.x < 0) return &Tiles[10][10];
 
 	//if(IsInGrid(pos)) return ;
 

@@ -33,6 +33,7 @@ enum TextureIndexes
 	WORLD,
 	BUSHES_RED,
 	BUSHES_BLUE,
+	WATER_SAND,
 	NO_EMOTE
 };
 

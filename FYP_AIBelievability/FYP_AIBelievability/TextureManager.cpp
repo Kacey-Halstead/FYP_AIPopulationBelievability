@@ -33,7 +33,8 @@ namespace TextureManager
 	"base_character",
 	"world_tiles",
 	"bushes_red",
-	"bushes_blue"
+	"bushes_blue",
+	"sand_tiles"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

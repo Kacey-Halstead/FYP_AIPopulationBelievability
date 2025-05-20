@@ -81,7 +81,7 @@ namespace WFC
 			//WFCReset();
 		}
 
-		gridRef->landTilePositions = gridRef->GetLandTiles();
+		gridRef->landTilePositions = gridRef->GetTilesOfType('L');
 
 		for (int i = 0; i < 10 && !gridRef->landTilePositions.empty(); i++)
 		{
@@ -90,6 +90,95 @@ namespace WFC
 			int index = distrib(RandomGenerator::gen);
 			gridRef->rocks.push_back(gridRef->landTilePositions[index]);
 			gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + index);
+		}
+
+		for (auto& tile : gridRef->GetTilesOfType('S'))
+		{
+			std::bitset<4> dirs; //ORDER - UP, RIGHT, DOWN, LEFT
+
+			static std::vector<glm::vec2> offsets = { {0, -1}, {1, 0}, {0, 1}, {-1, 0} };
+			int addedDirectionIndexes = 0;
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (!gridRef->IsInGrid({ tile.x + offsets[i].x, tile.y + offsets[i].y })) continue;
+
+				if (grid->GetTileFromPos({ tile.x + offsets[i].x, tile.y + offsets[i].y })->GetType() == 'C')
+				{
+					dirs.set(i);
+					addedDirectionIndexes += (i);
+				}
+			}
+
+			glm::ivec2 sourceRectPos{0, 0};
+
+			int numNeighbours = dirs.count();
+
+			switch (numNeighbours)
+			{
+			case 0:
+				sourceRectPos = { 2, 1 };
+				break;
+			case 1:
+			{
+				static std::vector<glm::ivec2> positions = { {2, 0}, {3, 1}, {2, 2}, {1, 1} }; //UP DOWN LEFT RIGHT
+
+				for (int i = 0; i < 4; i++)
+				{
+					if (dirs[i])
+					{
+						sourceRectPos = positions[i];
+						break;
+					}
+				}
+			}
+				break;
+			case 2:
+			{
+				static std::vector<glm::ivec2> twoNeighourPositions = { {3, 0}, {2, 3}, {1, 0}, {3, 2}, {0, 1}, {1, 2} }; //UP DOWN LEFT RIGHT 
+
+				if (addedDirectionIndexes == 3)
+				{
+					if (dirs[0] && dirs[3])
+					{
+						sourceRectPos = twoNeighourPositions[2];
+					}
+					else
+					{
+						sourceRectPos = twoNeighourPositions[3];
+					}
+				}
+				else
+				{
+					sourceRectPos = twoNeighourPositions[addedDirectionIndexes - 1];
+				}
+			}
+				break;
+			case 3:
+			{
+				static std::vector<glm::ivec2> positions = { {0, 3}, {1, 3}, {0, 0}, {3, 3} }; //UP DOWN LEFT RIGHT
+
+				for (int i = 0; i < 4; i++)
+				{
+					if (!dirs[i])
+					{
+						sourceRectPos = positions[i];
+						break;
+					}
+				}
+			}
+				break;
+			case 4:
+				sourceRectPos = { 0, 3 };
+				break;
+			default:
+				break;
+			}
+
+			//add to map
+			glm::ivec2 tilePos = { static_cast<int>(tile.x), static_cast<int>(tile.y) };
+			int index = (tilePos.y * gridSizeX) + tilePos.x;
+			gridRef->sourceRectPositions[index] = sourceRectPos;
 		}
 	}
 
