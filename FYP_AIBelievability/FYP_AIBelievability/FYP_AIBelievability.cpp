@@ -22,16 +22,16 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	mGrid{new Grid(allTypes)},
 	mDAG{new DAG()}
 {
-#ifdef __EMSCRIPTEN__
-	unsigned long long seed = 1934669435;
-#else
-	unsigned long long seed = 0 
-		+ ('k' ^ 65173)
-		+ ('a' ^ 17783)
-		+ ('c' ^ 32957)
-		+ ('e' ^ 26633)
-		+ ('y' ^ 77813);	
-#endif
+//#ifdef __EMSCRIPTEN__
+//	unsigned long long seed = 1934669435;
+//#else
+//	unsigned long long seed = 0 
+//		+ ('k' ^ 65173)
+//		+ ('a' ^ 17783)
+//		+ ('c' ^ 32957)
+//		+ ('e' ^ 26633)
+//		+ ('y' ^ 77813);	
+//#endif
 
 	FromJSONFile::ReadFromJSON();
 
@@ -43,11 +43,11 @@ FYP_AIBelievability::FYP_AIBelievability() :
 
 	//WFC Init
 
-	RandomGenerator::gen.seed(seed);
+	//RandomGenerator::gen.seed(seed);
 	WFC::WFCBody(mGrid.get());
 
 	std::random_device rd{};
-	RandomGenerator::gen.seed(rd());
+	//RandomGenerator::gen.seed(rd());
 	for (int i = 0; i < 10; ++i)
 	{
 		if (i < 5)

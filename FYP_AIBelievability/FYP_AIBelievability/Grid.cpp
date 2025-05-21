@@ -103,10 +103,11 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 		{
 			SDL_Rect destRect{ x * tileSizeOnScreen.x, y * tileSizeOnScreen.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
 			SDL_Rect sourceRect{};
+			index = (y * gridSizeX) + x;
+
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
-				index = (y * gridSizeX) + x;
 				spriteSheetInex = WATER_SAND;
 				sourceRect = { sourceRectPositions[index].x * 16, sourceRectPositions[index].y * 16 , 16, 16 };
 				break;
@@ -125,6 +126,31 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 			SDL_RenderCopy(renderer, TextureManager::GetTexture(spriteSheetInex), &sourceRect, &destRect);
 
 			counter++;
+
+			if (!sourceRectPositionsCorners[index].empty())
+			{
+				for (const int& corners : sourceRectPositionsCorners[index])
+				{
+					SDL_Rect cornerSourceRect = { 4 * 16, 0, 16, 16 };
+					SDL_Rect cornerDestRect = { destRect.x, destRect.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
+					SDL_RendererFlip flipMode = SDL_FLIP_NONE;
+					switch (corners)
+					{
+					case 0:
+						flipMode = SDL_FLIP_HORIZONTAL;
+						break;
+					case 1:
+						cornerSourceRect = { 4 * 16, 1 * 16, 16, 16 };
+						break;
+					case 2:
+						flipMode = SDL_FLIP_VERTICAL;
+						break;
+					}
+
+					SDL_RenderCopyEx(renderer, TextureManager::GetTexture(WATER_SAND), &cornerSourceRect, &cornerDestRect, 0.0f, NULL, flipMode);
+					
+				}
+			}
 		}
 	}
 

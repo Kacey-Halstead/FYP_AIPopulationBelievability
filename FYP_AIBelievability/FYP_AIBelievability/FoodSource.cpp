@@ -13,12 +13,16 @@ FoodSource::FoodSource(Grid* grid, bool isBlueBush)
 
 	if (isBlueBush) isBlue = true;
 
-	std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size()-1);
+	if (!grid->landTilePositions.empty())
+	{
+		std::uniform_int_distribution<> distrib(0, gridRef->landTilePositions.size() - 1);
 
-	// need to make sure can't gen on same tile
-	position = gridRef->landTilePositions[distrib(RandomGenerator::gen)];
+		// need to make sure can't gen on same tile
+		int index = distrib(RandomGenerator::gen);
+		position = gridRef->landTilePositions[index];
 
-	gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + (distrib(RandomGenerator::gen) -1));
+		gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + (distrib(RandomGenerator::gen) - 1));
+	}
 }
 
 void FoodSource::Render(SDL_Renderer* renderer, SDL_Window* window) const
