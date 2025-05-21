@@ -34,6 +34,7 @@ enum TextureIndexes
 	BUSHES_RED,
 	BUSHES_BLUE,
 	WATER_SAND,
+	LAND_OVERLAP,
 	NO_EMOTE
 };
 

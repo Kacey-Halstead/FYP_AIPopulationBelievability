@@ -34,7 +34,8 @@ namespace TextureManager
 	"world_tiles",
 	"bushes_red",
 	"bushes_blue",
-	"sand_tiles"
+	"sand_tiles",
+	"land_coast_overlap"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

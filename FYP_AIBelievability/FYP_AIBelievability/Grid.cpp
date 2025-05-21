@@ -96,7 +96,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 {
 	int counter = 0;
 	int index = 0;
-	TextureIndexes spriteSheetInex = WORLD;
+	TextureIndexes spriteSheetIndex = WORLD;
 	for (int x = 0; x < gridSizeX; x++)
 	{
 		for (int y = 0; y < gridSizeY; y++)
@@ -108,33 +108,33 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
-				spriteSheetInex = WATER_SAND;
+				spriteSheetIndex = WATER_SAND;
 				sourceRect = { sourceRectPositions[index].x * 16, sourceRectPositions[index].y * 16 , 16, 16 };
 				break;
 			case 'L':
-				spriteSheetInex = WORLD;
+				spriteSheetIndex = WORLD;
 				sourceRect = { 16 * 16, 12 * 16, 16, 16 };
 				break;
 			case 'C':
-				spriteSheetInex = WORLD;
-				sourceRect = { 16 * 16, 8 * 16, 16, 16 };
+				spriteSheetIndex = LAND_OVERLAP;
+				sourceRect = { sourceRectPositions[index].x * 16, sourceRectPositions[index].y * 16 , 16, 16 };
 				break;
 			default:
 				break;
 			}
 
-			SDL_RenderCopy(renderer, TextureManager::GetTexture(spriteSheetInex), &sourceRect, &destRect);
+			SDL_RenderCopy(renderer, TextureManager::GetTexture(spriteSheetIndex), &sourceRect, &destRect);
 
 			counter++;
 
 			if (!sourceRectPositionsCorners[index].empty())
 			{
-				for (const int& corners : sourceRectPositionsCorners[index])
+				for (const auto& corners : sourceRectPositionsCorners[index])
 				{
 					SDL_Rect cornerSourceRect = { 4 * 16, 0, 16, 16 };
 					SDL_Rect cornerDestRect = { destRect.x, destRect.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
 					SDL_RendererFlip flipMode = SDL_FLIP_NONE;
-					switch (corners)
+					switch (corners.first)
 					{
 					case 0:
 						flipMode = SDL_FLIP_HORIZONTAL;
@@ -147,7 +147,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 						break;
 					}
 
-					SDL_RenderCopyEx(renderer, TextureManager::GetTexture(WATER_SAND), &cornerSourceRect, &cornerDestRect, 0.0f, NULL, flipMode);
+					SDL_RenderCopyEx(renderer, TextureManager::GetTexture(corners.second), &cornerSourceRect, &cornerDestRect, 0.0f, NULL, flipMode);
 					
 				}
 			}

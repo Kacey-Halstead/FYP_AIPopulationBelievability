@@ -37,7 +37,7 @@ public:
 
 	//water positions + needed pos for source rect
 	std::array<glm::ivec2, gridSizeX * gridSizeY> sourceRectPositions{};
-	std::array<std::vector<int>, gridSizeX* gridSizeY> sourceRectPositionsCorners{}; //how many + orientation
+	std::array<std::vector<std::pair<int, TextureIndexes>>, gridSizeX* gridSizeY> sourceRectPositionsCorners{};
 
 	std::vector<glm::ivec2> rocks;
 	std::vector<glm::ivec2> trees;
