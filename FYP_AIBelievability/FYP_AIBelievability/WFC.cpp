@@ -241,7 +241,6 @@ namespace WFC
 			tileToFind = 'L';
 		}
 
-
 		//EDGES + CORNERS
 		for (auto& tile : gridRef->GetTilesOfType(tileType))
 		{
@@ -258,9 +257,11 @@ namespace WFC
 			//check neighbours - up left down right
 			for (int i = 0; i < 4; i++)
 			{
-				if (!gridRef->IsInGrid({ tile.x + offsets[i].x, tile.y + offsets[i].y })) continue;
+				Tile* neighbour = gridRef->GetTileFromPos({ tile.x + offsets[i].x, tile.y + offsets[i].y });
 
-				if (gridRef->GetTileFromPos({ tile.x + offsets[i].x, tile.y + offsets[i].y })->GetType() == tileToFind)
+				if (neighbour == nullptr) continue;
+
+				if (neighbour->GetType() == tileToFind)
 				{
 					dirs.set(i);
 					addedDirectionIndexes += i + 1;
@@ -272,14 +273,16 @@ namespace WFC
 
 			for (int i = 0; i < 4; i++)
 			{
-				if (!gridRef->IsInGrid({ tile.x + cornerOffsets[i].x, tile.y + cornerOffsets[i].y })) continue;
+				Tile* diagonal = gridRef->GetTileFromPos({ tile.x + cornerOffsets[i].x, tile.y + cornerOffsets[i].y });
 
-				if (gridRef->GetTileFromPos({ tile.x + cornerOffsets[i].x, tile.y + cornerOffsets[i].y })->GetType() == tileToFind)
+				if (diagonal == nullptr) continue;
+
+				if (diagonal->GetType() == tileToFind)
 				{
 					diagonalDirs.set(i);
 				}
 
-				if (tileType == 'S' && gridRef->GetTileFromPos({ tile.x + cornerOffsets[i].x, tile.y + cornerOffsets[i].y })->GetType() == 'L')
+				if (tileType == 'S' && diagonal->GetType() == 'L')
 				{
 					gridRef->sourceRectPositionsCorners[index].emplace_back(std::make_pair(i, LAND_OVERLAP));
 				}

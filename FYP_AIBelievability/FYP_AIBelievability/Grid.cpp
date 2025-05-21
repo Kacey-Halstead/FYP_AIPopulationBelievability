@@ -154,11 +154,11 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 		}
 	}
 
-	for (glm::ivec2 positions : rocks)
-	{
-		SDL_Rect rockRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 40 };
-		SDL_RenderCopy(renderer, TextureManager::GetTexture(ROCK), NULL, &rockRect);
-	}
+	//for (glm::ivec2 positions : rocks)
+	//{
+	//	SDL_Rect rockRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 40 };
+	//	SDL_RenderCopy(renderer, TextureManager::GetTexture(ROCK), NULL, &rockRect);
+	//}
 }
 
 std::vector<glm::vec2> Grid::GetTilesOfType(char type)
@@ -181,8 +181,8 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
-	if (tilePos.y > 29 || tilePos.y < 0 || tilePos.x > 29 || tilePos.x < 0) return &Tiles[10][10];
-
+	if (tilePos.y > gridSizeY - 1 || tilePos.y < 0 || tilePos.x > gridSizeX-1 || tilePos.x < 0) return nullptr;
+	//&Tiles[10][10]
 	//if(IsInGrid(pos)) return ;
 
 	return &Tiles[tilePos.x][tilePos.y];
