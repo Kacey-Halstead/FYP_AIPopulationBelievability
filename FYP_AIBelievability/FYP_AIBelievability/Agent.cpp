@@ -71,21 +71,21 @@ void Agent::Update(float deltaTime)
 
 void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
-	//SDL_Rect destRect = gridRef->GetRenderRect(position, size);
+	SDL_Rect destRect = gridRef->GetRenderRect(position, size);
 
-	//SDL_SetTextureColorMod(TextureManager::GetTexture(AGENT_SPRITES), textureColour[0], textureColour[1], textureColour[2]);
-	//SDL_RenderCopyEx(renderer, TextureManager::GetTexture(AGENT_SPRITES), &sourceRect, &destRect, 0.0f, NULL, static_cast<SDL_RendererFlip>(facingLeft));
+	SDL_SetTextureColorMod(TextureManager::GetTexture(AGENT_SPRITES), textureColour[0], textureColour[1], textureColour[2]);
+	SDL_RenderCopyEx(renderer, TextureManager::GetTexture(AGENT_SPRITES), &sourceRect, &destRect, 0.0f, NULL, static_cast<SDL_RendererFlip>(facingLeft));
 
-	//if (states.emoteToSet != NO_EMOTE)
-	//{
-	//	SDL_Rect emoteRect = { destRect.x + (destRect.w / 2), destRect.y - 15, 20, 20 };
-	//	SDL_RenderCopy(renderer, TextureManager::GetTexture(states.emoteToSet), NULL, &emoteRect);
-	//}
+	if (states.emoteToSet != NO_EMOTE)
+	{
+		SDL_Rect emoteRect = { destRect.x + (destRect.w / 2), destRect.y - 15, 20, 20 };
+		SDL_RenderCopy(renderer, TextureManager::GetTexture(states.emoteToSet), NULL, &emoteRect);
+	}
 
-	//if (ImGui_Implementation::agentCount == agentCount)
-	//{
-	//	SDL_RenderDrawRect(renderer, &destRect);
-	//}
+	if (ImGui_Implementation::agentCount == agentCount)
+	{
+		SDL_RenderDrawRect(renderer, &destRect);
+	}
 }
 
 bool Agent::IsPointInAgent(SDL_Point point)
