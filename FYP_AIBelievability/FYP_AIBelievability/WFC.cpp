@@ -72,7 +72,7 @@ namespace WFC
 		//check if enough of each tile. if not, regenerate
 		if (typeCounter[0] < 3 || typeCounter[1] < 3 || typeCounter[2] < 3)
 		{
-			//WFCReset();
+			//WFCReset(); 
 		}
 
 		//check if too many sea tiles
@@ -81,7 +81,7 @@ namespace WFC
 			//WFCReset();
 		}
 
-		gridRef->landTilePositions = gridRef->GetLandTiles();
+		gridRef->landTilePositions = gridRef->GetTilesOfType('L');
 
 		for (int i = 0; i < 10 && !gridRef->landTilePositions.empty(); i++)
 		{
@@ -91,6 +91,9 @@ namespace WFC
 			gridRef->rocks.push_back(gridRef->landTilePositions[index]);
 			gridRef->landTilePositions.erase(gridRef->landTilePositions.begin() + index);
 		}
+
+		SetEdgesAndCorners('S');
+		SetEdgesAndCorners('C');
 	}
 
 	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)
@@ -127,7 +130,7 @@ namespace WFC
 
 	void WFCReset()
 	{
-		for (std::vector<Tile> tiles : gridRef->Tiles)
+		for (std::vector<Tile>& tiles : gridRef->Tiles)
 		{
 			for (Tile& t : tiles)
 			{
@@ -135,6 +138,12 @@ namespace WFC
 			}
 		}
 		typeCounter = { 0, 0, 0 }; //reset
+		std::fill(gridRef->sourceRectPositions.begin(), gridRef->sourceRectPositions.end(), glm::ivec2(0, 0));
+		
+		for (auto& vec : gridRef->sourceRectPositionsCorners)
+		{
+			vec.clear();
+		}
 
 		WFCBody(gridRef);
 	}
@@ -221,6 +230,154 @@ namespace WFC
 			break;
 		default:
 			break;
+		}
+	}
+
+	void SetEdgesAndCorners(char tileType)
+	{
+		char tileToFind = 'C';
+		if (tileType == 'C')
+		{
+			tileToFind = 'L';
+		}
+
+		//EDGES + CORNERS
+		for (auto& tile : gridRef->GetTilesOfType(tileType))
+		{
+			std::bitset<4> dirs; //ORDER - UP, RIGHT, DOWN, LEFT
+			std::bitset<4> diagonalDirs; //ORDER -TOP RIGHT, BOTTOM RIGHT, BOTTOM LEFT, TOP LEFT
+
+			static std::vector<glm::vec2> offsets = { {0, -1}, {1, 0}, {0, 1}, {-1, 0} };
+			int addedDirectionIndexes = 0;
+			int diagonalAddedDirectionIndexes = 0;
+
+			glm::ivec2 tilePos = { static_cast<int>(tile.x), static_cast<int>(tile.y) };
+			int index = (tilePos.y * gridSizeX) + tilePos.x;
+
+			//check neighbours - up left down right
+			for (int i = 0; i < 4; i++)
+			{
+				Tile* neighbour = gridRef->GetTileFromPos({ tile.x + offsets[i].x, tile.y + offsets[i].y });
+
+				if (neighbour == nullptr) continue;
+
+				if (neighbour->GetType() == tileToFind)
+				{
+					dirs.set(i);
+					addedDirectionIndexes += i + 1;
+				}
+			}
+
+			//check diagonals - top right, bottom right, bottom left, top left
+			static std::vector<glm::vec2> cornerOffsets = { {1, -1}, {1, 1}, {-1, 1}, {-1, -1} };
+
+			for (int i = 0; i < 4; i++)
+			{
+				Tile* diagonal = gridRef->GetTileFromPos({ tile.x + cornerOffsets[i].x, tile.y + cornerOffsets[i].y });
+
+				if (diagonal == nullptr) continue;
+
+				if (diagonal->GetType() == tileToFind)
+				{
+					diagonalDirs.set(i);
+				}
+
+				if (tileType == 'S' && diagonal->GetType() == 'L')
+				{
+					gridRef->sourceRectPositionsCorners[index].emplace_back(std::make_pair(i, LAND_OVERLAP));
+				}
+			}
+
+			glm::ivec2 sourceRectPos{ 0, 0 };
+
+			int numNeighbours = dirs.count();
+
+			switch (numNeighbours)
+			{
+			case 0:
+				sourceRectPos = { 2, 1 };
+				break;
+			case 1:
+			{
+				static std::vector<glm::ivec2> positions = { {2, 0}, {3, 1}, {2, 2}, {1, 1} }; //UP DOWN LEFT RIGHT
+
+				for (int i = 0; i < 4; i++)
+				{
+					if (dirs[i])
+					{
+						sourceRectPos = positions[i];
+						break;
+					}
+				}
+			}
+			break;
+			case 2:
+			{
+				static std::vector<glm::ivec2> twoNeighourPositions = { {3, 0}, {2, 3}, {1, 0}, {3, 2}, {0, 1}, {1, 2} }; //UP DOWN LEFT RIGHT 
+
+				if (addedDirectionIndexes == 5)
+				{
+					if (dirs[0] && dirs[3])
+					{
+						sourceRectPos = twoNeighourPositions[2];
+					}
+					else
+					{
+						sourceRectPos = twoNeighourPositions[3];
+					}
+				}
+				else
+				{
+					if (addedDirectionIndexes < 5)
+					{
+						sourceRectPos = twoNeighourPositions[addedDirectionIndexes - 3];
+					}
+					else
+					{
+						sourceRectPos = twoNeighourPositions[addedDirectionIndexes - 2];
+					}
+				}
+			}
+			break;
+			case 3:
+			{
+				static std::vector<glm::ivec2> positions = { {0, 2}, {1, 3}, {0, 0}, {3, 3} }; //UP RIGHT DOWN LEFT
+
+				for (int i = 0; i < 4; i++)
+				{
+					if (!dirs[i])
+					{
+						sourceRectPos = positions[i];
+						break;
+					}
+				}
+			}
+			break;
+			case 4:
+				sourceRectPos = { 0, 3 };
+				break;
+			default:
+				break;
+			}
+
+			//corners
+			for (int i = 0; i < diagonalDirs.size(); i++)
+			{
+				if (diagonalDirs[i])
+				{
+					if (tileType == 'S')
+					{
+						gridRef->sourceRectPositionsCorners[index].emplace_back(std::make_pair(i, WATER_SAND));
+					}
+					else
+					{
+						gridRef->sourceRectPositionsCorners[index].emplace_back(std::make_pair(i, LAND_OVERLAP));
+					}
+				}
+			}
+
+			//neighbours
+			gridRef->sourceRectPositions[index] = sourceRectPos;
 		}
 	}
 

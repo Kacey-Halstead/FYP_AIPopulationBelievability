@@ -22,6 +22,36 @@ void Agent::Update(float deltaTime)
 {
 	position.x += velocity.x * deltaTime;
 	position.y += velocity.y * deltaTime;
+
+	int maxSprites = 0;
+	int rectYPos = 1;
+
+	if (velocity.x > 0.0f) //moving right
+	{
+		maxSprites = 4;
+		facingLeft = false;
+	}
+	else if (velocity.x < 0.0f) //moving left
+	{
+		maxSprites = 4;
+		facingLeft = true;
+	}
+	else if (velocity == glm::vec2(0.0f, 0.0f)) //not moving
+	{
+		rectYPos = 0;
+		maxSprites = 8;
+	}
+
+	animCounter += deltaTime;
+
+	if (animCounter > 0.2f)
+	{
+		animIndex = (animIndex + 1) % maxSprites;
+		animCounter = 0;
+	}
+
+	sourceRect = { 4 + animIndex * 24, 6 + rectYPos * 24, 18, 18 };
+
 	velocity = glm::vec2(0.0f);
 
 	DecreaseNeeds(deltaTime);
@@ -43,8 +73,8 @@ void Agent::Render(SDL_Renderer* renderer, SDL_Window* window) const
 {
 	SDL_Rect destRect = gridRef->GetRenderRect(position, size);
 
-	SDL_SetTextureColorMod(TextureManager::GetTexture(AGENT), textureColour[0], textureColour[1], textureColour[2]);
-	SDL_RenderCopy(renderer, TextureManager::GetTexture(AGENT), NULL, &destRect);
+	SDL_SetTextureColorMod(TextureManager::GetTexture(AGENT_SPRITES), textureColour[0], textureColour[1], textureColour[2]);
+	SDL_RenderCopyEx(renderer, TextureManager::GetTexture(AGENT_SPRITES), &sourceRect, &destRect, 0.0f, NULL, static_cast<SDL_RendererFlip>(facingLeft));
 
 	if (states.emoteToSet != NO_EMOTE)
 	{
@@ -225,7 +255,7 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 		textureColour = { 44, 44, 212 };
 		break;
 	case NONE:
-		textureColour = { 237, 166, 95 };
+		textureColour = { 255, 255, 255 };
 		break;
 	}
 

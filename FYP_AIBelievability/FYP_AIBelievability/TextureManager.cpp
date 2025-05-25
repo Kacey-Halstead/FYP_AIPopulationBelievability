@@ -29,7 +29,13 @@ namespace TextureManager
 	"EMOTE_SWIRL",
 	"ROCK",
 	"TREE",
-	"BLUEBUSHF"
+	"BLUEBUSHF",
+	"base_character",
+	"world_tiles",
+	"bushes_red",
+	"bushes_blue",
+	"sand_tiles",
+	"land_coast_overlap"
 	};
 
 	bool TextureManagerInit(SDL_Renderer* mainRenderer, SDL_Window* mainWindow)

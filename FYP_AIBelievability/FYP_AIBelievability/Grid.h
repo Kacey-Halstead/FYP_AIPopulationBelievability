@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include<glm/glm.hpp>
+#include <map>
 
 class Tile;
 
@@ -17,7 +18,7 @@ public:
 
 	void RenderGrid(SDL_Renderer* renderer);
 
-	std::vector<glm::vec2> GetLandTiles() const;
+	std::vector<glm::vec2> GetTilesOfType(char type); 
 
 	Tile* GetTileFromPos(glm::vec2 pos);
 	glm::vec2 GetWorldPosFromTile(Tile* tile) const;
@@ -33,6 +34,10 @@ public:
 
 	glm::ivec2 tileSizeOnScreen;
 	std::vector<std::vector<Tile>> Tiles;
+
+	//water positions + needed pos for source rect
+	std::array<glm::ivec2, gridSizeX * gridSizeY> sourceRectPositions{};
+	std::array<std::vector<std::pair<int, TextureIndexes>>, gridSizeX* gridSizeY> sourceRectPositionsCorners{};
 
 	std::vector<glm::ivec2> rocks;
 	std::vector<glm::ivec2> trees;

@@ -95,52 +95,80 @@ bool Grid::IsInGrid(glm::ivec2 point)
 void Grid::RenderGrid(SDL_Renderer* renderer)
 {
 	int counter = 0;
+	int index = 0;
+	TextureIndexes spriteSheetIndex = WORLD;
 	for (int x = 0; x < gridSizeX; x++)
 	{
 		for (int y = 0; y < gridSizeY; y++)
 		{
 			SDL_Rect destRect{ x * tileSizeOnScreen.x, y * tileSizeOnScreen.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
+			SDL_Rect sourceRect{};
+			index = (y * gridSizeX) + x;
 
 			switch (Tiles[x][y].GetType())
 			{
 			case 'S':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(SEA), NULL, &destRect);
+				spriteSheetIndex = WATER_SAND;
+				sourceRect = { sourceRectPositions[index].x * 16, sourceRectPositions[index].y * 16 , 16, 16 };
 				break;
 			case 'L':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(LAND), NULL, &destRect);
+				spriteSheetIndex = WORLD;
+				sourceRect = { 16 * 16, 12 * 16, 16, 16 };
 				break;
 			case 'C':
-				SDL_RenderCopy(renderer, TextureManager::GetTexture(COAST), NULL, &destRect);
+				spriteSheetIndex = LAND_OVERLAP;
+				sourceRect = { sourceRectPositions[index].x * 16, sourceRectPositions[index].y * 16 , 16, 16 };
 				break;
 			default:
 				break;
 			}
 
+			SDL_RenderCopy(renderer, TextureManager::GetTexture(spriteSheetIndex), &sourceRect, &destRect);
+
 			counter++;
+
+			if (!sourceRectPositionsCorners[index].empty())
+			{
+				for (const auto& corners : sourceRectPositionsCorners[index])
+				{
+					SDL_Rect cornerSourceRect = { 4 * 16, 0, 16, 16 };
+					SDL_Rect cornerDestRect = { destRect.x, destRect.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
+					SDL_RendererFlip flipMode = SDL_FLIP_NONE;
+					switch (corners.first)
+					{
+					case 0:
+						flipMode = SDL_FLIP_HORIZONTAL;
+						break;
+					case 1:
+						cornerSourceRect = { 4 * 16, 1 * 16, 16, 16 };
+						break;
+					case 2:
+						flipMode = SDL_FLIP_VERTICAL;
+						break;
+					}
+
+					SDL_RenderCopyEx(renderer, TextureManager::GetTexture(corners.second), &cornerSourceRect, &cornerDestRect, 0.0f, NULL, flipMode);
+					
+				}
+			}
 		}
 	}
 
-	for (glm::ivec2 positions : rocks)
-	{
-		SDL_Rect rockRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 40 };
-		SDL_RenderCopy(renderer, TextureManager::GetTexture(ROCK), NULL, &rockRect);
-	}
-
-	//for (glm::ivec2 positions : trees)
+	//for (glm::ivec2 positions : rocks)
 	//{
-	//	SDL_Rect treeRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 80 };
-	//	SDL_RenderCopy(renderer, TextureManager::GetTexture(TREE), NULL, &treeRect);
+	//	SDL_Rect rockRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 40 };
+	//	SDL_RenderCopy(renderer, TextureManager::GetTexture(ROCK), NULL, &rockRect);
 	//}
 }
 
-std::vector<glm::vec2> Grid::GetLandTiles() const
+std::vector<glm::vec2> Grid::GetTilesOfType(char type)
 {
 	std::vector<glm::vec2> landTileWorldPositions;
 	for (int x = 0; x < gridSizeX; x++)
 	{
 		for (int y = 0; y < gridSizeY; y++)
 		{
-			if (Tiles[x][y].GetType() == 'L')
+			if (Tiles[x][y].GetType() == type)
 			{
 				landTileWorldPositions.emplace_back(Tiles[x][y].GetWorldPos());
 			}
@@ -153,8 +181,8 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
-	if (pos.y > 29 || pos.y < 0 || pos.x > 29 || pos.x < 0) return &Tiles[10][10];
-
+	if (tilePos.y > gridSizeY - 1 || tilePos.y < 0 || tilePos.x > gridSizeX-1 || tilePos.x < 0) return nullptr;
+	//&Tiles[10][10]
 	//if(IsInGrid(pos)) return ;
 
 	return &Tiles[tilePos.x][tilePos.y];

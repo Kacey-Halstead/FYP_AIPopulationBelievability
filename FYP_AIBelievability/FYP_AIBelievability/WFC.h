@@ -3,11 +3,13 @@
 #include <array>
 #include <iostream>
 #include <glm/glm.hpp>
+#include <algorithm>
 
 #include "RandomGenerator.h"
 #include "Grid.h"
 #include "Tile.h"
 #include "AStar.h"
+#include <bitset>
 
 enum directions
 {
@@ -32,6 +34,7 @@ namespace WFC
 	void FindAndErase(Tile* tile, char toFind);
 	void CheckForEmptyTiles(Tile* tile);
 	void TypeIncrement(char typeToIncrement);
+	void SetEdgesAndCorners(char tileType);
 
 	SDL_Point operator *(const SDL_Point& a, const int& b);
 };
