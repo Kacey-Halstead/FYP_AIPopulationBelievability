@@ -11,6 +11,8 @@
 #include "AStar.h"
 #include <bitset>
 
+class FoodSource;
+
 enum directions
 {
 	UP,
@@ -35,6 +37,8 @@ namespace WFC
 	void CheckForEmptyTiles(Tile* tile);
 	void TypeIncrement(char typeToIncrement);
 	void SetEdgesAndCorners(char tileType);
+	std::vector<FoodSource> PlaceFood();
+	void PlaceDecor();
 
 	SDL_Point operator *(const SDL_Point& a, const int& b);
 };

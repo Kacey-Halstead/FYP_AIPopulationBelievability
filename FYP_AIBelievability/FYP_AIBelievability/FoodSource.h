@@ -12,7 +12,7 @@ class FoodSource
 {
 public:
 	FoodSource();
-	FoodSource(Grid* grid, bool isBlueBush);
+	FoodSource(Grid* grid, glm::vec2 setPosition, bool isBlueBush);
 	void Render(SDL_Renderer* renderer, SDL_Window* window) const;
 
 	void Update(float deltaTime);
@@ -23,6 +23,7 @@ public:
 	glm::vec2 position;
 
 	bool isBlue = false;
+	bool isActive = false;
 
 private:
 	SDL_Rect rect;

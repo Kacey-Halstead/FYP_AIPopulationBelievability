@@ -127,6 +127,7 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 
 			counter++;
 
+			//CORNERS
 			if (!sourceRectPositionsCorners[index].empty())
 			{
 				for (const auto& corners : sourceRectPositionsCorners[index])
@@ -151,14 +152,17 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 					
 				}
 			}
+
+			//DECOR
+			if (decorSourceRectPositions[index] != glm::ivec2(0, 0)) //if decor in space
+			{
+				SDL_Rect decorSourceRect = { decorSourceRectPositions[index].x * 16, decorSourceRectPositions[index].y * 16, 16, 16 };
+				SDL_Rect decorDestRect = { x * tileSizeOnScreen.x, y * tileSizeOnScreen.y, tileSizeOnScreen.x, tileSizeOnScreen.y };
+
+				SDL_RenderCopy(renderer, TextureManager::GetTexture(WORLD), &decorSourceRect, &decorDestRect);
+			}
 		}
 	}
-
-	//for (glm::ivec2 positions : rocks)
-	//{
-	//	SDL_Rect rockRect{ (positions.x * tileSizeOnScreen.x) - 5, positions.y * tileSizeOnScreen.y, 40, 40 };
-	//	SDL_RenderCopy(renderer, TextureManager::GetTexture(ROCK), NULL, &rockRect);
-	//}
 }
 
 std::vector<glm::vec2> Grid::GetTilesOfType(char type)

@@ -31,8 +31,8 @@ enum EEmotions
 	NONE
 };
 
-constexpr int gridSizeX = 50;
-constexpr int gridSizeY = 50;
+constexpr int gridSizeX = 30;
+constexpr int gridSizeY = 30;
 constexpr glm::ivec2 windowSize{ 900, 900 };
 
 constexpr std::array<char, 3> allTypes = { 'L', 'C', 'S' };

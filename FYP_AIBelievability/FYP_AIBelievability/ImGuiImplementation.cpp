@@ -206,7 +206,7 @@ namespace ImGui_Implementation
 		ImGui_Implementation::End();
 	}
 
-	void MainUI()
+	void MainUI() 
 	{
 		ImGui_Implementation::SetNextWindowPos({ 900, 0 });
 		ImGui_Implementation::SetNextWindowSize({ 400, 200 });

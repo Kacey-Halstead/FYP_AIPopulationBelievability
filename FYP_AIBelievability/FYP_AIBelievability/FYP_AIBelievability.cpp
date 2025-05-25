@@ -48,17 +48,10 @@ FYP_AIBelievability::FYP_AIBelievability() :
 
 	std::random_device rd{};
 	//RandomGenerator::gen.seed(rd());
-	for (int i = 0; i < 10; ++i)
-	{
-		if (i < 5)
-		{
-			mFoodSources.emplace_back(mGrid.get(), false); //red bushes
-		}
-		else
-		{
-			mFoodSources.emplace_back(mGrid.get(), true); //blue bushes
-		}
-	}
+
+	mFoodSources.resize(50);
+	mFoodSources = WFC::PlaceFood();
+	WFC::PlaceDecor();
 
 	//Agent init
 	mAgents.resize(50);
@@ -131,9 +124,9 @@ void FYP_AIBelievability::Render() const
 
 	mGrid->RenderGrid(mSDL->getRenderer()); //render WFC 
 
-	for (const FoodSource& foodSource : mFoodSources)
+	for (int i = 0; i < foodSourcesIndex; i++)
 	{
-		foodSource.Render(mSDL->getRenderer(), mSDL->getWindow());
+		mFoodSources[i].Render(mSDL->getRenderer(), mSDL->getWindow());
 	}
 
 	for (const Agent& a : mAgents) //render agents
@@ -277,7 +270,7 @@ void FYP_AIBelievability::Update()
 		//detect food sources
 		for (FoodSource& foodSource : mFoodSources)
 		{
-			if (foodSource.canEat && ComparePositions(agent.position, foodSource.position, 4.0f))
+			if (foodSource.isActive && foodSource.canEat && ComparePositions(agent.position, foodSource.position, 4.0f))
 			{
 				agent.DetectFood(make_pair(foodSource.position, &foodSource));
 			}
@@ -324,28 +317,14 @@ void FYP_AIBelievability::UpdateAgentsandFood()
 		index = ImGui_Implementation::agentNumber + 1;
 	}
 
-	if (ImGui_Implementation::foodNumber > mFoodSources.size()) //more added
+	if (ImGui_Implementation::foodNumber > foodSourcesIndex) //more added
 	{
-		int toAdd = ImGui_Implementation::foodNumber - mFoodSources.size();
-		for (int i = 0; i < toAdd - 1; i++)
-		{
-			if (i < toAdd / 2)
-			{
-				mFoodSources.emplace_back(mGrid.get(), false); //red bushes
-			}
-			else
-			{
-				mFoodSources.emplace_back(mGrid.get(), true); //blue bushes
-			}
-		}
+		foodSourcesIndex++;
+		mFoodSources[foodSourcesIndex - 1].isActive = true;
 	}
-	else if (ImGui_Implementation::foodNumber < mFoodSources.size()) //some taken away
+	else if (ImGui_Implementation::foodNumber < foodSourcesIndex) //some taken away
 	{
-		int toAdd = mFoodSources.size() - ImGui_Implementation::foodNumber;
-		for (int i = 0; i < toAdd; i++)
-		{
-			mGrid->landTilePositions.push_back(mFoodSources.back().position);
-			mFoodSources.erase(mFoodSources.end() - 1);
-		}
+		foodSourcesIndex--;
+		mFoodSources[foodSourcesIndex - 1].isActive = false;
 	}
 }

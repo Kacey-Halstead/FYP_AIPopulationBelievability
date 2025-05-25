@@ -37,7 +37,9 @@ public:
 
 	//water positions + needed pos for source rect
 	std::array<glm::ivec2, gridSizeX * gridSizeY> sourceRectPositions{};
-	std::array<std::vector<std::pair<int, TextureIndexes>>, gridSizeX* gridSizeY> sourceRectPositionsCorners{};
+	std::array<std::vector<std::pair<int, TextureIndexes>>, gridSizeX* gridSizeY> sourceRectPositionsCorners{}; //corner source rect positions
+	std::array<glm::ivec2, gridSizeX * gridSizeY> decorSourceRectPositions{}; //decor
+
 
 	std::vector<glm::ivec2> rocks;
 	std::vector<glm::ivec2> trees;

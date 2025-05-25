@@ -26,6 +26,7 @@ private:
 	float mAccumulatedTime = 0;
 	float mCounter = 0;
 	int index = 1;
+	int foodSourcesIndex = 10;
 
 	void Render() const;
 	void Update();
