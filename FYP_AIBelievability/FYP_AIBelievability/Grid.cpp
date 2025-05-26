@@ -165,16 +165,16 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 	}
 }
 
-std::vector<glm::vec2> Grid::GetTilesOfType(char type)
+std::vector<glm::ivec2> Grid::GetTilesOfType(char type)
 {
-	std::vector<glm::vec2> landTileWorldPositions;
+	std::vector<glm::ivec2> landTileWorldPositions;
 	for (int x = 0; x < gridSizeX; x++)
 	{
 		for (int y = 0; y < gridSizeY; y++)
 		{
 			if (Tiles[x][y].GetType() == type)
 			{
-				landTileWorldPositions.emplace_back(Tiles[x][y].GetWorldPos());
+				landTileWorldPositions.emplace_back(Tiles[x][y].GetGridPos());
 			}
 		}
 	}

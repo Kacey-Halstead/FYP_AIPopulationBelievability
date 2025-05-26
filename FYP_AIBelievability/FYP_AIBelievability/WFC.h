@@ -12,6 +12,7 @@
 #include <bitset>
 
 class FoodSource;
+class Agent;
 
 enum directions
 {
@@ -37,8 +38,10 @@ namespace WFC
 	void CheckForEmptyTiles(Tile* tile);
 	void TypeIncrement(char typeToIncrement);
 	void SetEdgesAndCorners(char tileType);
-	std::vector<FoodSource> PlaceFood();
+	void PlaceFood();
 	void PlaceDecor();
+	std::vector<FoodSource>& GetFoodSources();
+	void SetAgentsVec(std::vector<Agent>* agents);
 
 	SDL_Point operator *(const SDL_Point& a, const int& b);
 };

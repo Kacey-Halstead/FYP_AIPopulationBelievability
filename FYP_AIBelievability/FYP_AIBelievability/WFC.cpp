@@ -1,6 +1,7 @@
 #include "WFC.h"
 #include "Tile.h"
 #include "FoodSource.h"
+#include "Agent.h"
 
 namespace WFC
 {
@@ -25,7 +26,9 @@ namespace WFC
 		{'S', 'L', 'R'}
 		};
 
-		std::vector<glm::vec2> unoccupiedTiles{};
+		std::vector<glm::ivec2> unoccupiedTiles{};
+		std::vector<FoodSource> foodSources{};
+		std::vector<Agent>* agentsRef;
 	}
 
 	void WFCBody(Grid* grid)
@@ -76,9 +79,9 @@ namespace WFC
 		AStar::SetGridRef(gridRef);
 
 		//check if enough of each tile. if not, regenerate
-		if (typeCounter[0] < 3 || typeCounter[1] < 3 || typeCounter[2] < 3)
+		if (typeCounter[0] < 50 || typeCounter[1] < 3 || typeCounter[2] < 3)
 		{
-			//WFCReset(); 
+			WFCReset(); 
 		}
 
 		//check if too many sea tiles
@@ -91,7 +94,12 @@ namespace WFC
 		SetEdgesAndCorners('C');
 
 		gridRef->landTilePositions = gridRef->GetTilesOfType('L');
+		gridRef->waterPositions = gridRef->GetTilesOfType('S');
+
 		unoccupiedTiles = gridRef->landTilePositions;
+
+		PlaceFood();
+		PlaceDecor();
 	}
 
 	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)
@@ -142,6 +150,18 @@ namespace WFC
 		for (auto& vec : gridRef->sourceRectPositionsCorners)
 		{
 			vec.clear();
+		}
+
+		foodSources.clear();
+		
+		if (agentsRef != nullptr)
+		{
+			for (auto& agent : *agentsRef)
+			{
+				agent.states.foodState.prevFoodPositions.clear();
+				agent.states.waterState.prevWaterPositions.clear();
+				agent.states.socialState.isTalkingTo = false;
+			}
 		}
 
 		WFCBody(gridRef);
@@ -380,10 +400,8 @@ namespace WFC
 		}
 	}
 
-	std::vector<FoodSource> PlaceFood()
+	void PlaceFood()
 	{
-		std::vector<FoodSource> placedFood{};
-
 		for (int i = 0; i < 50 && !unoccupiedTiles.empty(); i++)
 		{
 			std::uniform_int_distribution<> distrib(0, unoccupiedTiles.size() - 1);
@@ -392,10 +410,9 @@ namespace WFC
 			if (currentTile != nullptr)
 			{
 				bool isBlue = true;
-				i < 25 ? isBlue = false : isBlue = true;
+				i % 2 == 0 ? isBlue = false : isBlue = true;
 
-				FoodSource food = placedFood.emplace_back(gridRef, currentTile->GetGridPos(), isBlue);
-				food.isActive = true;
+				foodSources.emplace_back(gridRef, currentTile->GetGridPos(), isBlue).isActive = true;
 				unoccupiedTiles.erase(unoccupiedTiles.begin() + index);
 			}
 			else
@@ -403,8 +420,6 @@ namespace WFC
 				i--;
 			}
 		}
-
-		return placedFood;
 	}
 
 	void PlaceDecor()
@@ -457,6 +472,16 @@ namespace WFC
 				unoccupiedTiles.erase(unoccupiedTiles.begin() + index);
 			}
 		}
+	}
+
+	std::vector<FoodSource>& GetFoodSources()
+	{
+		return foodSources;
+	}
+
+	void SetAgentsVec(std::vector<Agent>* agents)
+	{
+		agentsRef = agents;
 	}
 
 	bool EveryTileHasType()

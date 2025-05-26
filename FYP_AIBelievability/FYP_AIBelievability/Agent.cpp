@@ -36,7 +36,7 @@ void Agent::Update(float deltaTime)
 		maxSprites = 4;
 		facingLeft = true;
 	}
-	else if (velocity == glm::vec2(0.0f, 0.0f)) //not moving
+	else //not moving
 	{
 		rectYPos = 0;
 		maxSprites = 8;
@@ -284,7 +284,7 @@ void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 		states.emoteToSet = EMOTE_EXCLAIM;
 		break;
 	case ANTICIPATION:
-		states.emoteToSet = EMOTE_ANGER;
+		states.emoteToSet = EMOTE_DOT3;
 		break;
 	case DISGUST:
 		states.emoteToSet = EMOTE_SWIRL;

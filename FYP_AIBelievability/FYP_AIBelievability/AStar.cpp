@@ -176,6 +176,12 @@ namespace AStar
         ResetTiles(gridRef->Tiles);
         Tile* tile = gridRef->GetTileFromPos(start);
         Tile* endTile = gridRef->GetTileFromPos(end);
+
+        if (tile == nullptr || endTile == nullptr)
+        {
+            return std::vector<Node>();
+        }
+
         return Findpath(tile, endTile);
     }
 

@@ -18,7 +18,7 @@ public:
 
 	void RenderGrid(SDL_Renderer* renderer);
 
-	std::vector<glm::vec2> GetTilesOfType(char type); 
+	std::vector<glm::ivec2> GetTilesOfType(char type); 
 
 	Tile* GetTileFromPos(glm::vec2 pos);
 	glm::vec2 GetWorldPosFromTile(Tile* tile) const;
@@ -30,7 +30,8 @@ public:
 
 	Tile* SmallestEntropy();
 
-	std::vector<glm::vec2> landTilePositions;
+	std::vector<glm::ivec2> landTilePositions{};
+	std::vector<glm::ivec2> waterPositions{};
 
 	glm::ivec2 tileSizeOnScreen;
 	std::vector<std::vector<Tile>> Tiles;
@@ -44,7 +45,6 @@ public:
 	std::vector<glm::ivec2> rocks;
 	std::vector<glm::ivec2> trees;
 
-	std::vector<glm::ivec2> waterPositions{};
 
 private:
 	std::array<char, numberOfTypes> allTypes;

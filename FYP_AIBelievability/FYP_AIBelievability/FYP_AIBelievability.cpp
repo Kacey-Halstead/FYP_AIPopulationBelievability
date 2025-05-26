@@ -20,7 +20,8 @@ using namespace std::chrono;
 FYP_AIBelievability::FYP_AIBelievability() :
 	mSDL{new SDLWindow()},
 	mGrid{new Grid(allTypes)},
-	mDAG{new DAG()}
+	mDAG{new DAG()},
+	mFoodSources{ WFC::GetFoodSources() }
 {
 //#ifdef __EMSCRIPTEN__
 //	unsigned long long seed = 1934669435;
@@ -49,10 +50,6 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	std::random_device rd{};
 	//RandomGenerator::gen.seed(rd());
 
-	mFoodSources.resize(50);
-	mFoodSources = WFC::PlaceFood();
-	WFC::PlaceDecor();
-
 	//Agent init
 	mAgents.resize(50);
 	for (int i = 1; i < 51; i++)
@@ -66,6 +63,8 @@ FYP_AIBelievability::FYP_AIBelievability() :
 			mAgents[i-1].blueBushPref = true; // blue bush preference
 		}
 	}
+
+	WFC::SetAgentsVec(&mAgents);
 
 	index = 11;
 
@@ -124,7 +123,7 @@ void FYP_AIBelievability::Render() const
 
 	mGrid->RenderGrid(mSDL->getRenderer()); //render WFC 
 
-	for (int i = 0; i < foodSourcesIndex; i++)
+	for (int i = 0; i < foodSourcesIndex - 1; i++)
 	{
 		mFoodSources[i].Render(mSDL->getRenderer(), mSDL->getWindow());
 	}
@@ -159,7 +158,7 @@ void FYP_AIBelievability::Update()
 	mAccumulatedTime += deltaTime; //total accumulated
 	mCounter += deltaTime; //counter for not executing every frame
 
-	//FOOD
+	//FOOD 
 	for (FoodSource& foodSource : mFoodSources)
 	{
 		foodSource.Update(deltaTime);
@@ -178,15 +177,10 @@ void FYP_AIBelievability::Update()
 		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
 			if (agent.states.moveState.to.x < 0 || agent.states.moveState.to.x > (gridSizeX - 1) ||
-				agent.states.moveState.to.y < 0 || agent.states.moveState.to.y >(gridSizeY - 1)) break;
+				agent.states.moveState.to.y < 0 || agent.states.moveState.to.y >(gridSizeY - 1)) agent.states.moveState.path.clear();
 
 			if (agent.states.moveState.path.size() > 1)
 			{
-				if (!mGrid.get()->IsInGrid(agent.states.moveState.to) || !mGrid.get()->IsInGrid(agent.states.moveState.path[0].tile->GetGridPos()))
-				{
-					agent.states.moveState.isMoveToSet = false;
-					break;
-				}
 
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
 
@@ -317,14 +311,18 @@ void FYP_AIBelievability::UpdateAgentsandFood()
 		index = ImGui_Implementation::agentNumber + 1;
 	}
 
-	if (ImGui_Implementation::foodNumber > foodSourcesIndex) //more added
+	if (ImGui_Implementation::foodNumber > (foodSourcesIndex - 1)) //more added
 	{
-		foodSourcesIndex++;
-		mFoodSources[foodSourcesIndex - 1].isActive = true;
+		int toAdd = ImGui_Implementation::foodNumber - (foodSourcesIndex - 1);
+		for (int i = 0; i < toAdd - 1; i++)
+		{
+			foodSourcesIndex++;
+			mFoodSources[foodSourcesIndex - 1].isActive = true;
+		}
 	}
-	else if (ImGui_Implementation::foodNumber < foodSourcesIndex) //some taken away
+	else if (ImGui_Implementation::foodNumber < (foodSourcesIndex - 1)) //some taken away
 	{
-		foodSourcesIndex--;
+		foodSourcesIndex = ImGui_Implementation::foodNumber + 1;
 		mFoodSources[foodSourcesIndex - 1].isActive = false;
 	}
 }
