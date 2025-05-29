@@ -165,6 +165,48 @@ void Grid::RenderGrid(SDL_Renderer* renderer)
 	}
 }
 
+glm::ivec2 Grid::GetClosestTileOfType(char type, glm::vec2 position)
+{
+	std::vector<glm::ivec2> allTilesofType = GetTilesOfType(type);
+	std::pair<float, glm::ivec2> closest = std::make_pair(std::numeric_limits<float>().max(), position); //distance + position
+
+	for (const auto& tile : allTilesofType)
+	{
+		float distance = DistanceBetween(position, tile);
+		if (distance < closest.first)
+		{
+			closest = std::make_pair(distance, tile);
+		}
+	}
+
+	return closest.second;
+}
+
+glm::ivec2 Grid::GetClosestTileOfType(std::vector<char> types, glm::vec2 position)
+{
+	std::vector<glm::ivec2> closestTiles{};
+
+	for (const auto& type : types)
+	{
+		closestTiles.push_back(GetClosestTileOfType(type, position));
+	}
+
+	std::pair<float, glm::ivec2> closestDistance = std::make_pair(std::numeric_limits<float>().max(), glm::ivec2(0, 0));
+
+	for (const auto& tile : closestTiles)
+	{
+		float distanceBetween = DistanceBetween(position, tile);
+		if (distanceBetween < closestDistance.first)
+		{
+			closestDistance.first = distanceBetween;
+			closestDistance.second = tile;
+		}
+	}
+
+
+	return closestDistance.second;
+}
+
 std::vector<glm::ivec2> Grid::GetTilesOfType(char type)
 {
 	std::vector<glm::ivec2> landTileWorldPositions;
@@ -185,9 +227,10 @@ Tile* Grid::GetTileFromPos(glm::vec2 pos)
 {
 	glm::vec2 tilePos = { floor(pos.x), floor(pos.y) };
 
-	if (tilePos.y > gridSizeY - 1 || tilePos.y < 0 || tilePos.x > gridSizeX-1 || tilePos.x < 0) return nullptr;
-	//&Tiles[10][10]
-	//if(IsInGrid(pos)) return ;
+	if (tilePos.y > gridSizeY - 1) tilePos.y = gridSizeY - 1;
+	if (tilePos.x > gridSizeX - 1) tilePos.x = gridSizeX - 1;
+	if (tilePos.y < 0) tilePos.y = 0;
+	if (tilePos.x < 0) tilePos.x = 0;
 
 	return &Tiles[tilePos.x][tilePos.y];
 }

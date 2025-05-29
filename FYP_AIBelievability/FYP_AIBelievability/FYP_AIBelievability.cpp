@@ -173,18 +173,25 @@ void FYP_AIBelievability::Update()
 		}
 		agent.active = true;
 
-		//movement
-		if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
+		//if in water - go to nearest land tile
+		Tile* currentTile = mGrid->GetTileFromPos(agent.position);
+		if (currentTile && currentTile->GetType() == 'S')
+		{			
+			glm::vec2 toMove = mGrid->GridToWorldPos(mGrid->GetClosestTileOfType({ 'L', 'C' }, agent.position));
+			agent.states.moveState.isMoveToSet = false;
+			agent.Move(toMove);
+		}
+		else if (agent.states.moveState.isMoveToSet && !agent.states.socialState.isTalkingTo)
 		{
 			if (agent.states.moveState.to.x < 0 || agent.states.moveState.to.x > (gridSizeX - 1) ||
 				agent.states.moveState.to.y < 0 || agent.states.moveState.to.y >(gridSizeY - 1)) agent.states.moveState.path.clear();
 
-			if (agent.states.moveState.path.size() > 1)
+			if (!agent.states.moveState.path.empty())
 			{
 
 				glm::vec2 toGo = agent.states.moveState.path[0].tile->GetWorldPos();
 
-				agent.states.agent->Move(toGo);
+				agent.Move(toGo);
 
 				if (ComparePositions(agent.position, toGo, 1.0f))
 				{

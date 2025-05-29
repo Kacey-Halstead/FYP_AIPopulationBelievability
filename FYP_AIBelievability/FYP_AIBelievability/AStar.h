@@ -44,13 +44,8 @@ namespace AStar
 
 	std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end);
 
-	bool DoesContainNode(const std::vector<Node*>& list, Tile* tile);
-
 	float Heuristic_Manhatten(Tile* start, Tile* end);
 	float Magnitude(SDL_Point s);
-
-	Node* GetNodeInList(const std::vector<Node*>& list, Tile* tile);
-	Node* GetCheapestNode(std::vector<Node*>& openList);
 
 	Tile* GetNeighbour(int index, Tile* current);
 

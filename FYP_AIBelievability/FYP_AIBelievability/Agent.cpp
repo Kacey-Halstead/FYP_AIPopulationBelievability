@@ -173,9 +173,12 @@ void Agent::Reset()
 	states = {};
 	states.agent = this;
 	textureColour = { 255, 255, 255 };
-	std::uniform_real_distribution<> distrib(1.0f, 29.0f);
-	position.x = distrib(RandomGenerator::gen);
-	position.y = distrib(RandomGenerator::gen);
+
+	std::vector<glm::ivec2> toSpawn = gridRef->GetTilesOfType('C');
+	toSpawn.insert(toSpawn.end(), gridRef->landTilePositions.begin(), gridRef->landTilePositions.end());
+	std::uniform_real_distribution<> distrib(0, toSpawn.size()-1);
+	position = toSpawn[distrib(RandomGenerator::gen)];
+
 	active = true;
 	states.socialState.isTalkingTo = false;
 }
@@ -396,7 +399,7 @@ float Agent::GetUtility(float need)
 void Agent::Move(glm::vec2 destination)
 {
 	glm::vec2 toDest = destination - position;
-	if (toDest == glm::vec2(0.0f))
+	if (glm::length(toDest) < 0.01f)
 		return;
 	velocity = glm::normalize(toDest) * speed;
 }

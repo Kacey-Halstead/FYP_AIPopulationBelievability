@@ -81,7 +81,8 @@ namespace WFC
 		//check if enough of each tile. if not, regenerate
 		if (typeCounter[0] < 50 || typeCounter[1] < 3 || typeCounter[2] < 3)
 		{
-			WFCReset(); 
+			WFCReset();
+			return;
 		}
 
 		//check if too many sea tiles
@@ -93,9 +94,7 @@ namespace WFC
 		SetEdgesAndCorners('S');
 		SetEdgesAndCorners('C');
 
-		gridRef->landTilePositions = gridRef->GetTilesOfType('L');
-		gridRef->waterPositions = gridRef->GetTilesOfType('S');
-
+		gridRef->landTilePositions = grid->GetTilesOfType('L');
 		unoccupiedTiles = gridRef->landTilePositions;
 
 		PlaceFood();
@@ -153,6 +152,8 @@ namespace WFC
 		}
 
 		foodSources.clear();
+
+		gridRef->waterPositions.clear();
 		
 		if (agentsRef != nullptr)
 		{
@@ -161,6 +162,8 @@ namespace WFC
 				agent.states.foodState.prevFoodPositions.clear();
 				agent.states.waterState.prevWaterPositions.clear();
 				agent.states.socialState.isTalkingTo = false;
+				agent.states.moveState.path.clear();
+
 			}
 		}
 
@@ -412,7 +415,7 @@ namespace WFC
 				bool isBlue = true;
 				i % 2 == 0 ? isBlue = false : isBlue = true;
 
-				foodSources.emplace_back(gridRef, currentTile->GetGridPos(), isBlue).isActive = true;
+				foodSources.emplace_back(gridRef, currentTile->GetGridPos(), isBlue);
 				unoccupiedTiles.erase(unoccupiedTiles.begin() + index);
 			}
 			else

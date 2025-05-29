@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include<glm/glm.hpp>
+#include <algorithm>
 #include <map>
 
 class Tile;
@@ -24,6 +25,9 @@ public:
 	glm::vec2 GetWorldPosFromTile(Tile* tile) const;
 	glm::vec2 GridToWorldPos(glm::ivec2 pos) const;
 	SDL_Rect GetRenderRect(glm::vec2 worldPos, glm::ivec2 size);
+
+	glm::ivec2 GetClosestTileOfType(char type, glm::vec2 position);
+	glm::ivec2 GetClosestTileOfType(std::vector<char> types, glm::vec2 position);
 
 	bool IsInGrid(glm::ivec2 point, glm::ivec2 dir);
 	bool IsInGrid(glm::ivec2 point);

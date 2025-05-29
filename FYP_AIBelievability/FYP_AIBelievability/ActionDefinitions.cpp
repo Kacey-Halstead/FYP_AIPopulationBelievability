@@ -41,9 +41,17 @@ struct EatFood
 		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{
 			states.foodState.foundFoodRef = FindNearestFoodSource(states);
-			if (!states.foodState.foundFoodRef) return;
-			states.moveState.to = states.foodState.foundFoodRef->position;
+
+			if (states.foodState.foundFoodRef == nullptr) //is available food sources but none reachable
+			{
+				states.moveState.to = states.agent->position;
+				states.moveState.path.clear();
+				states.foodState.prevFoodPositions.clear();
+				return;
+			}
+
 			states.moveState.isMoveToSet = true;
+			states.moveState.to = states.foodState.foundFoodRef->position;
 			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
 		}
 	}
@@ -66,16 +74,11 @@ struct EatFood
 
 	static FoodSource* FindNearestFoodSource(States& states)
 	{
-		std::pair<float, FoodSource*> closestFood = {};
+		std::pair<float, FoodSource*> closestFood = { std::numeric_limits<float>().max(), nullptr};
 		std::list<std::pair<glm::vec2, FoodSource*>> toCheck = states.foodState.prevFoodPositions;
 
-		if (states.agent->blueBushPref) //prefers blue - check front first
+		if (!states.agent->blueBushPref) //prefers blue - check front first
 		{
-			closestFood = std::make_pair(std::numeric_limits<float>().max(), states.foodState.prevFoodPositions.front().second);
-		}
-		else
-		{
-			closestFood = std::make_pair(std::numeric_limits<float>().max(), states.foodState.prevFoodPositions.back().second);
 			std::reverse(toCheck.begin(), toCheck.end()); //reverse so in next stage, red bushes checked first
 		}
 		
@@ -85,12 +88,15 @@ struct EatFood
 			float distance = DistanceBetween(states.agent->position, foodSource.first);
 			if( foodSource.second->canEat && distance < closestFood.first)
 			{
-				closestFood = std::make_pair(distance, foodSource.second);
+				if (!AStar::toFindPath(states.agent->position, states.moveState.to).empty())
+				{
+					closestFood = std::make_pair(distance, foodSource.second);
+				}
 			}
 		}
 
-		if (closestFood.second == nullptr || closestFood.second->position.x < 0 || closestFood.second->position.x > 29 || 
-			closestFood.second->position.y < 0 || closestFood.second->position.y > 29)
+		if (closestFood.second != nullptr && !(closestFood.second->position.x < 0 || closestFood.second->position.x > 29 || 
+			closestFood.second->position.y < 0 || closestFood.second->position.y > 29))
 		{
 			return states.foodState.prevFoodPositions.front().second;
 		}
@@ -107,7 +113,7 @@ struct DrinkWater
 {
 	static void Execute(States& states)
 	{
-		if (states.waterState.waterRefSet && ComparePositions(states.agent->position, states.waterState.foundWaterRef, 1.0f)) //if near food
+		if (states.waterState.waterRefSet && ComparePositions(states.agent->position, states.waterState.foundWaterRef, 1.5f)) //if near food
 		{
 			states.agent->needs.thirstVal = 100;
 			states.waterState.waterRefSet = false;
@@ -115,6 +121,14 @@ struct DrinkWater
 		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position))
 		{
 			states.moveState.to = FindNearestWaterSource(states);
+
+			if (states.moveState.to == glm::vec2(-1.0f, -1.0f)) //if none available
+			{
+				states.moveState.to = states.agent->position;
+				states.waterState.prevWaterPositions.clear();
+				return;
+			}
+
 			states.waterState.foundWaterRef = states.moveState.to;
 			states.waterState.waterRefSet = true;
 			states.moveState.isMoveToSet = true;
@@ -141,16 +155,22 @@ struct DrinkWater
 	static glm::vec2 FindNearestWaterSource(States& states)
 	{
 		float limit = std::numeric_limits<float>().max();
-		std::pair<float, glm::vec2> closestWater = std::make_pair(limit, states.waterState.prevWaterPositions[0]);
+		std::pair<float, glm::vec2> closestWater = std::make_pair(limit, glm::vec2(-1.0f, -1.0f));
 
 		for (glm::vec2 waterSource : states.waterState.prevWaterPositions)
 		{
 			float distance = DistanceBetween(states.agent->position, waterSource);
+
 			if (distance < closestWater.first)
 			{
-				closestWater.second = waterSource;
+				if (!AStar::toFindPath(states.agent->position, waterSource).empty())
+				{
+					closestWater.first = distance;
+					closestWater.second = waterSource;
+				}
 			}
 		}
+
 		return closestWater.second;
 	}
 };
@@ -274,21 +294,32 @@ struct FindAgentToSocialise
 
 				if (!states.socialState.agentRef->states.socialState.isSeekingOtherAgent && !states.socialState.agentRef->states.socialState.isTalkingTo && states.socialState.agentRef->active)
 				{
-					validAgent = true;
+					if (!AStar::toFindPath(states.agent->position, states.socialState.agentRef->position).empty())
+					{
+						validAgent = true;
+					}
+					else
+					{
+						states.socialState.agentRef = nullptr;
+					}
+				}
+				else
+				{
+					states.socialState.agentRef = nullptr;
 				}
 
 				index++;
 			}
 		}
 
-		if (states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
+		if (states.socialState.agentRef && states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{
 			states.socialState.agentRef->states.socialState.isTalkingTo = true;
 			states.socialState.agentRef->states.moveState.isMoveToSet = false;
 			states.socialState.isSeekingOtherAgent = true;
 			states.moveState.to = states.socialState.agentRef->position;
-			states.moveState.isMoveToSet = true;
 			states.moveState.path = AStar::toFindPath(states.agent->position, states.moveState.to);
+			states.moveState.isMoveToSet = true;
 		}
 	}
 
