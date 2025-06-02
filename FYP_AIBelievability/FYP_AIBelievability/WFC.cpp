@@ -5,9 +5,23 @@
 
 namespace WFC
 {
+	bool EveryTileHasType();
+	void ChangeTileWeighting(Tile* tile);
+	void TypeIncrement(char typeToIncrement);
+	void Evaluate(Tile* tile, directions dir);
+	void SetEdgesAndCorners(char tileType);
+	void PlaceFood();
+	void GenerateLandDecorSourceRectPositions();
+	void PlaceDecor(const std::vector<glm::ivec2>& sourceRectPos, std::vector<glm::ivec2>& unoccupiedTiles, float decorWeighting);
+	void FindAndErase(Tile* tile, char toFind);
+	void CheckForEmptyTiles(Tile* tile);
+	std::vector<char> GetTypeAndRules(char input, directions dir);
+
 	namespace
 	{
 		Grid* gridRef = nullptr;
+
+		int maximumIterations = 1000;
 
 		std::array<int, 3> typeCounter = {}; //L, C, S
 
@@ -26,14 +40,43 @@ namespace WFC
 		{'S', 'L', 'R'}
 		};
 
-		std::vector<glm::ivec2> unoccupiedTiles{};
+		std::vector<glm::ivec2> unoccupiedLandTiles{};
+		std::vector<glm::ivec2> unoccupiedCoastTiles{};
+		std::vector<glm::ivec2> unoccupiedWaterTiles{};
+
 		std::vector<FoodSource> foodSources{};
 		std::vector<Agent>* agentsRef;
+
+		std::vector<glm::ivec2> landDecorSourceRects{};
+
+		std::vector<glm::ivec2> coastDecorSourceRects{
+			glm::ivec2(12, 0),
+			glm::ivec2(13, 0),
+			glm::ivec2(14, 0),
+			glm::ivec2(15, 0),
+			glm::ivec2(16, 0),
+			glm::ivec2(17, 0),
+			glm::ivec2(18, 0)
+		};
+
+		std::vector<glm::ivec2> waterDecorSourceRects{
+			glm::ivec2(0, 17),
+			glm::ivec2(1, 17),
+			glm::ivec2(2, 17),
+			glm::ivec2(3, 17),
+			glm::ivec2(4, 17),
+			glm::ivec2(5, 17),
+			glm::ivec2(6, 17)
+		};
 	}
 
-	void WFCBody(Grid* grid)
+	void SetGridRef(Grid* grid)
 	{
 		gridRef = grid;
+	}
+
+	bool WFCBody(std::mt19937_64& generator)
+	{
 		int count = 0;
 
 		while (!EveryTileHasType())
@@ -55,13 +98,13 @@ namespace WFC
 			}
 
 			std::uniform_int_distribution<> distrib(0, random.size()-1);
-			int randomType = distrib(RandomGenerator::gen);
+			int randomType = distrib(generator);
 
 			selectedTile->SetType(random[randomType]);
 			if (random[randomType] == 'S')
 			{
-				selectedTile->walkable = false;
-				grid->waterPositions.push_back(selectedTile->GetGridPos());
+				selectedTile->SetWalkable(false);
+				gridRef->waterPositions.push_back(selectedTile->GetGridPos());
 			}
 
 			TypeIncrement(random[randomType]);
@@ -81,8 +124,7 @@ namespace WFC
 		//check if enough of each tile. if not, regenerate
 		if (typeCounter[0] < 50 || typeCounter[1] < 3 || typeCounter[2] < 3)
 		{
-			WFCReset();
-			return;
+			return false;
 		}
 
 		//check if too many sea tiles
@@ -94,11 +136,17 @@ namespace WFC
 		SetEdgesAndCorners('S');
 		SetEdgesAndCorners('C');
 
-		gridRef->landTilePositions = grid->GetTilesOfType('L');
-		unoccupiedTiles = gridRef->landTilePositions;
+		gridRef->landTilePositions = gridRef->GetTilesOfType('L');
+		unoccupiedLandTiles = gridRef->landTilePositions;
 
 		PlaceFood();
-		PlaceDecor();
+
+		GenerateLandDecorSourceRectPositions();
+
+		PlaceDecor(landDecorSourceRects, unoccupiedLandTiles, 0.3);
+		PlaceDecor(coastDecorSourceRects, unoccupiedCoastTiles, 0.3);
+		PlaceDecor(waterDecorSourceRects, unoccupiedWaterTiles, 0.3);
+		return true;
 	}
 
 	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset)
@@ -135,39 +183,62 @@ namespace WFC
 
 	void WFCReset()
 	{
-		for (std::vector<Tile>& tiles : gridRef->Tiles)
+		int iterationCounter = 0;
+		std::mt19937_64& generator = RandomGenerator::gen;
+		std::mt19937_64 seededGenerator = RandomGenerator::SeededGenerator();
+
+		//std::random_device rand{};
+		//unsigned long long randNumber = rand();
+		//std::cout << randNumber << std::endl;
+		//
+		//RandomGenerator::gen.seed(randNumber);
+
+		do
 		{
-			for (Tile& t : tiles)
+			for (std::vector<Tile>& tiles : gridRef->Tiles)
 			{
-				t.Reset();
+				for (Tile& t : tiles)
+				{
+					t.Reset();
+				}
 			}
-		}
-		typeCounter = { 0, 0, 0 }; //reset
-		std::fill(gridRef->sourceRectPositions.begin(), gridRef->sourceRectPositions.end(), glm::ivec2(0, 0));
-		std::fill(gridRef->decorSourceRectPositions.begin(), gridRef->decorSourceRectPositions.end(), glm::ivec2(0, 0));
-		
-		for (auto& vec : gridRef->sourceRectPositionsCorners)
-		{
-			vec.clear();
-		}
+			typeCounter = { 0, 0, 0 }; //reset
+			std::fill(gridRef->sourceRectPositions.begin(), gridRef->sourceRectPositions.end(), glm::ivec2(0, 0));
+			std::fill(gridRef->decorSourceRectPositions.begin(), gridRef->decorSourceRectPositions.end(), glm::ivec2(0, 0));
 
-		foodSources.clear();
-
-		gridRef->waterPositions.clear();
-		
-		if (agentsRef != nullptr)
-		{
-			for (auto& agent : *agentsRef)
+			for (auto& vec : gridRef->sourceRectPositionsCorners)
 			{
-				agent.states.foodState.prevFoodPositions.clear();
-				agent.states.waterState.prevWaterPositions.clear();
-				agent.states.socialState.isTalkingTo = false;
-				agent.states.moveState.path.clear();
-
+				vec.clear();
 			}
-		}
 
-		WFCBody(gridRef);
+			foodSources.clear();
+
+			gridRef->waterPositions.clear();
+
+			unoccupiedLandTiles.clear();
+			unoccupiedCoastTiles.clear();
+			unoccupiedWaterTiles.clear();
+
+			if (agentsRef != nullptr)
+			{
+				for (auto& agent : *agentsRef)
+				{
+					agent.states.foodState.prevFoodPositions.clear();
+					agent.states.waterState.prevWaterPositions.clear();
+					agent.states.socialState.isTalkingTo = false;
+					agent.states.moveState.path.clear();
+
+				}
+			}
+
+			if (iterationCounter++ == maximumIterations) //if taking too long
+			{
+				generator = seededGenerator;
+			}
+
+		} while (!WFC::WFCBody(generator));
+
+		std::cout << iterationCounter << std::endl;
 	}
 
 	std::vector<char> GetTypeAndRules(char input, directions dir)
@@ -310,6 +381,18 @@ namespace WFC
 				}
 			}
 
+			if (dirs.none() && diagonalDirs.none()) //if full tile
+			{
+				if (tileType == 'C')
+				{
+					unoccupiedCoastTiles.emplace_back(tile);
+				}
+				else if (tileType == 'S')
+				{
+					unoccupiedWaterTiles.emplace_back(tile);
+				}
+			}
+
 			glm::ivec2 sourceRectPos{ 0, 0 };
 
 			int numNeighbours = dirs.count();
@@ -405,18 +488,18 @@ namespace WFC
 
 	void PlaceFood()
 	{
-		for (int i = 0; i < 50 && !unoccupiedTiles.empty(); i++)
+		for (int i = 0; i < 50 && !unoccupiedLandTiles.empty(); i++)
 		{
-			std::uniform_int_distribution<> distrib(0, unoccupiedTiles.size() - 1);
+			std::uniform_int_distribution<> distrib(0, unoccupiedLandTiles.size() - 1);
 			int index = distrib(RandomGenerator::gen);
-			Tile* currentTile = gridRef->GetTileFromPos(unoccupiedTiles[index]);
+			Tile* currentTile = gridRef->GetTileFromPos(unoccupiedLandTiles[index]);
 			if (currentTile != nullptr)
 			{
 				bool isBlue = true;
 				i % 2 == 0 ? isBlue = false : isBlue = true;
 
-				foodSources.emplace_back(gridRef, currentTile->GetGridPos(), isBlue);
-				unoccupiedTiles.erase(unoccupiedTiles.begin() + index);
+				foodSources.emplace_back(gridRef, currentTile->GetWorldPos(), isBlue);
+				unoccupiedLandTiles.erase(unoccupiedLandTiles.begin() + index);
 			}
 			else
 			{
@@ -425,54 +508,63 @@ namespace WFC
 		}
 	}
 
-	void PlaceDecor()
+	void PlaceDecor(const std::vector<glm::ivec2>& sourceRectPos, std::vector<glm::ivec2>& unoccupiedTiles, float decorWeighting)
 	{
 		if (unoccupiedTiles.empty()) return;
 
-		int decorNumber = floor(unoccupiedTiles.size() / 3);
+		int decorNumber = floor(unoccupiedTiles.size() * decorWeighting);
 
 		for (int i = 0; i < decorNumber; i++)
 		{
+			//random tile
 			std::uniform_int_distribution<> distrib(0, unoccupiedTiles.size() - 1);
-			int index = distrib(RandomGenerator::gen);
-			Tile* currentTile = gridRef->GetTileFromPos(unoccupiedTiles[index]);
+			int randomTileIndex = distrib(RandomGenerator::gen);
 
+			Tile* currentTile = gridRef->GetTileFromPos(unoccupiedTiles[randomTileIndex]);
 			int decorArrayIndex = (currentTile->GetGridPos().y * gridSizeX) + currentTile->GetGridPos().x;
 
-			if (currentTile != nullptr)
+			//random decor
+			std::uniform_int_distribution<> decorDistrib(0, sourceRectPos.size() - 1);
+			int randomDecorIndex = decorDistrib(RandomGenerator::gen);
+
+			//set decor type and tile pos
+			gridRef->decorSourceRectPositions[decorArrayIndex] = glm::ivec2(sourceRectPos[randomDecorIndex]);
+			unoccupiedTiles.erase(unoccupiedTiles.begin() + randomTileIndex);
+		}
+	}
+
+	void GenerateLandDecorSourceRectPositions()
+	{
+		if (unoccupiedLandTiles.empty()) return;
+
+		for (int i = 1; i <= 18; i++)
+		{
+			if (i < 6) //mushrooms + rocks
 			{
-				std::uniform_int_distribution<> decorDistribX(1, 18);
-				int decorIndexX = decorDistribX(RandomGenerator::gen);
+				landDecorSourceRects.emplace_back(glm::ivec2(i, 1));
+				landDecorSourceRects.emplace_back(glm::ivec2(i, 2));
+				landDecorSourceRects.emplace_back(glm::ivec2(i, 3));
 
-				if (decorIndexX < 6) //mushrooms
+				landDecorSourceRects.emplace_back(glm::ivec2(i, 15));
+			}
+			else if (i > 6 && i < 12) //petals
+			{
+				if (i == 11)
 				{
-					std::uniform_int_distribution<> decorDistribYMushrooms(1, 3);
-					int decorIndexY = decorDistribYMushrooms(RandomGenerator::gen);
-					gridRef->decorSourceRectPositions[decorArrayIndex] = glm::ivec2(decorIndexX, decorIndexY);
+					landDecorSourceRects.emplace_back(glm::ivec2(i, 3));
+					landDecorSourceRects.emplace_back(glm::ivec2(i, 5));
+					continue;
 				}
-				else if (decorIndexX > 6 && decorIndexX < 12) //petals
+
+				for (int j = 2; j < 6; j++)
 				{
-					if (decorIndexX == 11)
-					{
-						std::uniform_int_distribution<> decorDistribYPetals(1, 2);
-						int decorIndexY = decorDistribYPetals(RandomGenerator::gen);
-
-						decorIndexY == 1 ? gridRef->decorSourceRectPositions[decorArrayIndex] = glm::ivec2(decorIndexX, 3) : gridRef->decorSourceRectPositions[decorArrayIndex] = glm::ivec2(decorIndexX, 5);
-					}
-
-					std::uniform_int_distribution<> decorDistribYPetals2(2, 5);
-					int decorIndexY = decorDistribYPetals2(RandomGenerator::gen);
-					gridRef->decorSourceRectPositions[decorArrayIndex] = glm::ivec2(decorIndexX, decorIndexY);
+					landDecorSourceRects.emplace_back(glm::ivec2(i, j));
 				}
-				else if (decorIndexX >= 12) //grass
-				{
-					std::uniform_int_distribution<> decorDistribGrass(2, 3);
-					int decorIndexY = decorDistribGrass(RandomGenerator::gen);
-
-					if (decorIndexY == 3) decorIndexY++;
-					gridRef->decorSourceRectPositions[decorArrayIndex] = glm::ivec2(decorIndexX, decorIndexY);
-				}
-				unoccupiedTiles.erase(unoccupiedTiles.begin() + index);
+			}
+			else if (i >= 12) //grass
+			{
+				landDecorSourceRects.emplace_back(glm::ivec2(i, 2));
+				landDecorSourceRects.emplace_back(glm::ivec2(i, 4));
 			}
 		}
 	}

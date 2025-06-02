@@ -23,17 +23,6 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	mDAG{new DAG()},
 	mFoodSources{ WFC::GetFoodSources() }
 {
-//#ifdef __EMSCRIPTEN__
-//	unsigned long long seed = 1934669435;
-//#else
-//	unsigned long long seed = 0 
-//		+ ('k' ^ 65173)
-//		+ ('a' ^ 17783)
-//		+ ('c' ^ 32957)
-//		+ ('e' ^ 26633)
-//		+ ('y' ^ 77813);	
-//#endif
-
 	FromJSONFile::ReadFromJSON();
 
 	//TextureManager Init
@@ -42,13 +31,9 @@ FYP_AIBelievability::FYP_AIBelievability() :
 	//ImGui Init
 	ImGui_Implementation::Init(mSDL->getRenderer(), mSDL->getWindow());
 
-	//WFC Init
-
-	//RandomGenerator::gen.seed(seed);
-	WFC::WFCBody(mGrid.get());
-
-	std::random_device rd{};
-	//RandomGenerator::gen.seed(rd());
+	//WFC init
+	WFC::SetGridRef(mGrid.get());
+	WFC::WFCReset();
 
 	//Agent init
 	mAgents.resize(50);

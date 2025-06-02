@@ -82,7 +82,7 @@ bool SDLWindow::Events(Grid* grid, std::vector<Agent>& agents)
 			{
 				if (a.agentCount > ImGui_Implementation::agentNumber) break;
 
-				float agentSize = (float)a.size.x / grid->tileSizeOnScreen.x;
+				float agentSize = (float)a.GetSize().x / grid->tileSizeOnScreen.x;
 				if(ComparePositions(a.position, mouseWorldPos, agentSize))
 				{
 					ImGui_Implementation::agentCount = a.agentCount;

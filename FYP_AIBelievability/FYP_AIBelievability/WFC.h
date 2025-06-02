@@ -24,24 +24,11 @@ enum directions
 
 namespace WFC
 {
-	std::vector<char> GetTypeAndRules(char input, directions dir);
-
-	bool IsInGrid(const glm::ivec2& pos, const glm::ivec2& offset);
-	bool EveryTileHasType();
-
-
 	void WFCReset();
-	void WFCBody(Grid* grid);
-	void Evaluate(Tile* tile, directions dir);
-	void ChangeTileWeighting(Tile* tile);
-	void FindAndErase(Tile* tile, char toFind);
-	void CheckForEmptyTiles(Tile* tile);
-	void TypeIncrement(char typeToIncrement);
-	void SetEdgesAndCorners(char tileType);
-	void PlaceFood();
-	void PlaceDecor();
+
 	std::vector<FoodSource>& GetFoodSources();
 	void SetAgentsVec(std::vector<Agent>* agents);
+	void SetGridRef(Grid* grid);
 
 	SDL_Point operator *(const SDL_Point& a, const int& b);
 };

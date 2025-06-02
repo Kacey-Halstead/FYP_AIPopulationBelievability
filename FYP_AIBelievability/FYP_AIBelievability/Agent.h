@@ -62,12 +62,13 @@ public:
 	inline Grid* GetGridRef() { return gridRef; }
 	std::vector<float> GetValuesForImGui(int index); //0 - hunger, 1- thirst, 2 - social
 	Agent* GetClosestAgent();
+	inline glm::ivec2 GetSize() { return size; }
+
 	void Reset();
 
 	glm::vec2 position = {};
 
 	std::vector<std::pair<EEmotions, float>> emotions = baseEmotions();
-
 
 	Needs needs = {};
 	States states = {};
@@ -75,7 +76,6 @@ public:
 
 	int agentCount = 0;
 	bool blueBushPref = false;
-	glm::ivec2 size = { 50, 50 };
 
 	std::stack<actionIDs> responsiveStack{};
 
@@ -84,22 +84,22 @@ public:
 	bool active = false;
 
 private:
+	//rects
 	SDL_Rect agentRect;
 	SDL_Rect sourceRect;
 
+	//anims
+	bool facingLeft = true;
+	bool isMoving = false;
 	int animIndex = 0;
 	float animCounter = 0.0f;
 
 	Grid* gridRef;
 
-	std::vector<glm::ivec2> patrolPositions = { {2, 2}, {gridSizeX-2, 2}, {2, gridSizeY - 2}, {25, 25}, {(gridSizeX - 2 )/2, (gridSizeY - 2 )/2} };
-
 	glm::vec2 velocity = { 0, 0 };
-
 	float speed = 1.0f;
 
-	bool facingLeft = true;
-
+	glm::ivec2 size = { 50, 50 };
 
 	float emoteCounter = 0;
 	std::array<Uint8, 3> textureColour = {255, 255, 255 };

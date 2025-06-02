@@ -37,17 +37,10 @@ struct Node {
 
 namespace AStar
 {
-	std::vector<Node> Findpath(Tile* start, Tile* end);
-	void ResetTiles(vector<vector<Tile*>>& toReset);
+	std::vector<Node> FindPath(Tile* start, Tile* end);
+	std::vector<Node> FindPath(const glm::vec2& start, const glm::vec2& end);
+
 	void SetPath(Node* end);
-	void DrawPath();
-
-	std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end);
-
-	float Heuristic_Manhatten(Tile* start, Tile* end);
-	float Magnitude(SDL_Point s);
-
-	Tile* GetNeighbour(int index, Tile* current);
 
 	void SetGridRef(Grid* grid);
 };

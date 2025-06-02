@@ -3,22 +3,14 @@
 
 namespace AStar
 {
-    std::vector<Node> path;
-    bool CanCutCorners = false;
-    bool AllowDiagonal = true;
-
-    int maxPathCount = 1000;
-    Grid* gridRef = nullptr;
-
-    void ResetTiles(std::vector<std::vector<Tile>>& toReset)
+    namespace
     {
-        for (std::vector<Tile>& v : toReset)
-        {
-            for (Tile& t : v)
-            {
-                t.isInPath = false;
-            }
-        }
+        std::vector<Node> path;
+        bool CanCutCorners = false;
+        bool AllowDiagonal = true;
+
+        int maxPathCount = 1000;
+        Grid* gridRef = nullptr;
     }
 
     void SetPath(Node* end)
@@ -40,17 +32,8 @@ namespace AStar
         reverse(path.begin(), path.end());
     }
 
-    void DrawPath()
+    std::vector<Node> FindPath(const glm::vec2& start, const glm::vec2& end)
     {
-        for (Node n : path)
-        {
-            n.tile->isInPath = true;
-        }
-    }
-
-    std::vector<Node> toFindPath(glm::vec2 start, glm::vec2 end)
-    {
-        ResetTiles(gridRef->Tiles);
         Tile* tile = gridRef->GetTileFromPos(start);
         Tile* endTile = gridRef->GetTileFromPos(end);
 
@@ -59,7 +42,7 @@ namespace AStar
             return std::vector<Node>();
         }
 
-        return Findpath(tile, endTile);
+        return FindPath(tile, endTile);
     }
 
     bool DoesContainNode(std::vector<std::shared_ptr<Node>>& list, Tile* tile)
@@ -118,11 +101,18 @@ namespace AStar
         return nullptr;
     }
 
-    std::vector<Node> Findpath(Tile* start, Tile* end)
+    float Heuristic_Manhatten(Tile* start, Tile* end)
+    {
+        glm::ivec2 distance = end->GetGridPos() - start->GetGridPos();
+        float XDiff = abs(distance.x);
+        float YDiff = abs(distance.y);
+        return XDiff + YDiff;
+    }
+
+    std::vector<Node> FindPath(Tile* start, Tile* end)
     {
         path.clear();
 
-        // TODO: delete all pointers in open and closed list
         std::vector<std::shared_ptr<Node>> OpenList; //not visited
         std::vector<std::shared_ptr<Node>> ClosedList; //visited
         OpenList.emplace_back(std::make_shared<Node>(start, nullptr, 0.0f, Heuristic_Manhatten(start, end)));
@@ -144,7 +134,6 @@ namespace AStar
             if (current->tile == end)
             {
                 SetPath(current.get());
-                DrawPath();
                 return path;
             }
 
@@ -159,7 +148,7 @@ namespace AStar
                 }
 
                 Tile* neighbour = GetNeighbour(i, current->tile);
-                if (neighbour != nullptr && !DoesContainNode(ClosedList, neighbour) && (neighbour->walkable || neighbour == end)) //if not null, if not in visited list and is walkable
+                if (neighbour != nullptr && !DoesContainNode(ClosedList, neighbour) && (neighbour->IsWalkable() || neighbour == end)) //if not null, if not in visited list and is walkable
                 {
                     if (!CanCutCorners)
                     {
@@ -180,7 +169,7 @@ namespace AStar
                             Tile* beforeNode = GetNeighbour(before, current->tile); //node before corner
                             Tile* afterNode = GetNeighbour(after, current->tile); //node after corner
 
-                            if (!beforeNode->walkable || !afterNode->walkable) //if either not walkable, skip. Does not cut corner
+                            if (!beforeNode->IsWalkable() || !afterNode->IsWalkable()) //if either not walkable, skip. Does not cut corner
                             {
                                 continue;
                             }
@@ -231,13 +220,7 @@ namespace AStar
         return path;
     }
 
-    float Heuristic_Manhatten(Tile* start, Tile* end)
-    {
-        glm::ivec2 distance = end->GetGridPos() - start->GetGridPos();
-        float XDiff = abs(distance.x);
-        float YDiff = abs(distance.y);
-        return XDiff + YDiff;
-    }
+
 
     
 

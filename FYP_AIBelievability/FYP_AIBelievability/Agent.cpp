@@ -28,16 +28,34 @@ void Agent::Update(float deltaTime)
 
 	if (velocity.x > 0.0f) //moving right
 	{
+		if (!isMoving)
+		{
+			animIndex = 0;
+			isMoving = true;
+		}
+
 		maxSprites = 4;
 		facingLeft = false;
 	}
 	else if (velocity.x < 0.0f) //moving left
 	{
+		if (!isMoving)
+		{
+			animIndex = 0;
+			isMoving = true;
+		}
+
 		maxSprites = 4;
 		facingLeft = true;
 	}
 	else //not moving
 	{
+		if (isMoving)
+		{
+			animIndex = 0;
+			isMoving = false;
+		}
+
 		rectYPos = 0;
 		maxSprites = 8;
 	}
