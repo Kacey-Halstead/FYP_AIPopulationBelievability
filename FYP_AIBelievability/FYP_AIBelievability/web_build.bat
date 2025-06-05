@@ -54,6 +54,16 @@ WFC.cpp ^
 --preload-file Images\ROCK.png ^
 --preload-file Images\SEA.png ^
 --preload-file Images\TREE.png ^
+--preload-file Images\bushes.png ^
+--preload-file Images\base_character.png ^
+--preload-file Images\bushes_red.png ^
+--preload-file Images\bushes_blue.png ^
+--preload-file Images\bushesh_pink.png ^
+--preload-file Images\world_tiles.png ^
+--preload-file Images\sandwaterwithmiddle.png ^
+--preload-file Images\sand_water_tiles.png ^
+--preload-file Images\sand_tiles.png ^
+--preload-file Images\land_coast_overlap.png ^
 -sUSE_SDL=2 ^
 -sUSE_SDL_IMAGE=2 ^
 -sSDL2_IMAGE_FORMATS="png" ^
