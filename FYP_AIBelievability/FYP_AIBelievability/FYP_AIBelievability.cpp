@@ -111,6 +111,7 @@ void FYP_AIBelievability::Render() const
 	for (int i = 0; i < foodSourcesIndex - 1; i++)
 	{
 		mFoodSources[i].Render(mSDL->getRenderer(), mSDL->getWindow());
+		mFoodSources[i].isActive = true;
 	}
 
 	for (const Agent& a : mAgents) //render agents
