@@ -64,6 +64,9 @@ WFC.cpp ^
 --preload-file Images\sand_water_tiles.png ^
 --preload-file Images\sand_tiles.png ^
 --preload-file Images\land_coast_overlap.png ^
+--preload-file Images\bushRED.png ^
+--preload-file Images\bushBLUE.png ^
+--preload-file Images\agent_single.png ^
 -sUSE_SDL=2 ^
 -sUSE_SDL_IMAGE=2 ^
 -sSDL2_IMAGE_FORMATS="png" ^

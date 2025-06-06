@@ -6,6 +6,22 @@
 
 //FOOD
 
+inline static void SetMoveTo(States& states, const glm::vec2& position)
+{
+	states.moveState.to = position;
+	states.moveState.path = AStar::FindPath(states.agent->position, states.moveState.to);
+
+	if (states.moveState.path.empty())
+	{
+		states.moveState.isMoveToSet = false;
+	}
+	else
+	{
+		states.moveState.isMoveToSet = true;
+		states.moveState.path.erase(states.moveState.path.begin());
+	}
+}
+
 struct EatFood
 {
 	static void Execute(States& states)
@@ -14,18 +30,18 @@ struct EatFood
 		{
 			if (states.foodState.foundFoodRef->EatFrom()) //if canEat
 			{
-				if (states.foodState.foundFoodRef->isBlue && states.agent->blueBushPref)
+				if (states.foodState.foundFoodRef->isBlue == states.agent->blueBushPref)
 				{
-					states.agent->ChangeEmotionValue(JOY, 1);
 					states.agent->ChangeEmotionValue(ANGER, -1);
 					states.agent->ChangeEmotionValue(SADNESS, -1);
 					states.agent->ChangeEmotionValue(DISGUST, -2);
+					states.agent->ChangeEmotionValue(JOY, 1);
 				}
 				else
 				{
-					states.agent->ChangeEmotionValue(DISGUST, 3);
 					states.agent->ChangeEmotionValue(ANGER, 1);
 					states.agent->ChangeEmotionValue(SADNESS, 1);
+					states.agent->ChangeEmotionValue(DISGUST, 3);
 				}
 
 				states.agent->needs.hungerVal = 100;
@@ -50,9 +66,7 @@ struct EatFood
 				return;
 			}
 
-			states.moveState.isMoveToSet = true;
-			states.moveState.to = states.foodState.foundFoodRef->position;
-			states.moveState.path = AStar::FindPath(states.agent->position, states.moveState.to);
+			SetMoveTo(states, states.foodState.foundFoodRef->position);
 		}
 	}
 
@@ -82,23 +96,19 @@ struct EatFood
 			std::reverse(toCheck.begin(), toCheck.end()); //reverse so in next stage, red bushes checked first
 		}
 		
-
-		for (std::pair<glm::vec2, FoodSource*> foodSource : toCheck)
+		for (auto& [foodPosition, foodSource] : toCheck)
 		{
-			float distance = DistanceBetween(states.agent->position, foodSource.first);
-			if( foodSource.second->canEat && distance < closestFood.first)
+			//if fave food found, prefer. else, closest option
+			if (closestFood.second && (foodSource->isBlue != closestFood.second->isBlue)) break;
+
+			float distance = DistanceBetween(states.agent->position, foodPosition);
+			if(foodSource->canEat && distance < closestFood.first)
 			{
 				if (!AStar::FindPath(states.agent->position, states.moveState.to).empty())
 				{
-					closestFood = std::make_pair(distance, foodSource.second);
+					closestFood = std::make_pair(distance, foodSource);
 				}
 			}
-		}
-
-		if (closestFood.second != nullptr && !(closestFood.second->position.x < 0 || closestFood.second->position.x > 29 || 
-			closestFood.second->position.y < 0 || closestFood.second->position.y > 29))
-		{
-			return states.foodState.prevFoodPositions.front().second;
 		}
 
 		return closestFood.second;
@@ -120,19 +130,19 @@ struct DrinkWater
 		}
 		else if(states.agent->GetGridRef()->IsInGrid(states.agent->position))
 		{
-			states.moveState.to = FindNearestWaterSource(states);
+			glm::vec2 waterPos = FindNearestWaterSource(states);
 
-			if (states.moveState.to == glm::vec2(-1.0f, -1.0f)) //if none available
+			if (waterPos == glm::vec2(-1.0f, -1.0f)) //if none available
 			{
 				states.moveState.to = states.agent->position;
 				states.waterState.prevWaterPositions.clear();
 				return;
 			}
 
-			states.waterState.foundWaterRef = states.moveState.to;
+			states.waterState.foundWaterRef = waterPos;
 			states.waterState.waterRefSet = true;
-			states.moveState.isMoveToSet = true;
-			states.moveState.path = AStar::FindPath(states.agent->position, states.moveState.to);
+
+			SetMoveTo(states, waterPos);
 		}
 	}
 
@@ -184,14 +194,7 @@ struct Wander
 		if(states.agent->GetGridRef()->IsInGrid(states.agent->position) && !states.moveState.isMoveToSet)
 		{ 
 			states.moveState.from = states.agent->position;
-
-			states.moveState.to = GetToPos(states, states.agent->GetDominantEmotion().first);
-
-			states.moveState.path = AStar::FindPath(states.moveState.from, states.moveState.to);
-			if (!states.moveState.path.empty())
-			{
-				states.moveState.isMoveToSet = true;
-			}		
+			SetMoveTo(states, GetToPos(states, states.agent->GetDominantEmotion().first));
 		}
 	}
 
@@ -317,9 +320,8 @@ struct FindAgentToSocialise
 			states.socialState.agentRef->states.socialState.isTalkingTo = true;
 			states.socialState.agentRef->states.moveState.isMoveToSet = false;
 			states.socialState.isSeekingOtherAgent = true;
-			states.moveState.to = states.socialState.agentRef->position;
-			states.moveState.path = AStar::FindPath(states.agent->position, states.moveState.to);
-			states.moveState.isMoveToSet = true;
+
+			SetMoveTo(states, states.socialState.agentRef->position);
 		}
 	}
 
@@ -511,9 +513,7 @@ struct RunAway
 			states.socialState.isTalkingTo = false;
 			states.agent->SetSpeed(2.5f);
 			states.moveState.from = states.agent->position;
-			states.moveState.isMoveToSet = true;
-			states.moveState.to = GetRandomValidTile(states);
-			states.moveState.path = AStar::FindPath(states.moveState.from, states.moveState.to);
+			SetMoveTo(states, GetRandomValidTile(states));
 		}
 
 	}

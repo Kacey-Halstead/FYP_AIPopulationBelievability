@@ -285,18 +285,15 @@ std::pair<EEmotions, float> Agent::GetDominantEmotion()
 
 void Agent::ChangeEmotionValue(EEmotions emotion, float value)
 {
-	for (int i = 0; i < 8; i++)
-	{
-		if (emotion == emotions[i].first)
-		{
-			emotions[i].second += (value * personalityComponent.emotionMultipliers[i])/10;
+	emotions[emotion].second += (value * personalityComponent.emotionMultipliers[emotion])/10;
 
-			if (emotions[i].second > 1)
-			{
-				emotions[i].second = 1;
-			}
-			break;
-		}
+	if (emotions[emotion].second > 1)
+	{
+		emotions[emotion].second = 1;
+	}
+	else if (emotions[emotion].second < -1)
+	{
+		emotions[emotion].second = -1;
 	}
 
 	switch (emotion)
